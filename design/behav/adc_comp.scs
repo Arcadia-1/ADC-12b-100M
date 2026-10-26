@@ -50,6 +50,75 @@ CINN (INN VSS) capacitor c=cin
 //   &OUTN @WIRE {#I0:OUTN %p_outn:p};
 //   /* --- annotations --- */
 //   (-18, 12) @TEXT("adc_comp (behavioral): latched comparator, delay t0 + tau*ln(vsat/|vd|)", halign="start") => @SET-STYLE $title_style;
-//   (-18, 10.5) @TEXT("noise sigma*noise_en (Gaussian per decision), timing scaled by beh_speed; CIN models the input capacitance", halign="start") => @SET-STYLE $note_style
+//   (-18, 10.5) @TEXT("noise sigma*noise_en (Gaussian per decision), timing scaled by beh_speed; CIN models the input capacitance", halign="start") => @SET-STYLE $note_style;
+//   (16, 8.5) @TEXT("adc_comp ports", halign="start", bold=true) => @SET-STYLE $note_style;
+//   @RECTANGLE {(16, 8) (44.244, -1.24)} => @SET-STYLE $table_style;
+//   @LINE {(16, 6.845) (44.244, 6.845)} => @SET-STYLE $table_style;
+//   @LINE {(18.276, 8) (18.276, -1.24)} => @SET-STYLE $table_style;
+//   @LINE {(22.147, 8) (22.147, -1.24)} => @SET-STYLE $table_style;
+//   @LINE {(25.38, 8) (25.38, -1.24)} => @SET-STYLE $table_style;
+//   (16.5, 7.4225) @TEXT("pin", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (18.776, 7.4225) @TEXT("direction", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (22.647, 7.4225) @TEXT("type", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (25.88, 7.4225) @TEXT("description", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (16.5, 6.2675) @TEXT("INP", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.776, 6.2675) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.647, 6.2675) @TEXT("analog", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.88, 6.2675) @TEXT("positive input (top plate TOPN)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (16.5, 5.1125) @TEXT("INN", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.776, 5.1125) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.647, 5.1125) @TEXT("analog", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.88, 5.1125) @TEXT("negative input (top plate TOPP)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (16.5, 3.9575) @TEXT("CLKC", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.776, 3.9575) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.647, 3.9575) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.88, 3.9575) @TEXT("comparator clock from SAR logic; 0 = reset, 1 = evaluate", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (16.5, 2.8025) @TEXT("OUTP", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.776, 2.8025) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.647, 2.8025) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.88, 2.8025) @TEXT("1 when INP > INN (return-to-zero)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (16.5, 1.6475) @TEXT("OUTN", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.776, 1.6475) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.647, 1.6475) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.88, 1.6475) @TEXT("1 when INP < INN (return-to-zero)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (16.5, 0.4925) @TEXT("AVDD", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.776, 0.4925) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.647, 0.4925) @TEXT("supply", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.88, 0.4925) @TEXT("0.9 V analog supply", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (16.5, -0.6625) @TEXT("VSS", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.776, -0.6625) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.647, -0.6625) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.88, -0.6625) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style
+// }
+// @RNL(author="adcflow gen") {
+//   /* block symbol of adc_comp, generated from tools/adcflow/symbols.py by `python -m adcflow gen` -- do not edit this record */
+//   %adc_comp = @DEFINE-SYMBOL(box=[-6, -5, 6, 5]) {
+//     @LINE(linewidth=0.24) {(-4, 4) (-4, -4) (4, 0) (-4, 4)};
+//     (-6, 1) @PIN(terminal=1, direction="left");
+//     @LINE {(-6, 1) (-4, 1)};
+//     (-6, -1) @PIN(terminal=2, direction="left");
+//     @LINE {(-6, -1) (-4, -1)};
+//     @LINE(cap="round") {(-3.55, 1) (-2.95, 1)};
+//     @LINE(cap="round") {(-3.25, 1.3) (-3.25, 0.7)};
+//     @LINE(cap="round") {(-3.55, -1) (-2.95, -1)};
+//     (6, 1) @PIN(terminal=4, direction="right");
+//     @LINE {(6, 1) (2, 1)};
+//     (5.8, 1.25) @TEXT("OUTP", size=0.55, halign="end", valign="bottom");
+//     (6, -1) @PIN(terminal=5, direction="right");
+//     @LINE {(6, -1) (2, -1)};
+//     (5.8, -1.25) @TEXT("OUTN", size=0.55, halign="end", valign="top");
+//     (-2, 5) @PIN(terminal=6, direction="up");
+//     @LINE {(-2, 5) (-2, 3)};
+//     (-2, -5) @PIN(terminal=7, direction="down");
+//     @LINE {(-2, -5) (-2, -3)};
+//     (1, -5) @PIN(terminal=3, direction="down");
+//     @LINE {(1, -5) (1, -1.5)};
+//     (1.45, -2.55) @TEXT("CLKC", size=0.55, halign="start", valign="middle");
+//     @LINE {(1.45, -4.45) (1.85, -4.45) (1.85, -3.75) (2.45, -3.75) (2.45, -4.45) (2.85, -4.45)};
+//     @LINE {(-2, -0.7) (-1.2, -0.7) (-1.2, 0.7) (-0.4, 0.7)};
+//     ? @TEXT("${name}", key="name", size=0.8, valign="bottom") => @PLACE(0.2, 3.1);
+//     ? @TEXT("${model}", key="model", size=0.5) => @PLACE(0.2, 2.25)
+//   };
+//   # @SET-SYMBOL %adc_comp
 // }
 ends adc_comp

@@ -20,6 +20,8 @@ VAVDD (AVDD 0) vsource dc=vdd
 tran1 tran stop=tstop noisefmax=nfmax*noise_en*devnoise noiseseed=1 outputstart=tstop
 tbopts options save=none
 // @RNL {
+//   /* pins connected by net name: the net-name label of rnl-std-fill on every unwired pin, placed below by its key netname */
+//   $LABEL_TERMINAL_SET @TEXT("${net}", key="netname", size=0.6);
 //   /* --- semantics --- */
 //   &0 @ADD-TO $GROUND_NET_SET;
 //   #XDUT @PLACE(6, 0);
@@ -30,50 +32,35 @@ tbopts options save=none
 //   #COP @PLACE(0, -15);
 //   #CON @PLACE(8, -15);
 //   #VAVDD @PLACE(0, 17);
-//   &INP @WIRE {#XDUT:INP (-2, 1)};
-//   (-2.3, 0.75) @TEXT("INP", size=0.6, halign="end");
-//   &INN @WIRE {#XDUT:INN (-2, -1)};
-//   (-2.3, -1.25) @TEXT("INN", size=0.6, halign="end");
-//   &CLKC @WIRE {#XDUT:CLKC (7, -7)};
-//   (7.25, -7.3) @TEXT("CLKC", size=0.6, rotate=90, halign="end");
-//   &OUTP @WIRE {#XDUT:OUTP (14, 1)};
-//   (14.3, 0.75) @TEXT("OUTP", size=0.6, halign="start");
-//   &OUTN @WIRE {#XDUT:OUTN (14, -1)};
-//   (14.3, -1.25) @TEXT("OUTN", size=0.6, halign="start");
-//   &AVDD @WIRE {#XDUT:AVDD (4, 7)};
-//   (4.25, 7.3) @TEXT("AVDD", size=0.6, rotate=90, halign="start");
+//   #XDUT:INP @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", dx=-0.4, dy=0);
+//   #XDUT:INN @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", dx=-0.4, dy=0);
+//   #XDUT:CLKC @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", rotate=90, dx=0, dy=-0.4);
+//   #XDUT:OUTP @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", dx=0.4, dy=0);
+//   #XDUT:OUTN @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", dx=0.4, dy=0);
+//   #XDUT:AVDD @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g1 = $GROUND @ATTACH &0 => @PLACE(4, -6.5);
 //   &0 @WIRE {#XDUT:VSS %g1:p};
-//   &INP @WIRE {#VDP:1 (-16, 9)};
-//   (-15.75, 9.3) @TEXT("INP", size=0.6, rotate=90, halign="start");
+//   #VDP:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g2 = $GROUND @ATTACH &0 => @PLACE(-16, 1.5);
 //   &0 @WIRE {#VDP:2 %g2:p};
-//   &INN @WIRE {#VDN:1 (-16, 0)};
-//   (-15.75, 0.3) @TEXT("INN", size=0.6, rotate=90, halign="start");
+//   #VDN:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g3 = $GROUND @ATTACH &0 => @PLACE(-16, -7.5);
 //   &0 @WIRE {#VDN:2 %g3:p};
-//   &CLKC @WIRE {#VCK:1 (-16, -9)};
-//   (-15.75, -8.7) @TEXT("CLKC", size=0.6, rotate=90, halign="start");
+//   #VCK:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g4 = $GROUND @ATTACH &0 => @PLACE(-16, -16.5);
 //   &0 @WIRE {#VCK:2 %g4:p};
-//   &OUTP @WIRE {#COP:1 (0, -11)};
-//   (0.25, -10.7) @TEXT("OUTP", size=0.6, rotate=90, halign="start");
+//   #COP:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g5 = $GROUND @ATTACH &0 => @PLACE(0, -18.5);
 //   &0 @WIRE {#COP:2 %g5:p};
-//   &OUTN @WIRE {#CON:1 (8, -11)};
-//   (8.25, -10.7) @TEXT("OUTN", size=0.6, rotate=90, halign="start");
+//   #CON:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g6 = $GROUND @ATTACH &0 => @PLACE(8, -18.5);
 //   &0 @WIRE {#CON:2 %g6:p};
-//   &OUTP @WIRE {#ISMP:P (26, 5)};
-//   (25.7, 4.75) @TEXT("OUTP", size=0.6, halign="end");
-//   &OUTN @WIRE {#ISMP:N (26, 3)};
-//   (25.7, 2.75) @TEXT("OUTN", size=0.6, halign="end");
-//   &CLKC @WIRE {#ISMP:TRIG (32, -2)};
-//   (32.25, -2.3) @TEXT("CLKC", size=0.6, rotate=90, halign="end");
+//   #ISMP:P @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", dx=-0.4, dy=0);
+//   #ISMP:N @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", dx=-0.4, dy=0);
+//   #ISMP:TRIG @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", rotate=90, dx=0, dy=-0.4);
 //   %g7 = $GROUND @ATTACH &0 => @PLACE(35, -1.5);
 //   &0 @WIRE {#ISMP:VSS %g7:p};
-//   &AVDD @WIRE {#VAVDD:1 (0, 21)};
-//   (0.25, 21.3) @TEXT("AVDD", size=0.6, rotate=90, halign="start");
+//   #VAVDD:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g8 = $GROUND @ATTACH &0 => @PLACE(0, 13.5);
 //   &0 @WIRE {#VAVDD:2 %g8:p};
 //   (-30, 31) @TEXT("tb_comp_noise: input-referred noise and offset from P(OUTP) vs vd", halign="start") => @SET-STYLE $title_style;

@@ -6,7 +6,7 @@ instance's terminal list is produced in the port order of specs/blocks.
 
 from __future__ import annotations
 
-from .gen import GEN_HEADER, block_symbols
+from .gen import GEN_HEADER, block_symbol_record, block_symbols, io_rows
 from .rnldraw import Sheet, turn
 from .specs import blocks
 
@@ -77,6 +77,7 @@ def gen_top() -> str:
     s = Sheet()
     _draw(s, syms)
     L += s.record()
+    L += block_symbol_record("adc_top")
     L.append("ends adc_top")
     return "\n".join(L) + "\n"
 
@@ -219,5 +220,6 @@ def _draw(s: Sheet, syms: dict) -> None:
     s.text(X_L, 49, "P CDAC drawn mirrored (MX): its control buses on top. P side: RL<j> = UP<j>, DH<j> = DN<j>;"
                     " N side: DH<j> = UP<j>, RL<j> = DN<j>. Phases connect by net name.",
            style="note_style", halign="start")
+    s.io_table(2, N_Y - 18, "adc_top ports", io_rows("adc_top"))
     s.text(34, 2.4, "TOPN \\to INP, TOPP \\to INN (crossed): OUTP = 1 means UP", style="note_style",
            halign="middle")

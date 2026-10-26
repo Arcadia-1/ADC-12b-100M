@@ -96,10 +96,18 @@ class Sheet:
     insts: dict[str, Inst] = field(default_factory=dict)
     wired: set = field(default_factory=set)
     buses: dict = field(default_factory=dict)     # (inst, pin) -> nets given so far to a bus pin
+    net_labels: bool = False                      # the label fill of rnl-std-fill is used
+    n_stub: int = 0
+
+    LABEL = {"left": ("end", -1, 0, 0), "right": ("start", 1, 0, 0),
+             "top": ("start", 0, 1, 90), "bottom": ("end", 0, -1, 90)}
 
     def label_stub(self, inst: str, term: str, net: str, side: str, length: float = 2.0) -> None:
-        """Short wire out of an unwired pin with the net name at its end (connect-by-name).
-        Terminals that share one pin (a bus pin) get one bus stub labelled NAME<msb:lsb>, drawn
+        """Connect an unwired pin by the name of its net (side: where the pin points).
+        The pin stays unwired and gets the net-name label of rnl-std-fill
+        ($LABEL_TERMINAL_SET, opted in by record()); this only places that label, attached to
+        the terminal, beside the end of the pin. Terminals that share one pin (a bus pin) get one
+        bus stub of `length` instead, its label NAME<msb:lsb> attached to the bus wire; it is drawn
         once all of them are given (or at record())."""
         pins = self.insts[inst].pins
         members = [t for t, p in pins.items() if p == pins[term]]
@@ -109,30 +117,50 @@ class Sheet:
             if len(got["nets"]) == len(members):
                 self._bus_stub(inst, pins[term])
             return
-        self._stub(inst, term, net, net, side, length)
+        self.net_label(inst, term, side)
+
+    def net_label(self, inst: str, term, side: str, gap: float = 0.4) -> None:
+        """Place the fill label ${net} of an unwired terminal beside its pin."""
+        self.net_labels = True
+        ha, ux, uy, rot = self.LABEL[side]
+        r = f", rotate={rot}" if rot else ""
+        self.emit(f'#{inst}:{term} @TEXT("${{net}}", key="netname", size=0.6, halign="{ha}", '
+                  f'valign="middle"{r}, dx={_fmt(gap * ux)}, dy={_fmt(gap * uy)});')
 
     def _bus_stub(self, inst: str, at) -> None:
         got = self.buses.pop((inst, at))
         terms = [t for t in self.insts[inst].pins if t in got["nets"]]
         nets = [got["nets"][t] for t in terms]
-        self._stub(inst, terms[0], nets, bus_label(nets), got["side"], got["length"])
+        x, y = self.insts[inst].pin(terms[0])
+        ha, ux, uy, rot = self.LABEL[got["side"]]
+        n = got["length"]
+        self.n_stub += 1
+        w = self.bus_wire(f"bs{self.n_stub}", nets, f"#{inst}:{terms[0]}", (x + n * ux, y + n * uy))
+        r = f", rotate={rot}" if rot else ""
+        self.emit(f'{w} @TEXT("{bus_label(nets)}", size=0.6, halign="{ha}", valign="middle"{r}) '
+                  f"=> @PLACE{_pt((x + (n + 0.3) * ux, y + (n + 0.3) * uy))};")
         self.wired.update(f"#{inst}:{t}" for t in terms)
 
-    def _stub(self, inst: str, term, net, label: str, side: str, length: float) -> None:
-        x, y = self.insts[inst].pin(term)
-        dx, dy = {"left": (-length, 0), "right": (length, 0), "top": (0, length), "bottom": (0, -length)}[side]
-        if isinstance(net, list):
-            self.emit(f"{self.netset(net)} @WIRE {{{self._items([f'#{inst}:{term}', (x + dx, y + dy)])}}};")
-        else:
-            self.wire(net, f"#{inst}:{term}", (x + dx, y + dy))
-        if side == "left":
-            self.emit(f'({_fmt(x + dx - 0.3)}, {_fmt(y - 0.25)}) @TEXT("{label}", size=0.6, halign="end");')
-        elif side == "right":
-            self.emit(f'({_fmt(x + dx + 0.3)}, {_fmt(y - 0.25)}) @TEXT("{label}", size=0.6, halign="start");')
-        elif side == "bottom":
-            self.emit(f'({_fmt(x + 0.25)}, {_fmt(y + dy - 0.3)}) @TEXT("{label}", size=0.6, rotate=90, halign="end");')
-        else:
-            self.emit(f'({_fmt(x + 0.25)}, {_fmt(y + dy + 0.3)}) @TEXT("{label}", size=0.6, rotate=90, halign="start");')
+    def io_table(self, x: float, y: float, title: str, rows: list[tuple], size: float = 0.55) -> None:
+        """A table of the ports, top left corner at (x, y): rows of (pin, direction, type, description)."""
+        head = ("pin", "direction", "type", "description")
+        cw = [max(len(str(r[i])) for r in [head] + rows) * 0.58 * size + 1.0 for i in range(4)]
+        rh = size * 2.1
+        xs = [x]
+        for w in cw:
+            xs.append(xs[-1] + w)
+        n = len(rows) + 1
+        self.text(x, y + 0.5, title, style="note_style", halign="start", bold=True)
+        self.emit(f'@RECTANGLE {{{_pt((x, y))} {_pt((xs[-1], y - n * rh))}}} => @SET-STYLE $table_style;')
+        self.emit(f"@LINE {{{_pt((x, y - rh))} {_pt((xs[-1], y - rh))}}} => @SET-STYLE $table_style;")
+        for xc in xs[1:-1]:
+            self.emit(f"@LINE {{{_pt((xc, y))} {_pt((xc, y - n * rh))}}} => @SET-STYLE $table_style;")
+        for k, r in enumerate([head] + rows):
+            yc = y - (k + 0.5) * rh
+            for i, v in enumerate(r):
+                v = str(v).replace('"', "'")
+                self.text(xs[i] + 0.5, yc, v, style="table_style", halign="start", valign="middle",
+                          size=size, **({"bold": True} if k == 0 else {}))
 
     def emit(self, text: str) -> None:
         self.lines.append(text)
@@ -206,6 +234,11 @@ class Sheet:
         for inst, at in list(self.buses):
             self._bus_stub(inst, at)
         body = list(self.lines)
+        if self.net_labels:
+            body[:0] = ["/* pins connected by net name: the net-name label of rnl-std-fill on every unwired pin,"
+                        " placed below by its key netname */",
+                        '$LABEL_TERMINAL_SET @TEXT("${net}", key="netname", size=0.6);']
+        body = [ln for b in body for ln in b.splitlines()]
         if body:
             body[-1] = body[-1].rstrip(";")
         out = [f"{comment} @RNL {{"]
