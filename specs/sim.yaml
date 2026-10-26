@@ -1,0 +1,15 @@
+# Site-independent simulation settings. The server, its paths and the shell
+# setup come from the untracked site configuration (see site.example.yaml);
+# the run directory lives on a local disk of the server and is deleted after
+# the useful outputs are pulled back.
+
+max_parallel: 6
+# files fetched back from every job (glob patterns relative to the job dir)
+fetch: ["*.txt", "*.log", "*.json", "deck.raw/*.tran*", "deck.raw/*.dc*", "deck.raw/*.ac*", "deck.raw/*.noise*", "deck.raw/*.info*"]
+fetch_max_mb: 50                                # per job; larger files are skipped with a warning
+modes:
+  spectre: []
+  aps: ["+aps"]
+  cx: ["+preset=cx", "+mt"]
+  ax: ["+preset=ax", "+mt"]
+  mx: ["+preset=mx", "+mt"]

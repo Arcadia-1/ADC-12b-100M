@@ -1,0 +1,36 @@
+# The 45 standard PVT corners: 5 process x 3 supply x 3 temperature.
+# Model data stays on the simulation server; this file only names the library
+# sections. The model directory and file names come from the untracked site
+# configuration (site.example.yaml). `python -m adcflow corners` lists the set.
+
+pdk:
+  # Library sections per process corner (core_file and hv_file of the site config).  RES/MOM/R_METAL only have tt/ss/ff:
+  # skewed MOS corners use the typical passive corner.
+  sections:
+    tt: {mos: ttmacro_mos_moscap, res: tt_res_bip_dio_disres, mom: tt_mom, rmetal: tt_r_metal, ind: tt_ind_jvar}
+    ff: {mos: ffmacro_mos_moscap, res: ff_res_bip_dio_disres, mom: ff_mom, rmetal: ff_r_metal, ind: ff_ind_jvar}
+    ss: {mos: ssmacro_mos_moscap, res: ss_res_bip_dio_disres, mom: ss_mom, rmetal: ss_r_metal, ind: ss_ind_jvar}
+    fs: {mos: fsmacro_mos_moscap, res: tt_res_bip_dio_disres, mom: tt_mom, rmetal: tt_r_metal, ind: tt_ind_jvar}
+    sf: {mos: sfmacro_mos_moscap, res: tt_res_bip_dio_disres, mom: tt_mom, rmetal: tt_r_metal, ind: tt_ind_jvar}
+  # Monte Carlo (global + local mismatch, or local only around a corner)
+  mc_sections:
+    global_local: {mos: globalmc_localmc_mos_moscap, res: globalmc_localmc_res_bip_dio_disres, mom: globalmc_localmc_mom}
+    local_tt: {mos: ttglobalcorner_localmc_mos_moscap, res: ttglobalcorner_localmc_res_bip_dio_disres, mom: ttglobalcorner_localmc_mom}
+
+process: [tt, ff, ss, fs, sf]       # first letter NMOS, second PMOS
+supply:
+  low:  {vdd: 0.81, vdd18: 1.62}
+  nom:  {vdd: 0.90, vdd18: 1.80}
+  high: {vdd: 0.99, vdd18: 1.98}
+temperature: [-40, 27, 125]
+
+# The reference input VREF_IN is an ideal 0.900 V in every corner.
+vref_in: 0.900
+
+# Corner names are <process>_<supply>_<temp>, temp -40 written m40,
+# e.g. tt_nom_27, ss_low_m40, ff_high_125.
+# Named corner subsets used by the test plan.
+sets:
+  typ: [tt_nom_27]
+  quick: [tt_nom_27, ss_low_m40, ss_low_125, ff_high_m40, ff_high_125, fs_nom_27, sf_nom_27]
+  all: "*"          # all 45

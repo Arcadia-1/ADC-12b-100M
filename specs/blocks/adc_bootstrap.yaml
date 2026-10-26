@@ -1,0 +1,55 @@
+block: adc_bootstrap
+title: Bootstrapped gate generator for the bottom-plate input switches (one per side)
+version: 0.1.0
+owner: TBD
+status: behavioral
+views:
+  behav: design/behav/adc_bootstrap.scs
+  xtor: design/xtor/adc_bootstrap/adc_bootstrap.scs
+summary: >
+  While PHI_B is high, VG = VIN + Vboot (Vboot ~ AVDD, from a capacitor charged
+  during conversion), so every NMOS input switch inside adc_cdac sees a
+  signal-independent gate-source voltage. PHI_B falling turns VG to 0 V quickly
+  (the sampling instant itself is set by PHI_S in adc_cdac, 20-80 ps earlier).
+  The load is the gate capacitance of all input switches of one CDAC.
+ports:
+  - {name: VIN,    dir: in,  type: analog, side: left,   desc: "input (switch source side)"}
+  - {name: PHI_B,  dir: in,  type: clock,  side: left,   desc: "high = track"}
+  - {name: PHI_BB, dir: in,  type: clock,  side: left,   desc: "complement of PHI_B"}
+  - {name: VG,     dir: out, type: analog, side: right,  desc: "boosted gate"}
+  - {name: AVDD,   dir: supply, type: supply, side: top,    desc: "0.9 V"}
+  - {name: VSS,    dir: ground, type: supply, side: bottom, desc: "ground"}
+operating:
+  vin_range: [0.0, 0.9]
+  load: >
+    Reference load in the testbench: the input switch of the reference CDAC
+    (nch_ulvt_mac, total W = 48 um, L = 30 nm, sized for 25 ohm at Vgs = 0.9 V)
+    driving C_S = 1.0235 pF whose top plate is reset to VCM by an ideal PHI_S
+    switch; VG wiring 10 fF.
+  soa: "|Vgs|, |Vgd|, |Vds| <= 1.0 V for every thin-oxide device in every corner"
+specs:
+  - {id: BST-01, name: "VG - VIN during tracking (min over VIN 0..0.9 V)", metric: vgs_min_V, unit: V, min: 0.72, corners: all, test: tb_bootstrap_dc}
+  - {id: BST-02, name: "variation of VG - VIN over VIN range",     metric: vgs_var_mV, unit: mV, max: 40, corners: all, test: tb_bootstrap_dc}
+  - {id: BST-03, name: "VG fall PHI_B -> VG < 0.1 V",              metric: t_off_ps,   unit: ps, max: 60, corners: all, test: tb_bootstrap_dc}
+  - {id: BST-04, name: "VG rise PHI_B -> VG - VIN > 95 %",         metric: t_on_ps,    unit: ps, max: 300, corners: all, test: tb_bootstrap_dc}
+  - {id: BST-05, name: "tracking SFDR with reference switch (diff, 49.9 MHz, -1 dBFS, 50 ohm)", metric: sfdr_dBc, unit: dBc, min: 82, corners: all, test: tb_bootstrap_track}
+  - {id: BST-06, name: "tracking SNDR excl. kT/C (same)",          metric: sndr_dB,    unit: dB, min: 78, corners: all, test: tb_bootstrap_track}
+  - {id: BST-07, name: "average AVDD current at 100 MHz (one instance)", metric: iavg_uA, unit: uA, max: 25, corners: typ, test: tb_bootstrap_dc}
+  - {id: BST-08, name: "SOA violations",                           metric: soa_violations, unit: count, max: 0, corners: all, test: tb_bootstrap_dc}
+tests:
+  tb_bootstrap_dc:
+    netlist: tb/bootstrap/tb_bootstrap_dc.scs
+    measure: adcflow.measure.bootstrap:dc
+    needs_pdk: true
+    desc: >
+      100 MHz ideal phases; VIN stepped 0, 0.15 .. 0.9 V (one level per 4
+      cycles) through 50 ohm with the reference load. Measures VG - VIN at the
+      end of each track phase, turn-on / turn-off times and AVDD current.
+  tb_bootstrap_track:
+    netlist: tb/bootstrap/tb_bootstrap_track.scs
+    measure: adcflow.measure.bootstrap:track
+    needs_pdk: true
+    desc: >
+      Two bootstraps with reference loads, differential sine from 50 ohm per
+      side, coherent 49.9 MHz, -1 dBFS. The bottom-plate voltages at the PHI_S
+      falling edges are the samples (bottom-plate sampling); FFT of 256 samples.

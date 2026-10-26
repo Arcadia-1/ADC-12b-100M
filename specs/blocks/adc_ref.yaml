@@ -1,0 +1,59 @@
+block: adc_ref
+title: Reference driver (VREFP = 0.9 V) and top-plate common-mode (VCM = 0.45 V)
+version: 0.1.0
+owner: TBD
+status: behavioral
+views:
+  behav: design/behav/adc_ref.scs
+  xtor: design/xtor/adc_ref/adc_ref.scs
+summary: >
+  Buffers the high-impedance 0.9 V reference input VREF_IN into VREFP, which
+  supplies the CDAC drivers (~1 pC per conversion, first-order independent of
+  the code thanks to the split-capacitor switching). Runs from AVDD18 because a
+  0.9 V output cannot be regulated from the 0.9 V rail. The on-chip decoupling
+  (>= 2 nF, area is not limited) is part of this block. VCM (0.45 V) resets the
+  top plates during tracking and only sees small common-mode charge.
+ports:
+  - {name: VREF_IN, dir: in,  type: analog, side: left,   desc: "0.900 V reference input, high impedance (< 1 uA)"}
+  - {name: VREFP,   dir: out, type: analog, side: right,  desc: "buffered 0.9 V reference for the CDAC"}
+  - {name: VCM,     dir: out, type: analog, side: right,  desc: "0.45 V top-plate reset level"}
+  - {name: AVDD18,  dir: supply, type: supply, side: top,    desc: "1.8 V supply (thick-oxide devices allowed)"}
+  - {name: AVDD,    dir: supply, type: supply, side: top,    desc: "0.9 V supply (bias / VCM if used)"}
+  - {name: VSS,     dir: ground, type: supply, side: bottom, desc: "ground (also VREFN)"}
+operating:
+  load_vrefp: "periodic charge pulses, 1.0 pC per 10 ns conversion (tb profile), plus 0..200 uA DC sweep"
+  load_vcm: "2 x 1.25 pF switched to top plates at 100 MHz"
+specs:
+  - {id: REF-01, name: "VREFP - VREF_IN (DC, 100 uA load)",       metric: vrefp_err_mV, unit: mV, min: -5, max: 5, corners: all, test: tb_ref_dc}
+  - {id: REF-02, name: "VCM",                                     metric: vcm_V,        unit: V,  min: 0.44, max: 0.46, corners: all, test: tb_ref_dc}
+  - {id: REF-03, name: "load regulation 0 -> 200 uA",             metric: loadreg_mV,   unit: mV, max: 1.0, corners: all, test: tb_ref_dc}
+  - {id: REF-04, name: "VREFP sensitivity to AVDD18 (DC)",        metric: line_mV_per_V, unit: mV/V, max: 5, corners: all, test: tb_ref_dc}
+  - {id: REF-05, name: "VREFP ripple p-p under conversion load",  metric: ripple_pp_mV, unit: mV, max: 2.0, corners: all, test: tb_ref_dyn}
+  - {id: REF-06, name: "VREFP deviation at conversion start vs mean (memory)", metric: start_dev_uV, unit: uV, max: 50, corners: all, test: tb_ref_dyn}
+  - {id: REF-07, name: "code-dependent VREFP shift (heavy vs light pattern)", metric: pattern_dev_uV, unit: uV, max: 50, corners: all, test: tb_ref_dyn}
+  - {id: REF-08, name: "VREFP integrated noise 1 kHz - 1 GHz",   metric: noise_uV,     unit: uV, max: 50, corners: typ, test: tb_ref_noise}
+  - {id: REF-09, name: "AVDD18 current incl. 100 uA load",        metric: i18_uA,       unit: uA, max: 400, corners: typ, test: tb_ref_dc}
+  - {id: REF-10, name: "AVDD current",                            metric: i09_uA,       unit: uA, max: 20, corners: typ, test: tb_ref_dc}
+  - {id: REF-11, name: "VREF_IN input current",                   metric: iin_uA,       unit: uA, max: 1, corners: all, test: tb_ref_dc}
+tests:
+  tb_ref_dc:
+    netlist: tb/ref/tb_ref_dc.scs
+    measure: adcflow.measure.ref:dc
+    desc: >
+      DC operating point with 100 uA load, a dc sweep of the load 0..200 uA
+      and of AVDD18 +/-10 %; supply and input currents.
+  tb_ref_dyn:
+    netlist: tb/ref/tb_ref_dyn.scs
+    measure: adcflow.measure.ref:dyn
+    desc: >
+      Periodic 100 MHz load: a 0.46 pC pulse at conversion start and 13 pulses
+      of w_j * 0.225 fC/LSB, alternating every 64 conversions between the
+      nominal pattern and a pattern with 20 % more charge (code-dependent
+      coupling). Measures ripple, start-of-conversion deviation and the
+      pattern-dependent shift after 2 us of settling.
+  tb_ref_noise:
+    netlist: tb/ref/tb_ref_noise.scs
+    measure: adcflow.measure.ref:noise
+    desc: >
+      Small-signal noise of VREFP (and VCM) from 1 kHz to 1 GHz with the
+      decoupling and 100 uA load.

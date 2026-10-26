@@ -1,0 +1,50 @@
+block: adc_clkgen
+title: Sampling clock phase generator
+version: 0.1.0
+owner: TBD
+status: behavioral
+views:
+  behav: design/behav/adc_clkgen.scs
+  xtor: design/xtor/adc_clkgen/adc_clkgen.scs
+summary: >
+  Buffers the single external CLK (high = track, low = hold + convert) into
+  the sampling phases. Falling CLK: PHI_S falls first (sampling instant, top
+  plate opens), then PHI_B (bottom-plate switches open), then CONV rises
+  (DAC drivers enabled, SAR logic starts). Rising CLK: CONV falls first
+  (drivers tri-stated, SAR reset), then PHI_B and PHI_S rise (break before make).
+ports:
+  - {name: CLK,    dir: in,  type: clock, side: left,  desc: "external sampling clock, 0.9 V CMOS, 100 MHz, duty 45-55 %"}
+  - {name: PHI_S,  dir: out, type: clock, side: right, desc: "top-plate sampling phase"}
+  - {name: PHI_SB, dir: out, type: clock, side: right, desc: "complement of PHI_S"}
+  - {name: PHI_B,  dir: out, type: clock, side: right, desc: "bottom-plate (bootstrap) phase"}
+  - {name: PHI_BB, dir: out, type: clock, side: right, desc: "complement of PHI_B"}
+  - {name: CONV,   dir: out, type: clock, side: right, desc: "conversion window"}
+  - {name: AVDD,   dir: supply, type: supply, side: top,    desc: "0.9 V"}
+  - {name: VSS,    dir: ground, type: supply, side: bottom, desc: "ground"}
+operating:
+  loads: {PHI_S: 60.0e-15, PHI_SB: 60.0e-15, PHI_B: 40.0e-15, PHI_BB: 40.0e-15, CONV: 250.0e-15}
+specs:
+  - {id: CLK-01, name: "CLK fall -> PHI_S fall (50 %)",           metric: td_s_ps,     unit: ps, max: 80,  corners: all, test: tb_clkgen_timing}
+  - {id: CLK-02, name: "PHI_S fall -> PHI_B fall",                 metric: skew_sb_ps,  unit: ps, min: 20, max: 80, corners: all, test: tb_clkgen_timing}
+  - {id: CLK-03, name: "PHI_B fall -> CONV rise",                  metric: nov_bc_ps,   unit: ps, min: 10, corners: all, test: tb_clkgen_timing}
+  - {id: CLK-04, name: "CLK fall -> CONV rise",                    metric: td_conv_ps,  unit: ps, max: 200, corners: all, test: tb_clkgen_timing}
+  - {id: CLK-05, name: "CONV fall -> PHI_B rise (break before make)", metric: nov_cb_ps, unit: ps, min: 10, corners: all, test: tb_clkgen_timing}
+  - {id: CLK-06, name: "PHI_S fall time 80-20 %",                 metric: tf_s_ps,     unit: ps, max: 20,  corners: all, test: tb_clkgen_timing}
+  - {id: CLK-07, name: "PHI_S / PHI_SB crossing skew",             metric: skew_ssb_ps, unit: ps, max: 15,  corners: all, test: tb_clkgen_timing}
+  - {id: CLK-08, name: "function at CLK duty 45 % and 55 %",       metric: duty_errors, unit: count, max: 0, corners: all, test: tb_clkgen_timing}
+  - {id: CLK-09, name: "PHI_S falling-edge jitter (device noise)", metric: jitter_fs,   unit: fs, max: 60,  corners: typ, test: tb_clkgen_jitter}
+  - {id: CLK-10, name: "average AVDD current at 100 MHz",          metric: iavg_uA,     unit: uA, max: 40,  corners: typ, test: tb_clkgen_timing}
+tests:
+  tb_clkgen_timing:
+    netlist: tb/clkgen/tb_clkgen_timing.scs
+    measure: adcflow.measure.clkgen:timing
+    desc: >
+      Ideal 100 MHz CLK (20 ps edges), 8 cycles at 50 % duty, then 4 at 45 %
+      and 4 at 55 %, specified output loads. Edge times of every phase.
+  tb_clkgen_jitter:
+    netlist: tb/clkgen/tb_clkgen_jitter.scs
+    measure: adcflow.measure.clkgen:jitter
+    tran_noise: true
+    desc: >
+      Transient noise on, 200 cycles. Standard deviation of the PHI_S falling
+      crossing time relative to the ideal CLK edge.
