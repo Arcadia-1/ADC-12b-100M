@@ -1,0 +1,56 @@
+# --- Simulation outputs (never commit raw simulator data) ---
+*.raw/
+*.ahdlSimDB/
+*.log
+spectre.out
+*.psf
+*.tran
+*.dc
+*.ac
+*.noise
+*.pss
+*.pnoise
+run/
+runs/
+work/
+sim_work/
+scratch/
+
+# --- PDK / foundry data: NEVER commit model files or extracted device data ---
+pdk_local/
+*.lib.scs
+**/models/spectre/**
+*_pdk_dump*
+*.pdkcache
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+pytest-cache-files-*/
+.venv/
+venv/
+build/
+dist/
+
+# --- MATLAB ---
+*.asv
+*.mat
+!results/**/*.mat
+
+# --- Tools / OS ---
+.rnl-cli/
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/
+.idea/
+
+# --- Claude Code local state ---
+.claude/worktrees/
+.claude/settings.local.json
+
+# --- Generated drawings (reproducible with `python -m adcflow render`) ---
+build/svg/
