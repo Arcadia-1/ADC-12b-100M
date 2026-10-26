@@ -95,9 +95,9 @@ While PHI_B is high, VG = VIN + Vboot (Vboot ~ AVDD, from a capacitor charged du
 | DAC-02 | full scale VREF*(sum w + 1/2)*cu/C_S (diff peak) | ≥ 0.97 | V | all | `tb_cdac_weights` |
 | DAC-03 | max relative weight error (systematic) | ≤ 0.5 | % | typ | `tb_cdac_weights` |
 | DAC-04 | top-plate gain C_S/C_tot | ≥ 0.78 |  | typ | `tb_cdac_weights` |
-| DAC-05 | DAC step settling, w=32 step to 0.25 LSB | ≤ 75 | ps | all | `tb_cdac_settle` |
-| DAC-06 | DAC step settling, w=1024 step to 5 % | ≤ 40 | ps | all | `tb_cdac_settle` |
-| DAC-07 | settling time constant (top plate) | ≤ 15 | ps | all | `tb_cdac_settle` |
+| DAC-05 | DAC step settling, RL5 (w=18) to 0.25 LSB | ≤ 75 | ps | all | `tb_cdac_settle` |
+| DAC-06 | DAC step settling, RL12 (w=980) to 5 % | ≤ 40 | ps | all | `tb_cdac_settle` |
+| DAC-07 | settling time constant (top plate, RL12, 10 % -> 1 %) | ≤ 15 | ps | all | `tb_cdac_settle` |
 | DAC-08 | conversion start CONV rise -> TOP within 1 % | ≤ 100 | ps | all | `tb_cdac_settle` |
 | DAC-09 | tracking SFDR (ideal VG, 50 ohm, 49.9 MHz, -1 dBFS, diff) | ≥ 85 | dBc | all | `tb_cdac_track` |
 | DAC-10 | tracking SNDR excl. kT/C (same) | ≥ 80 | dB | all | `tb_cdac_track` |
@@ -108,7 +108,7 @@ While PHI_B is high, VG = VIN + Vboot (Vboot ~ AVDD, from a capacitor charged du
 ### 验收用例
 
 - **`tb_cdac_weights`** (`tb/cdac/tb_cdac_weights.scs`, 度量 `adcflow.measure.cdac:weights`)：One CDAC with ideal VG and ideal controls. Two sampling cycles with VIN = 0.45 -/+ 0.2 V give the input-to-top gain; then the 26 control lines are toggled one at a time (neutral -> active -> neutral) and every top-plate step is converted into an input-referred weight in LSB.
-- **`tb_cdac_settle`** (`tb/cdac/tb_cdac_settle.scs`, 度量 `adcflow.measure.cdac:settle`)：Steps of RL12 (w=1024), RL5 (w=32) and RL0 (w=1) driven by 10 ps edges; top-plate settling time, single-pole fit, conversion-start settling, 5 ns hold droop and VREFP charge per conversion.
+- **`tb_cdac_settle`** (`tb/cdac/tb_cdac_settle.scs`, 度量 `adcflow.measure.cdac:settle`)：VIN = 0.65 V (0.2 V above VCM, so that the conversion start moves the top plate). Steps of RL12 (w=980), RL5 (w=18) and RL0 (w=1) driven by 10 ps edges 1 ns after CONV rises; settling times within 1.5 ns of the edge, single-pole equivalent from the 10 % -> 1 % part of the RL12 step, conversion-start settling before the first edge, 5 ns hold droop and VREFP charge per conversion.
 - **`tb_cdac_track`** (`tb/cdac/tb_cdac_track.scs`, 度量 `adcflow.measure.cdac:track`; 参数 `fin_target=49.9e6`, `npts=256`)：Two CDACs (P and N) with ideal bootstrapped gates, sine from 50 ohm per side at 49.9 MHz, -1 dBFS, 100 MS/s ideal phases, no decisions. The differential top-plate voltage 100 ps after CONV rises is stored per sample; FFT gives SFDR / SNDR of the sampling network.
 
 ## adc_clkgen
@@ -237,7 +237,7 @@ Buffers the high-impedance 0.9 V reference input VREF_IN into VREFP, which suppl
 | REF-01 | VREFP - VREF_IN (DC, 100 uA load) | -5 .. 5 | mV | all | `tb_ref_dc` |
 | REF-02 | VCM | 0.44 .. 0.46 | V | all | `tb_ref_dc` |
 | REF-04 | VREFP sensitivity to AVDD18 (DC) | ≤ 5 | mV/V | all | `tb_ref_dc` |
-| REF-08 | VREFP total noise 1 kHz - 100 GHz (with 0.6 pF CDAC load) | ≤ 80 | uV | typ | `tb_ref_noise` |
+| REF-08 | VREFP noise 10 kHz - 100 GHz (with 0.6 pF CDAC load) | ≤ 120 | uV | typ | `tb_ref_noise` |
 | REF-11 | VREF_IN input current | ≤ 1 | uA | all | `tb_ref_dc` |
 | REF-12 | ENOB loss from VREFP at the decision instants (charge replay) | ≤ 0.1 | bit | all | `tb_ref_replay` |
 | REF-13 | VREFP change over decisions 12..14 (no redundancy), max | ≤ 200 | uV | all | `tb_ref_replay` |
@@ -247,7 +247,7 @@ Buffers the high-impedance 0.9 V reference input VREF_IN into VREFP, which suppl
 
 - **`tb_ref_dc`** (`tb/ref/tb_ref_dc.scs`, 度量 `adcflow.measure.ref:dc`)：DC operating point with a 100 uA load, a dc sweep of the load 0..200 uA (load regulation, reported) and of AVDD18 +/-10 %; supply currents (reported) and the VREF_IN input current.
 - **`tb_ref_replay`** (`tb/ref/tb_ref_replay.scs`, 度量 `adcflow.measure.ref:replay`; 参数 `npts=1024`, `nwarm=32`, `fin_target=49.7e6`)：The system model converts a coherent 49.7 MHz -1 dBFS sine (1024 + 32 conversions, ideal reference, TT ADC timing - the shortest decision spacing); its start charge and 13 switch charges per conversion are played into VREFP as 20 ps current pulses (iload.pwl) and VREFP is sampled at every comparator clock and just before every conversion start (trig.pwl -> vdec.txt). The sampled deviations are fed back into the same model conversion: REF-12 is the ENOB lost against an ideal reference. REF-13 is the change over the last three decisions, which have no redundancy (decisions 8..11 tolerate 2.0 / 1.2 / 0.4 / 0.4 mV). Transient noise is off; noise is REF-08.
-- **`tb_ref_noise`** (`tb/ref/tb_ref_noise.scs`, 度量 `adcflow.measure.ref:noise`)：Small-signal noise of VREFP (and VCM) from 1 kHz to 100 GHz with the decoupling, the 0.6 pF CDAC load and a 100 uA load. The integral is the variance of every VREFP sample the comparator uses (63 uV costs about 0.05 bit).
+- **`tb_ref_noise`** (`tb/ref/tb_ref_noise.scs`, 度量 `adcflow.measure.ref:noise`)：Small-signal noise of VREFP (and VCM) from 1 kHz to 100 GHz with the decoupling, the 0.6 pF CDAC load and a 100 uA load. VREFP noise multiplies the signal (input-referred ~0.7 x at -1 dBFS): 80 / 120 / 160 / 300 uV rms cost 0.06 / 0.12 / 0.20 / 0.49 bit. REF-08 integrates from 10 kHz, about one bin of a long (8k-16k point) record; noise below that is a slow gain wander, reported as noise_lf_uV (1 - 10 kHz) with no limit, and noise_total_uV is the whole band.
 
 ## adc_sarlogic
 

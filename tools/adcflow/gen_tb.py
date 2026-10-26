@@ -346,7 +346,7 @@ def tb_cdac() -> list[TBDef]:
     # settling
     els = [El("XDUT", "adc_cdac", _cdac_ports("VIN", "VG", "TOP", DHS[:7] + ["DH5X"] + DHS[8:], RLS), where="dut",
               note="DH5 of the DUT is driven by VDH5 (AC source for the control input capacitance)"),
-           El("VVIN", "vsource", ["VIN", "0"], "dc=0.45"),
+           El("VVIN", "vsource", ["VIN", "0"], "dc=0.65", note="0.2 V above VCM: the conversion start moves the top plate"),
            El("VDH5", "vsource", ["DH5X", "0"], "dc=0 mag=1"),
            El("CTOP", "capacitor", ["TOP", "0"], "c=ctop", "load"),
            El("IBS", "adc_bootstrap_va", ["VIN", "PHI_B", "PHI_BB", "VG", "VDDA", "0"], "kboost=1", "mon"),

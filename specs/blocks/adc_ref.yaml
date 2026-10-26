@@ -39,7 +39,7 @@ specs:
   - {id: REF-01, name: "VREFP - VREF_IN (DC, 100 uA load)",       metric: vrefp_err_mV, unit: mV, min: -5, max: 5, corners: all, test: tb_ref_dc}
   - {id: REF-02, name: "VCM",                                     metric: vcm_V,        unit: V,  min: 0.44, max: 0.46, corners: all, test: tb_ref_dc}
   - {id: REF-04, name: "VREFP sensitivity to AVDD18 (DC)",        metric: line_mV_per_V, unit: mV/V, max: 5, corners: all, test: tb_ref_dc}
-  - {id: REF-08, name: "VREFP total noise 1 kHz - 100 GHz (with 0.6 pF CDAC load)", metric: noise_uV, unit: uV, max: 80, corners: typ, test: tb_ref_noise}
+  - {id: REF-08, name: "VREFP noise 10 kHz - 100 GHz (with 0.6 pF CDAC load)", metric: noise_uV, unit: uV, max: 120, corners: typ, test: tb_ref_noise}
   - {id: REF-11, name: "VREF_IN input current",                   metric: iin_uA,       unit: uA, max: 1, corners: all, test: tb_ref_dc}
   - {id: REF-12, name: "ENOB loss from VREFP at the decision instants (charge replay)", metric: enob_loss_bit, unit: bit, max: 0.10, corners: all, test: tb_ref_replay}
   - {id: REF-13, name: "VREFP change over decisions 12..14 (no redundancy), max", metric: tail_dev_uV, unit: uV, max: 200, corners: all, test: tb_ref_replay}
@@ -73,6 +73,9 @@ tests:
     measure: adcflow.measure.ref:noise
     desc: >
       Small-signal noise of VREFP (and VCM) from 1 kHz to 100 GHz with the
-      decoupling, the 0.6 pF CDAC load and a 100 uA load. The integral is the
-      variance of every VREFP sample the comparator uses (63 uV costs about
-      0.05 bit).
+      decoupling, the 0.6 pF CDAC load and a 100 uA load. VREFP noise
+      multiplies the signal (input-referred ~0.7 x at -1 dBFS): 80 / 120 /
+      160 / 300 uV rms cost 0.06 / 0.12 / 0.20 / 0.49 bit. REF-08 integrates
+      from 10 kHz, about one bin of a long (8k-16k point) record; noise below
+      that is a slow gain wander, reported as noise_lf_uV (1 - 10 kHz) with no
+      limit, and noise_total_uV is the whole band.

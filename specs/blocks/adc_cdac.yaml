@@ -65,9 +65,9 @@ specs:
   - {id: DAC-02, name: "full scale VREF*(sum w + 1/2)*cu/C_S (diff peak)", metric: fs_peak_V,  unit: V,  min: 0.97, corners: all, test: tb_cdac_weights}
   - {id: DAC-03, name: "max relative weight error (systematic)",         metric: weight_err_max_pct, unit: '%', max: 0.5, corners: typ, test: tb_cdac_weights}
   - {id: DAC-04, name: "top-plate gain C_S/C_tot",                      metric: top_gain,      unit: '',  min: 0.78, corners: typ, test: tb_cdac_weights}
-  - {id: DAC-05, name: "DAC step settling, w=32 step to 0.25 LSB",     metric: t_settle32_ps, unit: ps, max: 75, corners: all, test: tb_cdac_settle}
-  - {id: DAC-06, name: "DAC step settling, w=1024 step to 5 %",        metric: t_settle1024_ps, unit: ps, max: 40, corners: all, test: tb_cdac_settle}
-  - {id: DAC-07, name: "settling time constant (top plate)",            metric: tau_ps,        unit: ps, max: 15, corners: all, test: tb_cdac_settle}
+  - {id: DAC-05, name: "DAC step settling, RL5 (w=18) to 0.25 LSB",    metric: t_settle_rl5_ps, unit: ps, max: 75, corners: all, test: tb_cdac_settle}
+  - {id: DAC-06, name: "DAC step settling, RL12 (w=980) to 5 %",       metric: t_settle_rl12_ps, unit: ps, max: 40, corners: all, test: tb_cdac_settle}
+  - {id: DAC-07, name: "settling time constant (top plate, RL12, 10 % -> 1 %)", metric: tau_ps, unit: ps, max: 15, corners: all, test: tb_cdac_settle}
   - {id: DAC-08, name: "conversion start CONV rise -> TOP within 1 %", metric: t_start_settle_ps, unit: ps, max: 100, corners: all, test: tb_cdac_settle}
   - {id: DAC-09, name: "tracking SFDR (ideal VG, 50 ohm, 49.9 MHz, -1 dBFS, diff)", metric: sfdr_dBc, unit: dBc, min: 85, corners: all, test: tb_cdac_track}
   - {id: DAC-10, name: "tracking SNDR excl. kT/C (same)",               metric: sndr_dB,       unit: dB, min: 80, corners: all, test: tb_cdac_track}
@@ -87,9 +87,12 @@ tests:
     netlist: tb/cdac/tb_cdac_settle.scs
     measure: adcflow.measure.cdac:settle
     desc: >
-      Steps of RL12 (w=1024), RL5 (w=32) and RL0 (w=1) driven by 10 ps edges;
-      top-plate settling time, single-pole fit, conversion-start settling,
-      5 ns hold droop and VREFP charge per conversion.
+      VIN = 0.65 V (0.2 V above VCM, so that the conversion start moves the
+      top plate). Steps of RL12 (w=980), RL5 (w=18) and RL0 (w=1) driven by
+      10 ps edges 1 ns after CONV rises; settling times within 1.5 ns of the
+      edge, single-pole equivalent from the 10 % -> 1 % part of the RL12 step,
+      conversion-start settling before the first edge, 5 ns hold droop and
+      VREFP charge per conversion.
   tb_cdac_track:
     netlist: tb/cdac/tb_cdac_track.scs
     measure: adcflow.measure.cdac:track

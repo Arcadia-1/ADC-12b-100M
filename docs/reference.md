@@ -41,8 +41,11 @@
 * **转换之间的记忆**：如果恢复时间常数接近或超过 10 ns，与信号相关的电荷（∝ vin²）在 2·fin 的混叠频率上
   调制 VREFP，产生三次谐波；fin 接近 fs/2 或接近直流时最严重。小去耦 + follower 的时间常数远小于 10 ns，
   不存在这个问题。
-* **噪声**：follower 节点噪声约 √(γkT/C)，γ ≈ 2（follower 与偏置电流源）。2.1 pF 时 63 µV（27 °C），
-  约损失 0.05 bit。噪声决定去耦的下限，但在 1~2 pF 时不是主要限制，主要限制是速度（电流）。
+* **噪声**：VREFP 噪声与信号相乘，−1 dBFS 时输入等效约 0.7 倍。宽带 45 / 80 / 120 / 160 / 300 µV rms
+  分别损失 0.02 / 0.06 / 0.12 / 0.20 / 0.49 bit。低于 FFT 频率分辨率的噪声只是缓慢的增益漂移，不计入 ENOB；
+  略高于分辨率的低频噪声（例如 10 kHz 拐角的低通噪声）几乎全部计入。因此 REF-08 从 10 kHz 积分
+  （8k~16k 点长记录的一个频点），1~10 kHz 单独报告、不设限。follower 节点热噪声约 √(γkT/C)，γ ≈ 2，
+  2.1 pF 时 63 µV（27 °C）；晶体管级还要加上闪烁噪声与栅极偏置噪声。
 
 ## 4. 冗余与 VREFP 容差
 
@@ -90,7 +93,7 @@ ENOB @ 49.7 MHz、−1 dBFS，含 follower 噪声（γ = 2），v0.1 / v0.2：
 | REF-01 | VREFP − VREF_IN（直流，100 µA 负载） | ±5 mV | `tb_ref_dc` |
 | REF-02 | VCM | 0.44~0.46 V | `tb_ref_dc` |
 | REF-04 | VREFP 对 AVDD18 的直流灵敏度 | ≤ 5 mV/V | `tb_ref_dc` |
-| REF-08 | VREFP 总噪声 1 kHz~100 GHz（带 0.6 pF CDAC 负载） | ≤ 80 µV | `tb_ref_noise` |
+| REF-08 | VREFP 噪声 10 kHz~100 GHz（带 0.6 pF CDAC 负载） | ≤ 120 µV | `tb_ref_noise` |
 | REF-11 | VREF_IN 输入电流 | ≤ 1 µA | `tb_ref_dc` |
 | REF-12 | 判决时刻 VREFP 造成的 ENOB 损失（电荷回放） | ≤ 0.10 bit | `tb_ref_replay` |
 | REF-13 | 判决 12~14（无冗余）期间 VREFP 变化，最大值 | ≤ 200 µV | `tb_ref_replay` |

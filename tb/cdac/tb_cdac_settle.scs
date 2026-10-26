@@ -11,7 +11,8 @@ parameters tstop=7*tper
 // DH5 of the DUT is driven by VDH5 (AC source for the control input capacitance)
 XDUT (VIN VG TOP VCM VREFP 0 PHI_S PHI_SB CONV DH12 DH11 DH10 DH9 DH8 DH7 DH6 DH5X DH4 DH3 \
         DH2 DH1 DH0 RL12 RL11 RL10 RL9 RL8 RL7 RL6 RL5 RL4 RL3 RL2 RL1 RL0 VDDA 0) adc_cdac
-VVIN (VIN 0) vsource dc=0.45
+// 0.2 V above VCM: the conversion start moves the top plate
+VVIN (VIN 0) vsource dc=0.65
 VDH5 (DH5X 0) vsource dc=0 mag=1
 CTOP (TOP 0) capacitor c=ctop
 IBS (VIN PHI_B PHI_BB VG VDDA 0) adc_bootstrap_va kboost=1

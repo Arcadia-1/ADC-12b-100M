@@ -120,7 +120,11 @@ def dc(job_dir: Path, ctx: dict) -> dict:
     return m
 
 
+NOISE_F_SPLIT = 10e3   # below: slow gain wander under the FFT resolution of a long record (no ENOB cost)
+
+
 def noise(job_dir: Path, ctx: dict) -> dict:
+    """VREFP / VCM noise: above NOISE_F_SPLIT (the part ENOB sees), below it, and in total."""
     m = {}
     for name, key in (("noise1", "noise_uV"), ("noise2", "vcm_noise_uV")):
         f = psf.find(Path(job_dir) / "deck.raw", f"{name}.noise*")
@@ -129,6 +133,13 @@ def noise(job_dir: Path, ctx: dict) -> dict:
         d = psf.read(f)
         freq = d.get("freq")
         out = d.get("out")
-        if freq is not None and out is not None:
-            m[key] = float(np.sqrt(np.trapezoid(np.abs(out) ** 2, freq)) * 1e6)
+        if freq is None or out is None:
+            continue
+        freq, p = np.asarray(freq, float), np.abs(out) ** 2
+        fg = np.concatenate([freq[freq < NOISE_F_SPLIT], [NOISE_F_SPLIT], freq[freq > NOISE_F_SPLIT]])
+        pg = np.exp(np.interp(np.log(fg), np.log(freq), np.log(np.maximum(p, 1e-60))))
+        lo = fg <= NOISE_F_SPLIT
+        m[key] = float(np.sqrt(np.trapezoid(pg[~lo | (fg == NOISE_F_SPLIT)], fg[~lo | (fg == NOISE_F_SPLIT)])) * 1e6)
+        m[key.replace("_uV", "_lf_uV")] = float(np.sqrt(np.trapezoid(pg[lo], fg[lo])) * 1e6)
+        m[key.replace("_uV", "_total_uV")] = float(np.sqrt(np.trapezoid(p, freq)) * 1e6)
     return m
