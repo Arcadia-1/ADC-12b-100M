@@ -14,49 +14,31 @@
   "vref_in": 0.9
  },
  "metrics": {
-  "vrefp_err_mV": -0.10000000089993577,
-  "vcm_V": 0.449949999955005,
-  "i18_uA": 250.00000089990002,
+  "vrefp_err_mV": -2.006606213268647,
+  "vcm_V": 0.4489966968933657,
+  "i18_uA": 2100.000000897993,
   "i09_uA": 5.0,
   "iin_uA": 0.0,
-  "loadreg_mV": 0.19999999999986695,
-  "line_mV_per_V": 1.0140764854952106e-13
+  "loadreg_mV": 3.9393763768202916,
+  "line_mV_per_V": 7.018396851758629e-13
  },
  "specs": {
   "REF-01": {
    "metric": "vrefp_err_mV",
-   "value": -0.10000000089993577,
+   "value": -2.006606213268647,
    "limit": "-5 .. 5",
    "pass": true
   },
   "REF-02": {
    "metric": "vcm_V",
-   "value": 0.449949999955005,
+   "value": 0.4489966968933657,
    "limit": "0.44 .. 0.46",
-   "pass": true
-  },
-  "REF-03": {
-   "metric": "loadreg_mV",
-   "value": 0.19999999999986695,
-   "limit": "<= 1.0",
    "pass": true
   },
   "REF-04": {
    "metric": "line_mV_per_V",
-   "value": 1.0140764854952106e-13,
+   "value": 7.018396851758629e-13,
    "limit": "<= 5",
-   "pass": true
-  },
-  "REF-09": {
-   "metric": "i18_uA",
-   "value": 250.00000089990002,
-   "limit": "<= 400",
-   "pass": true
-  },
-  "REF-10": {
-   "metric": "i09_uA",
-   "value": 5.0,
-   "limit": "<= 20",
    "pass": true
   },
   "REF-11": {
@@ -67,20 +49,20 @@
   }
  },
  "meta": {
-  "date": "2026-10-26T22:44:44",
-  "git": "cff72f5",
+  "date": "2026-10-27T02:46:16",
+  "git": "f56c10e",
   "mode": "aps",
   "pdk": false,
   "mc": null,
-  "wall_s": 20.7,
+  "wall_s": 122.3,
   "rc": "0",
-  "sim_s": "13",
+  "sim_s": "12",
   "files": {
    "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
-   "design/behav/adc_cdac.scs": "fd6d176e55deb68d",
+   "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",
    "design/behav/adc_clkgen.scs": "dafb1c3438e33c9e",
    "design/behav/adc_comp.scs": "96325d9474ae19a4",
-   "design/behav/adc_ref.scs": "b9aeae5cd8a3a347",
+   "design/behav/adc_ref.scs": "ad0159030e3a4f37",
    "design/behav/adc_sarlogic.scs": "356e911752c1b85e",
    "design/top/adc_top.scs": "362a964ffe162797",
    "design/behav/veriloga/adc_bootstrap_va.va": "a6afdb6e2e03593b",
@@ -88,10 +70,10 @@
    "design/behav/veriloga/adc_clkgen_va.va": "727f8a54cde10a53",
    "design/behav/veriloga/adc_comp_va.va": "ab8a6bf210351e31",
    "design/behav/veriloga/adc_ktc_va.va": "a1cf98faf5bf9b33",
-   "design/behav/veriloga/adc_ref_va.va": "1f0fb3058cf9ef9e",
+   "design/behav/veriloga/adc_ref_va.va": "746d2530d4ff6d5c",
    "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
    "tb/ref/tb_ref_dc.scs": "36cad0421a7a9c8e",
-   "specs/arch.yaml": "1b6d99db0c79903d"
+   "specs/arch.yaml": "21a91c3d06aa47e9"
   }
  }
 }

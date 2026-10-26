@@ -17,39 +17,39 @@
   "vref_in": 0.9
  },
  "metrics": {
-  "sfdr_dBc": 97.0396375104407,
-  "sndr_dB": 89.44696622692058,
-  "thd_dBc": -95.1818709592782
+  "sfdr_dBc": 97.23862096944944,
+  "sndr_dB": 89.54821214222973,
+  "thd_dBc": -95.02846779230273
  },
  "specs": {
   "BST-05": {
    "metric": "sfdr_dBc",
-   "value": 97.0396375104407,
+   "value": 97.23862096944944,
    "limit": ">= 82",
    "pass": true
   },
   "BST-06": {
    "metric": "sndr_dB",
-   "value": 89.44696622692058,
+   "value": 89.54821214222973,
    "limit": ">= 78",
    "pass": true
   }
  },
  "meta": {
-  "date": "2026-10-26T22:44:32",
-  "git": "cff72f5",
+  "date": "2026-10-27T03:06:30",
+  "git": "cb3b8d4",
   "mode": "aps",
   "pdk": true,
   "mc": null,
-  "wall_s": 57.9,
+  "wall_s": 131.6,
   "rc": "0",
-  "sim_s": "50",
+  "sim_s": "24",
   "files": {
    "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
-   "design/behav/adc_cdac.scs": "fd6d176e55deb68d",
+   "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",
    "design/behav/adc_clkgen.scs": "dafb1c3438e33c9e",
    "design/behav/adc_comp.scs": "96325d9474ae19a4",
-   "design/behav/adc_ref.scs": "b9aeae5cd8a3a347",
+   "design/behav/adc_ref.scs": "ad0159030e3a4f37",
    "design/behav/adc_sarlogic.scs": "356e911752c1b85e",
    "design/top/adc_top.scs": "362a964ffe162797",
    "design/behav/veriloga/adc_bootstrap_va.va": "a6afdb6e2e03593b",
@@ -57,11 +57,11 @@
    "design/behav/veriloga/adc_clkgen_va.va": "727f8a54cde10a53",
    "design/behav/veriloga/adc_comp_va.va": "ab8a6bf210351e31",
    "design/behav/veriloga/adc_ktc_va.va": "a1cf98faf5bf9b33",
-   "design/behav/veriloga/adc_ref_va.va": "1f0fb3058cf9ef9e",
+   "design/behav/veriloga/adc_ref_va.va": "746d2530d4ff6d5c",
    "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
    "tb/common/veriloga/tb_sampler_va.va": "4092bc16170c588d",
-   "tb/bootstrap/tb_bootstrap_track.scs": "8a8524f0b7c1009c",
-   "specs/arch.yaml": "1b6d99db0c79903d"
+   "tb/bootstrap/tb_bootstrap_track.scs": "1ab67afcde991d46",
+   "specs/arch.yaml": "21a91c3d06aa47e9"
   }
  }
 }

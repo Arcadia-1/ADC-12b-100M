@@ -14,68 +14,68 @@
   "vref_in": 0.9
  },
  "metrics": {
-  "top_gain": 0.8096991547275001,
+  "top_gain": 0.814362287087,
   "weights_lsb": [
-   1023.9998,
-   511.9999,
-   256.0,
-   192.0,
-   128.0,
-   64.0,
+   980.0011,
+   560.0007,
+   318.0004,
+   180.0003,
+   102.0002,
+   57.0001,
    32.0,
-   32.0,
-   16.0,
-   8.0,
-   4.0,
+   18.0,
+   10.0,
+   6.0,
+   3.0,
    2.0,
    1.0
   ],
-  "weight_err_max_pct": 2.582604896606e-05,
-  "h_l_asym_pct": 3.907985046680551e-12,
-  "fs_peak_V": 0.9987053512919217,
-  "cs_pF": 1.0235003294999998
+  "weight_err_max_pct": 2.8813794727966524e-05,
+  "h_l_asym_pct": 3.115285807098189e-11,
+  "fs_peak_V": 0.9929764447181614,
+  "cs_pF": 1.0285005179999998
  },
  "specs": {
   "DAC-01": {
    "metric": "cs_pF",
-   "value": 1.0235003294999998,
+   "value": 1.0285005179999998,
    "limit": "0.99 .. 1.06",
    "pass": true
   },
   "DAC-02": {
    "metric": "fs_peak_V",
-   "value": 0.9987053512919217,
+   "value": 0.9929764447181614,
    "limit": ">= 0.97",
    "pass": true
   },
   "DAC-03": {
    "metric": "weight_err_max_pct",
-   "value": 2.582604896606e-05,
+   "value": 2.8813794727966524e-05,
    "limit": "<= 0.5",
    "pass": true
   },
   "DAC-04": {
    "metric": "top_gain",
-   "value": 0.8096991547275001,
+   "value": 0.814362287087,
    "limit": ">= 0.78",
    "pass": true
   }
  },
  "meta": {
-  "date": "2026-10-26T22:44:14",
-  "git": "cff72f5",
+  "date": "2026-10-27T02:52:38",
+  "git": "d326851",
   "mode": "aps",
   "pdk": false,
   "mc": null,
-  "wall_s": 83.4,
+  "wall_s": 155.3,
   "rc": "0",
-  "sim_s": "72",
+  "sim_s": "49",
   "files": {
    "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
-   "design/behav/adc_cdac.scs": "fd6d176e55deb68d",
+   "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",
    "design/behav/adc_clkgen.scs": "dafb1c3438e33c9e",
    "design/behav/adc_comp.scs": "96325d9474ae19a4",
-   "design/behav/adc_ref.scs": "b9aeae5cd8a3a347",
+   "design/behav/adc_ref.scs": "ad0159030e3a4f37",
    "design/behav/adc_sarlogic.scs": "356e911752c1b85e",
    "design/top/adc_top.scs": "362a964ffe162797",
    "design/behav/veriloga/adc_bootstrap_va.va": "a6afdb6e2e03593b",
@@ -83,13 +83,13 @@
    "design/behav/veriloga/adc_clkgen_va.va": "727f8a54cde10a53",
    "design/behav/veriloga/adc_comp_va.va": "ab8a6bf210351e31",
    "design/behav/veriloga/adc_ktc_va.va": "a1cf98faf5bf9b33",
-   "design/behav/veriloga/adc_ref_va.va": "1f0fb3058cf9ef9e",
+   "design/behav/veriloga/adc_ref_va.va": "746d2530d4ff6d5c",
    "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
    "tb/common/veriloga/tb_cdac_seq_va.va": "800f16f07345b3b9",
    "tb/common/veriloga/tb_imeter_va.va": "d4be49aca417ad61",
    "tb/common/veriloga/tb_sampler_va.va": "4092bc16170c588d",
    "tb/cdac/tb_cdac_weights.scs": "e827cad3c47a8804",
-   "specs/arch.yaml": "1b6d99db0c79903d"
+   "specs/arch.yaml": "21a91c3d06aa47e9"
   }
  }
 }
