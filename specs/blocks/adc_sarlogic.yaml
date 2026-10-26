@@ -64,7 +64,7 @@ ports:
   - {name: D0,   dir: out, type: digital, side: bottom, bus: D, desc: "raw bit of decision 14, weight 1"}
   - {name: RDY,  dir: out, type: digital, side: bottom, desc: "data valid: rises >= 100 ps after D settles, falls at CONV rising"}
   - {name: DVDD, dir: supply, type: supply, side: top,    desc: "0.9 V digital supply"}
-  - {name: VSS,  dir: ground, type: supply, side: top,    desc: "ground"}
+  - {name: VSS,  dir: ground, type: supply, side: bottom, desc: "ground"}
 operating:
   load_updn: 12.0e-15       # F per UP/DN output (two CDAC control inputs + wire)
   load_clkc: 20.0e-15       # F, comparator clock input

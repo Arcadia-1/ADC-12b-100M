@@ -45,6 +45,20 @@
   # @SELECT-INSTANCE(model="cfmom*") => @SET-SYMBOL $CAPACITOR;
   # @SELECT-INSTANCE(model="*moscap*") => @SET-SYMBOL $CAPACITOR;
 
+  /* ---- bus port: one port tag for a group of port nets, such as D13 .. D0 drawn as D<13:0>.
+     Applied on the point of its pin: %bp = (x, y)(p) {&D13 ... &D0}(nets) @AS $BUS_PORT, and
+     wired as {&D13 ... &D0} @WIRE {... %bp:p}. Its nets get no port tag of their own from
+     rnl-std-fill. The tag shows the text with the key name: write the bus name there,
+     %bp @TEXT("D<13:0>", key="name"), else it lists the nets. ---- */
+  $BUS_PORT = @DEFINE(roles=[["p", "point"], ["{nets}", "net"]]) { ?nets @REMOVE-FROM $PORT_FILL_SET };
+  $BUS_PORT_SYMBOL = @DEFINE-SYMBOL(box=[-1.4, -0.7, 0, 0.7]) {
+    (0, 0) @PIN(terminal="p", direction="right");
+    (-0.8, 0) @CIRCLE(radius=0.32, linewidth=0.24);
+    @LINE(linewidth=0.32) {(0, 0) (-0.48, 0)};
+    ? @TEXT("${nets}", key="name", halign="end", valign="middle") => @PLACE(-1.35, 0)
+  };
+  # @SELECT-USAGE $BUS_PORT => @SET-SYMBOL $BUS_PORT_SYMBOL;
+
   /* ---- styles ---- */
   $title_style = @DEFINE-STYLE(textcolor="#1a365d", size=1.1, bold=true) {};
   $note_style = @DEFINE-STYLE(textcolor="#4a5568", size=0.75, italic=true) {};
@@ -54,12 +68,13 @@
   $clock_style = @DEFINE-STYLE(linecolor="#b7791f", textcolor="#975a16") {};
   $tb_style = @DEFINE-STYLE(linecolor="#718096", textcolor="#4a5568", linestyle="dashed") {};
 
-  /* blocks by domain */
-  # @SELECT-INSTANCE(model="adc_cdac") => @SET-STYLE $analog_style;
-  # @SELECT-INSTANCE(model="adc_comp") => @SET-STYLE $analog_style;
-  # @SELECT-INSTANCE(model="adc_bootstrap") => @SET-STYLE $analog_style;
-  # @SELECT-INSTANCE(model="adc_ref") => @SET-STYLE $analog_style;
-  # @SELECT-INSTANCE(model="adc_sarlogic") => @SET-STYLE $digital_style;
-  # @SELECT-INSTANCE(model="adc_clkgen") => @SET-STYLE $clock_style;
+  /* blocks by domain; the * also takes their Verilog-A views (adc_comp_va, adc_cdac_sw_va) */
+  # @SELECT-INSTANCE(model="adc_cdac*") => @SET-STYLE $analog_style;
+  # @SELECT-INSTANCE(model="adc_comp*") => @SET-STYLE $analog_style;
+  # @SELECT-INSTANCE(model="adc_bootstrap*") => @SET-STYLE $analog_style;
+  # @SELECT-INSTANCE(model="adc_ref*") => @SET-STYLE $analog_style;
+  # @SELECT-INSTANCE(model="adc_ktc*") => @SET-STYLE $analog_style;
+  # @SELECT-INSTANCE(model="adc_sarlogic*") => @SET-STYLE $digital_style;
+  # @SELECT-INSTANCE(model="adc_clkgen*") => @SET-STYLE $clock_style;
   # @SELECT-INSTANCE(model="tb_*") => @SET-STYLE $tb_style
 }
