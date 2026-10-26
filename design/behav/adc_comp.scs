@@ -16,38 +16,40 @@ CINN (INN VSS) capacitor c=cin
 //   /* --- semantics --- */
 //   &AVDD @ADD-TO $SUPPLY_NET_SET;
 //   &VSS @ADD-TO $GROUND_NET_SET;
+//   /* the input capacitances of the two inputs are equal */
 //   {#CINP #CINN} @AS $MATCHED;
 //   /* --- placement --- */
 //   #I0 @PLACE(0, 0);
-//   #CINP @PLACE(-16, -1);
-//   #CINN @PLACE(-10, -3);
-//   /* --- wires --- */
-//   %jinp = (-16, 1);
+//   #CINP @PLACE(-14, -3);
+//   #CINN @PLACE(-10, -4);
+//   /* --- inputs, each with its input capacitance --- */
+//   %jinp = (-14, 1);
 //   $JUNCTION @ATTACH %jinp;
-//   %jinn = (-10, -1);
-//   $JUNCTION @ATTACH %jinn;
-//   %p_inp = $IO_PORT @ATTACH &INP => @PLACE(-20, 1) => @ORIENT("R0");
+//   %p_inp = $IO_PORT @ATTACH &INP => @PLACE(-18, 1) => @ORIENT("R0");
 //   &INP @WIRE {%p_inp:p %jinp #I0:INP};
 //   &INP @WIRE {%jinp #CINP:1};
+//   %jinn = (-10, -1);
+//   $JUNCTION @ATTACH %jinn;
 //   %p_inn = $IO_PORT @ATTACH &INN => @PLACE(-13, -1) => @ORIENT("R0");
 //   &INN @WIRE {%p_inn:p %jinn #I0:INN};
 //   &INN @WIRE {%jinn #CINN:1};
-//   %g1 = $GROUND @ATTACH &VSS => @PLACE(-16, -4);
+//   %g1 = $GROUND @ATTACH &VSS => @PLACE(-14, -7);
 //   &VSS @WIRE {#CINP:2 %g1:p};
-//   %g2 = $GROUND @ATTACH &VSS => @PLACE(-10, -6);
+//   %g2 = $GROUND @ATTACH &VSS => @PLACE(-10, -8);
 //   &VSS @WIRE {#CINN:2 %g2:p};
-//   %p_clkc = $IO_PORT @ATTACH &CLKC => @PLACE(-2, -8) => @ORIENT("R90");
+//   /* --- clock from below, outputs to the right, supplies --- */
+//   %p_clkc = $IO_PORT @ATTACH &CLKC => @PLACE(1, -9) => @ORIENT("R90");
 //   &CLKC @WIRE {%p_clkc:p #I0:CLKC};
-//   %g3 = $GROUND @ATTACH &VSS => @PLACE(2, -6);
+//   %g3 = $GROUND @ATTACH &VSS => @PLACE(-2, -7);
 //   &VSS @WIRE {#I0:VSS %g3:p};
-//   %s1 = $SUPPLY @ATTACH &AVDD => @PLACE(0, 6);
+//   %s1 = $SUPPLY @ATTACH &AVDD => @PLACE(-2, 7);
 //   &AVDD @WIRE {#I0:AVDD %s1:p};
-//   %p_outp = $IO_PORT @ATTACH &OUTP => @PLACE(11, 1) => @ORIENT("MY");
+//   %p_outp = $IO_PORT @ATTACH &OUTP => @PLACE(10, 1) => @ORIENT("MY");
 //   &OUTP @WIRE {#I0:OUTP %p_outp:p};
-//   %p_outn = $IO_PORT @ATTACH &OUTN => @PLACE(11, -1) => @ORIENT("MY");
+//   %p_outn = $IO_PORT @ATTACH &OUTN => @PLACE(10, -1) => @ORIENT("MY");
 //   &OUTN @WIRE {#I0:OUTN %p_outn:p};
 //   /* --- annotations --- */
-//   (-20, 11) @TEXT("adc_comp (behavioral): latched comparator, delay t0 + tau*ln(vsat/|vd|)", halign="start") => @SET-STYLE $title_style;
-//   (-20, 9.5) @TEXT("noise sigma*noise_en (Gaussian per decision), timing scaled by beh_speed; CIN models the input capacitance", halign="start") => @SET-STYLE $note_style
+//   (-18, 12) @TEXT("adc_comp (behavioral): latched comparator, delay t0 + tau*ln(vsat/|vd|)", halign="start") => @SET-STYLE $title_style;
+//   (-18, 10.5) @TEXT("noise sigma*noise_en (Gaussian per decision), timing scaled by beh_speed; CIN models the input capacitance", halign="start") => @SET-STYLE $note_style
 // }
 ends adc_comp

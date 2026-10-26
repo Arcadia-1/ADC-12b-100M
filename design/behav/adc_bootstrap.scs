@@ -11,22 +11,25 @@ parameters kboost=0.95 t_on=60p t_off=15p iavg=15u
 I0 (VIN PHI_B PHI_BB VG AVDD VSS) adc_bootstrap_va \
         kboost=kboost t_on=t_on*beh_speed t_off=t_off*beh_speed iavg=iavg
 // @RNL {
+//   /* --- semantics --- */
 //   &AVDD @ADD-TO $SUPPLY_NET_SET;
 //   &VSS @ADD-TO $GROUND_NET_SET;
+//   /* --- placement and wires --- */
 //   #I0 @PLACE(0, 0);
-//   %p_vin = $IO_PORT @ATTACH &VIN => @PLACE(-11, 2) => @ORIENT("R0");
+//   %p_vin = $IO_PORT @ATTACH &VIN => @PLACE(-10, 2) => @ORIENT("R0");
 //   &VIN @WIRE {%p_vin:p #I0:VIN};
-//   %p_phi_b = $IO_PORT @ATTACH &PHI_B => @PLACE(-11, 0) => @ORIENT("R0");
+//   %p_phi_b = $IO_PORT @ATTACH &PHI_B => @PLACE(-10, 0) => @ORIENT("R0");
 //   &PHI_B @WIRE {%p_phi_b:p #I0:PHI_B};
-//   %p_phi_bb = $IO_PORT @ATTACH &PHI_BB => @PLACE(-11, -2) => @ORIENT("R0");
+//   %p_phi_bb = $IO_PORT @ATTACH &PHI_BB => @PLACE(-10, -2) => @ORIENT("R0");
 //   &PHI_BB @WIRE {%p_phi_bb:p #I0:PHI_BB};
-//   %p_vg = $IO_PORT @ATTACH &VG => @PLACE(11, 0) => @ORIENT("MY");
+//   %p_vg = $IO_PORT @ATTACH &VG => @PLACE(10, 2) => @ORIENT("MY");
 //   &VG @WIRE {#I0:VG %p_vg:p};
 //   %s1 = $SUPPLY @ATTACH &AVDD => @PLACE(0, 7);
 //   &AVDD @WIRE {#I0:AVDD %s1:p};
-//   %g1 = $GROUND @ATTACH &VSS => @PLACE(0, -7);
+//   %g1 = $GROUND @ATTACH &VSS => @PLACE(4, -7);
 //   &VSS @WIRE {#I0:VSS %g1:p};
-//   (-12, 12) @TEXT("adc_bootstrap (behavioral): VG = VIN + kboost*AVDD while PHI_B, 0 V otherwise", halign="start") => @SET-STYLE $title_style;
-//   (-12, 10.5) @TEXT("edges t_on / t_off scaled by beh_speed; VG is driven through rout = 50 ohm", halign="start") => @SET-STYLE $note_style
+//   /* --- annotations --- */
+//   (-12, 13.5) @TEXT("adc_bootstrap (behavioral): VG = VIN + kboost*AVDD while PHI_B, 0 V otherwise", halign="start") => @SET-STYLE $title_style;
+//   (-12, 12) @TEXT("edges t_on / t_off scaled by beh_speed; VG is driven through rout = 50 ohm", halign="start") => @SET-STYLE $note_style
 // }
 ends adc_bootstrap

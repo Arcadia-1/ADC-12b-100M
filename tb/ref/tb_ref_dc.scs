@@ -20,38 +20,38 @@ save VREFP VCM VH:p VA:p VREF:p
 // @RNL {
 //   /* --- semantics --- */
 //   &0 @ADD-TO $GROUND_NET_SET;
-//   #XDUT @PLACE(7, 0);
-//   #VREF @PLACE(-16, 4);
-//   #IL @PLACE(0, -14);
-//   #VH @PLACE(0, 16);
-//   #VA @PLACE(12, 16);
+//   #XDUT @PLACE(6, 0);
+//   #VREF @PLACE(-16, 5);
+//   #IL @PLACE(0, -15);
+//   #VH @PLACE(0, 17);
+//   #VA @PLACE(12, 17);
 //   &VREF_IN @WIRE {#XDUT:VREF_IN (-2, 0)};
 //   (-2.3, -0.25) @TEXT("VREF_IN", size=0.6, halign="end");
-//   &VREFP @WIRE {#XDUT:VREFP (16, 1)};
-//   (16.3, 0.75) @TEXT("VREFP", size=0.6, halign="start");
-//   &VCM @WIRE {#XDUT:VCM (16, -1)};
-//   (16.3, -1.25) @TEXT("VCM", size=0.6, halign="start");
-//   &AVDD18 @WIRE {#XDUT:AVDD18 (5, 6)};
-//   (5.25, 6.3) @TEXT("AVDD18", size=0.6, rotate=90, halign="start");
-//   &AVDD @WIRE {#XDUT:AVDD (9, 6)};
-//   (9.25, 6.3) @TEXT("AVDD", size=0.6, rotate=90, halign="start");
-//   %g1 = $GROUND @ATTACH &0 => @PLACE(7, -5.5);
+//   &VREFP @WIRE {#XDUT:VREFP (17, 0)};
+//   (17.3, -0.25) @TEXT("VREFP", size=0.6, halign="start");
+//   &VCM @WIRE {#XDUT:VCM (17, -4)};
+//   (17.3, -4.25) @TEXT("VCM", size=0.6, halign="start");
+//   &AVDD18 @WIRE {#XDUT:AVDD18 (3, 7)};
+//   (3.25, 7.3) @TEXT("AVDD18", size=0.6, rotate=90, halign="start");
+//   &AVDD @WIRE {#XDUT:AVDD (7, 7)};
+//   (7.25, 7.3) @TEXT("AVDD", size=0.6, rotate=90, halign="start");
+//   %g1 = $GROUND @ATTACH &0 => @PLACE(6, -6.5);
 //   &0 @WIRE {#XDUT:VSS %g1:p};
-//   &VREF_IN @WIRE {#VREF:1 (-16, 8)};
-//   (-15.75, 8.3) @TEXT("VREF_IN", size=0.6, rotate=90, halign="start");
-//   %g2 = $GROUND @ATTACH &0 => @PLACE(-16, 0.5);
+//   &VREF_IN @WIRE {#VREF:1 (-16, 9)};
+//   (-15.75, 9.3) @TEXT("VREF_IN", size=0.6, rotate=90, halign="start");
+//   %g2 = $GROUND @ATTACH &0 => @PLACE(-16, 1.5);
 //   &0 @WIRE {#VREF:2 %g2:p};
-//   &AVDD18 @WIRE {#VH:1 (0, 20)};
-//   (0.25, 20.3) @TEXT("AVDD18", size=0.6, rotate=90, halign="start");
-//   %g3 = $GROUND @ATTACH &0 => @PLACE(0, 12.5);
+//   &AVDD18 @WIRE {#VH:1 (0, 21)};
+//   (0.25, 21.3) @TEXT("AVDD18", size=0.6, rotate=90, halign="start");
+//   %g3 = $GROUND @ATTACH &0 => @PLACE(0, 13.5);
 //   &0 @WIRE {#VH:2 %g3:p};
-//   &AVDD @WIRE {#VA:1 (12, 20)};
-//   (12.25, 20.3) @TEXT("AVDD", size=0.6, rotate=90, halign="start");
-//   %g4 = $GROUND @ATTACH &0 => @PLACE(12, 12.5);
+//   &AVDD @WIRE {#VA:1 (12, 21)};
+//   (12.25, 21.3) @TEXT("AVDD", size=0.6, rotate=90, halign="start");
+//   %g4 = $GROUND @ATTACH &0 => @PLACE(12, 13.5);
 //   &0 @WIRE {#VA:2 %g4:p};
-//   &VREFP @WIRE {#IL:1 (0, -10)};
-//   (0.25, -9.7) @TEXT("VREFP", size=0.6, rotate=90, halign="start");
-//   %g5 = $GROUND @ATTACH &0 => @PLACE(0, -17.5);
+//   &VREFP @WIRE {#IL:1 (0, -11)};
+//   (0.25, -10.7) @TEXT("VREFP", size=0.6, rotate=90, halign="start");
+//   %g5 = $GROUND @ATTACH &0 => @PLACE(0, -18.5);
 //   &0 @WIRE {#IL:2 %g5:p};
-//   (-30, 30) @TEXT("tb_ref_dc: VREFP / VCM accuracy, load and line regulation, currents", halign="start") => @SET-STYLE $title_style
+//   (-30, 31) @TEXT("tb_ref_dc: VREFP / VCM accuracy, load and line regulation, currents", halign="start") => @SET-STYLE $title_style
 // }

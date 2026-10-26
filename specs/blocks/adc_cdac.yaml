@@ -24,7 +24,7 @@ ports:
   - {name: TOP,   dir: out, type: analog, side: right,  desc: "top plate, to the comparator"}
   - {name: VCM,   dir: in,  type: analog, side: top,    desc: "0.45 V top-plate reset level"}
   - {name: VREFP, dir: in,  type: analog, side: top,    desc: "0.9 V reference"}
-  - {name: VREFN, dir: in,  type: analog, side: bottom, desc: "reference ground"}
+  - {name: VREFN, dir: in,  type: analog, side: top,    desc: "reference ground"}
   - {name: PHI_S, dir: in,  type: clock,  side: left,   desc: "top-plate switch, high = track (opens first: sampling instant)"}
   - {name: PHI_SB, dir: in, type: clock,  side: left,   desc: "complement of PHI_S"}
   - {name: CONV,  dir: in,  type: clock,  side: left,   desc: "high = drivers enabled (convert); low = sampled halves tri-stated"}
@@ -54,8 +54,8 @@ ports:
   - {name: RL2,  dir: in, type: digital, side: bottom, bus: RL}
   - {name: RL1,  dir: in, type: digital, side: bottom, bus: RL}
   - {name: RL0,  dir: in, type: digital, side: bottom, bus: RL}
-  - {name: DVDD, dir: supply, type: supply, side: top,    desc: "0.9 V supply of the driver pre-logic"}
-  - {name: VSS,  dir: ground, type: supply, side: bottom, desc: "ground"}
+  - {name: DVDD, dir: supply, type: supply, side: right,  desc: "0.9 V supply of the driver pre-logic"}
+  - {name: VSS,  dir: ground, type: supply, side: right,  desc: "ground"}
 operating:
   vin_range: [0.0, 0.9]
   top_load: 15.0e-15          # F, comparator input

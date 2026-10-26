@@ -7,7 +7,7 @@ instance's terminal list is produced in the port order of specs/blocks.
 from __future__ import annotations
 
 from .gen import GEN_HEADER, block_symbols
-from .rnldraw import Sheet
+from .rnldraw import Sheet, turn
 from .specs import blocks
 
 JS = list(range(12, -1, -1))
@@ -75,97 +75,149 @@ def gen_top() -> str:
     L += _inst_line("XLOG")
 
     s = Sheet()
+    _draw(s, syms)
+    L += s.record()
+    L.append("ends adc_top")
+    return "\n".join(L) + "\n"
+
+
+# The drawing, left to right: inputs and bootstraps | the two CDACs, mirrored about the
+# reference channel between them | comparator | SAR logic. The UP / DN buses run from the
+# right of the SAR logic over the P CDAC (MX: its control buses on top) and under the N CDAC;
+# they cross once, where UP passes DN on its way down. Phases are connected by net name.
+P_Y, N_Y, C_Y = 30, 0, 15          # P CDAC, N CDAC, the comparator / reference axis between them
+X_L = -46                          # the input ports
+
+
+def _draw(s: Sheet, syms: dict) -> None:
+    up = [f"UP{j}" for j in JS]
+    dn = [f"DN{j}" for j in JS]
+    ds = [f"D{i}" for i in DS]
     s.emit("/* --- semantics --- */")
     s.emit("{&AVDD &DVDD &AVDD18} @ADD-TO $SUPPLY_NET_SET;")
     s.emit("&VSS @ADD-TO $GROUND_NET_SET;")
+    s.emit("/* the two halves of the differential front end are matched copies */")
     s.emit("{#XDACP #XDACN} @AS $MATCHED;")
     s.emit("{#XBSP #XBSN} @AS $MATCHED;")
-    s.emit("{#XBSP #XDACP #XCMP #XLOG} @AS(direction=\"left-to-right\") $FLOW;")
-    s.emit("{#XBSN #XDACN} @AS(direction=\"left-to-right\") $FLOW;")
     s.emit("{#XBSP #XDACP} @GROUP;")
     s.emit("{#XBSN #XDACN} @GROUP;")
+    s.emit("/* the signal path: bootstrap and CDAC of each side, comparator, SAR logic */")
+    s.emit('{#XBSP #XDACP #XCMP #XLOG} @AS(direction="left-to-right") $FLOW;')
+    s.emit('{#XBSN #XDACN #XCMP #XLOG} @AS(direction="left-to-right") $FLOW;')
     s.emit("/* --- placement --- */")
-    P = {}
-    P["XREF"] = s.place("XREF", syms["adc_ref"].pins, -17, 56)
-    P["XBSP"] = s.place("XBSP", syms["adc_bootstrap"].pins, -17, 32)
-    P["XDACP"] = s.place("XDACP", syms["adc_cdac"].pins, 25, 30)
-    P["XBSN"] = s.place("XBSN", syms["adc_bootstrap"].pins, -17, -8)
-    P["XDACN"] = s.place("XDACN", syms["adc_cdac"].pins, 25, -10)
-    P["XCMP"] = s.place("XCMP", syms["adc_comp"].pins, 72, 10)
-    P["XLOG"] = s.place("XLOG", syms["adc_sarlogic"].pins, 112, 10)
-    P["XCLK"] = s.place("XCLK", syms["adc_clkgen"].pins, -17, -42)
+    P = {
+        "XDACP": s.place("XDACP", syms["adc_cdac"].pins, 0, P_Y, "MX"),
+        "XDACN": s.place("XDACN", syms["adc_cdac"].pins, 0, N_Y),
+        "XBSP": s.place("XBSP", syms["adc_bootstrap"].pins, -24, P_Y + 8),
+        "XBSN": s.place("XBSN", syms["adc_bootstrap"].pins, -24, N_Y - 8),
+        "XREF": s.place("XREF", syms["adc_ref"].pins, -17, C_Y),
+        "XCMP": s.place("XCMP", syms["adc_comp"].pins, 34, C_Y),
+        "XLOG": s.place("XLOG", syms["adc_sarlogic"].pins, 54, C_Y),
+        "XCLK": s.place("XCLK", syms["adc_clkgen"].pins, -24, N_Y - 31),
+    }
 
     def pin(i, p):
         return P[i].pin(p)
 
-    s.emit("/* --- inputs and sampling front end --- */")
-    for side, y_bus in (("P", 38), ("N", -2)):
+    s.emit("/* --- inputs: VIN to the CDAC, tapped to the bootstrap on the outer side --- */")
+    for side in ("P", "N"):
         bs, dac, vin = f"XBS{side}", f"XDAC{side}", f"VIN{side}"
-        bx, by = pin(bs, "VIN")
         dx, dy = pin(dac, "VIN")
-        j1 = s.point(f"jvin{side.lower()}", bx - 4, y_bus, junction=True)
-        s.port(vin, -44, y_bus)
-        s.wire(vin, f"%p_{vin.lower()}:p", j1, (dx - 2, y_bus), (dx - 2, dy), f"#{dac}:VIN")
-        s.wire(vin, j1, (bx - 4, by), f"#{bs}:VIN")
-        s.wire(f"VG{side}", f"#{bs}:VG", f"#{dac}:VG")
-    s.emit("/* --- top plates to the comparator (crossed: INP <- TOPN) --- */")
-    tpx, tpy = pin("XDACP", "TOP")
-    tnx, tny = pin("XDACN", "TOP")
-    inp = pin("XCMP", "INP")
-    inn = pin("XCMP", "INN")
-    s.wire("TOPP", "#XDACP:TOP", (inn[0] - 4, tpy), (inn[0] - 4, inn[1]), "#XCMP:INN")
-    s.wire("TOPN", "#XDACN:TOP", (inp[0] - 2, tny), (inp[0] - 2, inp[1]), "#XCMP:INP")
+        bx, by = pin(bs, "VIN")
+        j = s.point(f"jvin{side.lower()}", X_L + 8, dy, junction=True)
+        s.port(vin, X_L, dy)
+        s.wire(vin, f"%p_{vin.lower()}:p", j, f"#{dac}:VIN")
+        s.wire(vin, j, (X_L + 8, by), f"#{bs}:VIN")
+        gx, gy = pin(bs, "VG")
+        vx, vy = pin(dac, "VG")
+        bend = [] if gy == vy else [(vx - 3, gy), (vx - 3, vy)]
+        s.wire(f"VG{side}", f"#{bs}:VG", *bend, f"#{dac}:VG")
+    s.emit("/* --- reference channel: VREFP and VCM from XREF, VREFN tied to VSS --- */")
+    rx, ry = pin("XREF", "VREF_IN")
+    s.port("VREF_IN", X_L, ry)
+    s.wire("VREF_IN", "%p_vref_in:p", "#XREF:VREF_IN")
+    for net, tag in (("VCM", "jvcm"), ("VREFP", "jvrp")):
+        x = pin("XDACN", net)[0]
+        j = s.point(tag, x, pin("XREF", net)[1], junction=True)
+        s.wire(net, "#XDACP:" + net, j, "#XDACN:" + net)
+        s.wire(net, "#XREF:" + net, j)
+    x = pin("XDACN", "VREFN")[0]
+    j = s.point("jvrn", x, C_Y, junction=True)
+    s.wire("VSS", "#XDACP:VREFN", j, "#XDACN:VREFN")
+    s.wire("VSS", j, s.ground("VSS", x + 2, C_Y, "g_vrn"))
+    s.emit("/* --- top plates to the comparator, crossed: INP <- TOPN, INN <- TOPP --- */")
+    inp, inn = pin("XCMP", "INP"), pin("XCMP", "INN")
+    s.wire("TOPP", "#XDACP:TOP", (inp[0] - 4, pin("XDACP", "TOP")[1]), (inp[0] - 4, inn[1]), "#XCMP:INN")
+    s.wire("TOPN", "#XDACN:TOP", (inp[0] - 2, pin("XDACN", "TOP")[1]), (inp[0] - 2, inp[1]), "#XCMP:INP")
     s.emit("/* --- comparator <-> SAR logic --- */")
     s.wire("OUTP", "#XCMP:OUTP", "#XLOG:OUTP")
     s.wire("OUTN", "#XCMP:OUTN", "#XLOG:OUTN")
     cx, cy = pin("XLOG", "CLKC")
     kx, ky = pin("XCMP", "CLKC")
-    s.wire("CLKC", "#XLOG:CLKC", (cx - 6, cy), (cx - 6, ky - 3), (kx, ky - 3), "#XCMP:CLKC")
-    s.emit("/* --- clock and reference inputs --- */")
+    s.wire("CLKC", "#XLOG:CLKC", (cx - 3, cy), (cx - 3, ky - 3), (kx, ky - 3), "#XCMP:CLKC")
+    s.emit("/* --- SAR loop: UP<12:0> and DN<12:0> to both CDACs (P: RL = UP, DH = DN; N: DH = UP, RL = DN) --- */")
+    ux, uy = pin("XLOG", up[0])
+    nx, ny = pin("XLOG", dn[0])
+    top_up, top_dn = pin("XDACP", "RL12")[1] + 3, pin("XDACP", "RL12")[1] + 5
+    bot_dn, bot_up = pin("XDACN", "RL12")[1] - 3, pin("XDACN", "RL12")[1] - 5
+    j_up = s.point("jup", ux + 4, uy, junction=True)
+    j_dn = s.point("jdn", nx + 2, ny, junction=True)
+    px_rl, px_dh = pin("XDACP", "RL12")[0], pin("XDACP", "DH12")[0]
+    s.bus_wire("bus_up_p", up, "#XLOG:UP12", j_up, (ux + 6, uy), (ux + 6, top_up), (px_rl, top_up),
+               "#XDACP:RL12", label="UP<12:0>", label_at=(px_rl + 0.5, top_up + 0.3))
+    s.bus_wire("bus_up_n", up, j_up, (ux + 4, bot_up), (px_dh, bot_up), "#XDACN:DH12",
+               label="UP<12:0>", label_at=(px_dh + 0.5, bot_up - 1.2))
+    s.bus_wire("bus_dn_p", dn, "#XLOG:DN12", j_dn, (nx + 8, ny), (nx + 8, top_dn), (px_dh, top_dn),
+               "#XDACP:DH12", label="DN<12:0>", label_at=(px_dh + 0.5, top_dn + 0.3))
+    s.bus_wire("bus_dn_n", dn, j_dn, (nx + 2, bot_dn), (px_rl, bot_dn), "#XDACN:RL12",
+               label="DN<12:0>", label_at=(px_rl + 0.5, bot_dn - 1.2))
+    s.emit("/* --- outputs: the raw bits as one bus port, RDY --- */")
+    x, y = pin("XLOG", ds[0])
+    s.bus_wire("bus_d", ds, "#XLOG:D13", s.bus_port("p_d", ds, x, y - 3, facing="up"))
+    x, y = pin("XLOG", "RDY")
+    s.wire("RDY", "#XLOG:RDY", s.port("RDY", x, y - 4, facing="up"))
+    s.emit("/* --- sampling clock --- */")
     clx, cly = pin("XCLK", "CLK")
-    s.port("CLK", clx - 6, cly)
+    s.port("CLK", X_L, cly)
     s.wire("CLK", "%p_clk:p", "#XCLK:CLK")
-    rx, ry = pin("XREF", "VREF_IN")
-    s.port("VREF_IN", rx - 6, ry)
-    s.wire("VREF_IN", "%p_vref_in:p", "#XREF:VREF_IN")
-    s.emit("/* --- outputs: raw bits and RDY below the SAR logic --- */")
-    for d in [f"D{i}" for i in DS] + ["RDY"]:
-        x, y = pin("XLOG", d)
-        s.port(d, x, y - 4, facing="up")
-        s.wire(d, f"%p_{d.lower()}:p", f"#XLOG:{d}")
     s.emit("/* --- supplies and grounds --- */")
     k = 0
     for inst, (blk, _) in _conn().items():
-        nets = dict(zip(blocks()[blk].port_names, nets_of(inst)))
-        for p, net in nets.items():
-            if net in ("AVDD", "DVDD", "AVDD18"):
-                x, y = pin(inst, p)
-                k += 1
+        for p, net in zip(blocks()[blk].port_names, nets_of(inst)):
+            if net not in ("AVDD", "DVDD", "AVDD18", "VSS") or p == "VREFN":
+                continue
+            x, y = pin(inst, p)
+            k += 1
+            d = turn(syms[blk].dirs[p], P[inst].orient)
+            mx = P[inst].orient == "MX"
+            if net == "VSS" and d == "right":
+                # P CDAC (MX): VSS sits above DVDD, so its ground stands further out
+                s.wire(net, f"#{inst}:{p}", s.ground(net, x + (3 if mx else 2), y, f"g{k}"))
+            elif d == "right" and mx:
+                # P CDAC DVDD: below its VSS ground, then out to the right
+                s.wire(net, f"#{inst}:{p}", (x + 1, y), (x + 1, y - 2), s.supply(net, x + 8, y - 2, f"s{k}"))
+            elif d == "right":
+                s.wire(net, f"#{inst}:{p}", s.supply(net, x + 2, y, f"s{k}"))
+            elif net == "VSS" and d == "down":
+                s.wire(net, f"#{inst}:{p}", s.ground(net, x, y - 2, f"g{k}"))
+            elif d == "up":
                 s.wire(net, f"#{inst}:{p}", s.supply(net, x, y + 2, f"s{k}"))
-            elif net == "VSS":
-                x, y = pin(inst, p)
-                k += 1
-                bx = P[inst].x
-                if y > P[inst].y + 1:          # VSS pin on the top edge: go up and over
-                    s.wire(net, f"#{inst}:{p}", (x, y + 2), (x + 3, y + 2), s.ground(net, x + 3, y + 1, f"g{k}"))
-                else:
-                    s.wire(net, f"#{inst}:{p}", s.ground(net, x, y - 2, f"g{k}"))
-    s.emit("/* --- pins connected by net name (phases, references, UP/DN buses) --- */")
-    for inst, (blk, _) in _conn().items():
-        b = blocks()[blk]
-        for port, net in zip(b.ports, nets_of(inst)):
-            if f"#{inst}:{port.name}" not in s.wired:
-                s.label_stub(inst, port.name, net, port.side)
+            else:
+                raise ValueError(f"no drawing for {net} at #{inst}:{p} facing {d}")
+    s.emit("/* --- phases, connected by net name --- */")
+    stubs = [("XCLK", p, "right") for p in ("PHI_S", "PHI_SB", "PHI_B", "PHI_BB", "CONV")]
+    stubs += [(b, p, "left") for b in ("XBSP", "XBSN") for p in ("PHI_B", "PHI_BB")]
+    stubs += [(d, p, "left") for d in ("XDACP", "XDACN") for p in ("PHI_S", "PHI_SB", "CONV")]
+    stubs += [("XLOG", "CONV", "left")]
+    for inst, p, side in stubs:
+        s.label_stub(inst, p, dict(zip(blocks()[_conn()[inst][0]].port_names, nets_of(inst)))[p], side)
     s.emit("/* --- annotations --- */")
-    s.text(-44, 68, "adc_top: 100 MS/s asynchronous SAR, bottom-plate sampling, split-capacitor redundant CDAC",
+    s.text(X_L, 52, "adc_top: 100 MS/s asynchronous SAR, bottom-plate sampling, split-capacitor redundant CDAC",
            style="title_style", halign="start")
-    s.text(-44, 66, "14 decisions, raw bits D13..D0 with weights 2048 1024 512 384 256 128 64 64 32 16 8 4 2 1;"
-                    " code = sum(W*D); unwired pins are connected by net name",
+    s.text(X_L, 50.3, "14 decisions, raw bits D<13:0> with weights 2048 1024 512 384 256 128 64 64 32 16 8 4 2 1;"
+                      " code = sum(W*D)", style="note_style", halign="start")
+    s.text(X_L, 49, "P CDAC drawn mirrored (MX): its control buses on top. P side: RL<j> = UP<j>, DH<j> = DN<j>;"
+                    " N side: DH<j> = UP<j>, RL<j> = DN<j>. Phases connect by net name.",
            style="note_style", halign="start")
-    s.text(25, 12.5, "P side: DH<j> = DN<j>, RL<j> = UP<j>", style="note_style", halign="middle")
-    s.text(25, -27.5, "N side: DH<j> = UP<j>, RL<j> = DN<j>", style="note_style", halign="middle")
-    s.text(72, 20, "INP <- TOPN, INN <- TOPP: OUTP = 1 means input above DAC level", style="note_style",
+    s.text(34, 2.4, "TOPN \\to INP, TOPP \\to INN (crossed): OUTP = 1 means UP", style="note_style",
            halign="middle")
-    L += s.record()
-    L.append("ends adc_top")
-    return "\n".join(L) + "\n"
