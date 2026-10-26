@@ -118,6 +118,7 @@
           post({ type: "level", name: wantLevel });
         }
         wantLevel = null;
+        setTimeout(function () { post({ type: "fit" }); }, 120);   // the first paint can be taken before the frame has its size
       } else if (d.type === "level") {
         if (lvlSel.querySelector('option[value="' + CSS.escape(d.name) + '"]')) lvlSel.value = d.name;
       } else if (d.type === "error" && d.reason !== "superseded") {

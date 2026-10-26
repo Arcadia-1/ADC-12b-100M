@@ -476,4 +476,4 @@ def doc_page(site: Site, slug_: str, title: str, src: str, html_body: str, heads
     body = f"""<div class="doc-layout"><aside class="toc" aria-label="目录"><details open><summary>目录</summary>{toc}</details></aside>
 <article class="prose"><p class="eyebrow">文档 · <a href="{esc(site.gh(src))}" rel="noopener"><code>{esc(src)}</code></a></p>
 <h1>{esc(title)}</h1>{html_body}</article></div>"""
-    return page(site, title=title, body=body, active="docs", root="../", wide=True)
+    return page(site, title=next((t for f, s_, t, _ in DOCS if s_ == slug_), title), body=body, active="docs", root="../", wide=True)

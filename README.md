@@ -26,6 +26,7 @@ Verilog-A behavioral models, Python tooling and Spectre.
 | `design/xtor/<block>/` | transistor-level views (block owners) |
 | `design/top/adc_top.scs` | structural top level (same file for any mix of views) |
 | `tb/` | acceptance testbenches and their Verilog-A monitors |
+| `site/` | static project website (`python site/build.py`), built by CI on every PR, deployed from `main` |
 | `tools/adcflow/` | system model, generators, remote Spectre runner, measurements, CI checks |
 | `results/` | recorded acceptance results (small JSON, hashed against the netlists) |
 
