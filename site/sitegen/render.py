@@ -53,6 +53,7 @@ def page(site: Site, *, title: str, body: str, active: str, root: str, desc: str
     ver = f'<a href="{site.gh("", True)}commit/{b.sha}">{esc(b.short)}</a>' if b.sha and b.repo else esc(b.short)
     gh = f'<a class="gh" href="https://github.com/{b.repo}" rel="noopener" title="GitHub">GitHub ↗</a>' if b.repo else ""
     top_href = site.full_viewer_href("design/top/adc_top.scs", "adc_top")
+    nl_base = site.netlist_base if site.netlist_base.startswith("http") else root + site.netlist_base   # relative to this page
     return f"""<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -60,7 +61,7 @@ def page(site: Site, *, title: str, body: str, active: str, root: str, desc: str
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="description" content="{esc(desc or 'ADC-12b-100M：TSMC 28 nm 异步 SAR ADC 设计进展、验证结果与原理图')}">
-<meta name="netlist-base" content="{esc(site.netlist_base)}">
+<meta name="netlist-base" content="{esc(nl_base)}">
 <title>{esc(title)} · ADC-12b-100M</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23127a8c'/%3E%3Cpath d='M5 21h5v-6h5v-5h5v-4h7' fill='none' stroke='white' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E">
 <script>try{{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}}catch(e){{}}</script>

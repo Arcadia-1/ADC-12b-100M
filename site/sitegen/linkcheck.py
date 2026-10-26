@@ -14,9 +14,12 @@ class _Scan(HTMLParser):
         super().__init__()
         self.ids: set[str] = set()
         self.refs: list[str] = []
+        self.netlist_base: str | None = None
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
+        if tag == "meta" and a.get("name") == "netlist-base":
+            self.netlist_base = a.get("content")
         if a.get("id"):
             self.ids.add(a["id"])
         if a.get("name") and tag == "a":
@@ -34,6 +37,11 @@ def check(out: Path) -> list[str]:
         pages[f.relative_to(out).as_posix()] = sc
     problems = []
     for rel, sc in pages.items():
+        base = sc.netlist_base
+        if base and not base.startswith("http"):       # published netlists: the page's base must reach the top level
+            probe = posixpath.normpath(posixpath.join(posixpath.dirname(rel), base, "design/top/adc_top.scs"))
+            if not (out / probe).is_file():
+                problems.append(f"{rel}: netlist-base {base!r} does not reach the published netlists")
         for ref in sc.refs:
             u = urlparse(ref)
             if u.scheme or u.netloc or ref.startswith(("data:", "mailto:")):
