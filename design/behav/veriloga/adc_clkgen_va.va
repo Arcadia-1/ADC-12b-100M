@@ -1,0 +1,55 @@
+// Behavioral sampling-phase generator for adc_clkgen (behav view).
+// CLK fall: PHI_S falls after td_s (+ Gaussian jitter), PHI_B dt_b later,
+// CONV rises dt_conv after PHI_B. CLK rise: CONV falls after td_r, then
+// PHI_B and PHI_S rise dt_rise later (break before make).
+`include "disciplines.vams"
+`include "constants.vams"
+
+module adc_clkgen_va(CLK, PHI_S, PHI_SB, PHI_B, PHI_BB, CONV, AVDD, VSS);
+  input CLK;
+  output PHI_S, PHI_SB, PHI_B, PHI_BB, CONV;
+  inout AVDD, VSS;
+  electrical CLK, PHI_S, PHI_SB, PHI_B, PHI_BB, CONV, AVDD, VSS;
+
+  parameter real td_s = 40e-12;        // CLK fall -> PHI_S fall
+  parameter real dt_b = 40e-12;        // PHI_S fall -> PHI_B fall
+  parameter real dt_conv = 30e-12;     // PHI_B fall -> CONV rise
+  parameter real td_r = 40e-12;        // CLK rise -> CONV fall
+  parameter real dt_rise = 30e-12;     // CONV fall -> PHI_B, PHI_S rise
+  parameter real tr = 12e-12;          // output edges
+  parameter real jitter = 0 from [0:inf);   // rms, on the PHI_S falling edge
+  parameter real iavg = 25e-6 from [0:inf); // average AVDD current (budget)
+  parameter integer seed0 = 23;
+
+  integer seed, phs, phb, conv;
+  real t_s_f, t_b_f, t_c_r, t_c_f, t_sb_r, tj;
+
+  analog begin
+    @(initial_step) begin
+      seed = seed0; phs = 1; phb = 1; conv = 0;
+      t_s_f = 1e9; t_b_f = 1e9; t_c_r = 1e9; t_c_f = 1e9; t_sb_r = 1e9;
+    end
+    @(cross(V(CLK, VSS) - 0.5 * V(AVDD, VSS), -1)) begin
+      tj = (jitter > 0) ? jitter * $rdist_normal(seed, 0.0, 1.0) : 0.0;
+      t_s_f = $abstime + td_s + tj;
+      t_b_f = $abstime + td_s + dt_b;
+      t_c_r = $abstime + td_s + dt_b + dt_conv;
+    end
+    @(cross(V(CLK, VSS) - 0.5 * V(AVDD, VSS), +1)) begin
+      t_c_f = $abstime + td_r;
+      t_sb_r = $abstime + td_r + dt_rise;
+    end
+    @(timer(t_s_f)) begin phs = 0; t_s_f = 1e9; end
+    @(timer(t_b_f)) begin phb = 0; t_b_f = 1e9; end
+    @(timer(t_c_r)) begin conv = 1; t_c_r = 1e9; end
+    @(timer(t_c_f)) begin conv = 0; t_c_f = 1e9; end
+    @(timer(t_sb_r)) begin phs = 1; phb = 1; t_sb_r = 1e9; end
+
+    V(PHI_S, VSS)  <+ transition(phs, 0, tr) * V(AVDD, VSS);
+    V(PHI_SB, VSS) <+ transition(1 - phs, 0, tr) * V(AVDD, VSS);
+    V(PHI_B, VSS)  <+ transition(phb, 0, tr) * V(AVDD, VSS);
+    V(PHI_BB, VSS) <+ transition(1 - phb, 0, tr) * V(AVDD, VSS);
+    V(CONV, VSS)   <+ transition(conv, 0, tr) * V(AVDD, VSS);
+    I(AVDD, VSS) <+ iavg;
+  end
+endmodule

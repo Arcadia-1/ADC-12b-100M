@@ -1,0 +1,72 @@
+// Control sequencer for the CDAC testbenches. Lines are indexed 0..25 as
+// DH12, RL12, DH11, RL11, ..., DH0, RL0. Conversions are counted at CONV rising.
+//   mode 0 (weights): conversion n0 + i toggles line i (i = 0..25) high at
+//          t_on after CONV rises and low t_hold later.
+//   mode 1 (settling): conversions n0, n0+1, n0+2 toggle lines sel0, sel1, sel2
+//          at t_on (held until CONV falls); conversion n0+3 raises RL12 .. RL0
+//          one after the other every t_step from t_on (a full 13-step pattern).
+// All lines go low when CONV falls.
+`include "disciplines.vams"
+`include "constants.vams"
+
+module tb_cdac_seq_va(CONV, DH, RL, VDD, VSS);
+  input CONV, VDD, VSS;
+  output [12:0] DH, RL;
+  electrical CONV, VDD, VSS;
+  electrical [12:0] DH, RL;
+
+  parameter integer mode = 0;
+  parameter integer n0 = 3;
+  parameter integer sel0 = 1;
+  parameter integer sel1 = 15;
+  parameter integer sel2 = 25;
+  parameter real t_on = 1.0e-9;
+  parameter real t_hold = 1.5e-9;
+  parameter real t_step = 0.15e-9;
+  parameter real tr = 10e-12;
+
+  integer n, idx, i, k, dh[0:12], rl[0:12];
+  real t_up, t_dn;
+  genvar g;
+
+  analog begin
+    @(initial_step) begin
+      n = 0; idx = -1; k = -1; t_up = 1e9; t_dn = 1e9;
+      for (i = 0; i <= 12; i = i + 1) begin dh[i] = 0; rl[i] = 0; end
+    end
+    @(cross(V(CONV, VSS) - 0.5 * V(VDD, VSS), +1)) begin
+      n = n + 1; idx = -1; k = -1;
+      if (mode == 0) begin
+        idx = n - n0;
+        if (idx >= 0 && idx <= 25) begin t_up = $abstime + t_on; t_dn = $abstime + t_on + t_hold; end
+      end else begin
+        if (n == n0) idx = sel0;
+        else if (n == n0 + 1) idx = sel1;
+        else if (n == n0 + 2) idx = sel2;
+        else if (n == n0 + 3) k = 12;
+        if (idx >= 0 || k >= 0) t_up = $abstime + t_on;
+      end
+    end
+    @(cross(V(CONV, VSS) - 0.5 * V(VDD, VSS), -1)) begin
+      for (i = 0; i <= 12; i = i + 1) begin dh[i] = 0; rl[i] = 0; end
+      t_up = 1e9; t_dn = 1e9; k = -1;
+    end
+    @(timer(t_up)) begin
+      if (k >= 0) begin
+        rl[k] = 1; k = k - 1;
+        t_up = (k >= 0) ? $abstime + t_step : 1e9;
+      end else begin
+        if (idx % 2 == 0) dh[12 - idx / 2] = 1; else rl[12 - idx / 2] = 1;
+        t_up = 1e9;
+      end
+    end
+    @(timer(t_dn)) begin
+      for (i = 0; i <= 12; i = i + 1) begin dh[i] = 0; rl[i] = 0; end
+      t_dn = 1e9;
+    end
+    for (g = 0; g <= 12; g = g + 1) begin
+      V(DH[g], VSS) <+ transition(dh[g], 0, tr) * V(VDD, VSS);
+      V(RL[g], VSS) <+ transition(rl[g], 0, tr) * V(VDD, VSS);
+    end
+  end
+endmodule

@@ -1,0 +1,106 @@
+// tb_top_sine: full ADC, coherent differential sine from 50 ohm per side
+// @RNL(type="header") {
+//   @VERSION("0.3");
+//   @USE-PACKAGE(name="adc28", version="0.1", path="../../design/rnl/adc28.rnl")
+// }
+simulator lang=spectre
+// Globals vdd, vdd18, tempc, noise_en, devnoise, beh_speed and vref_in come
+// from the adcflow run deck; this file is included after the views.
+parameters fin=49.8962402e6 amp_dbfs=-1 npts=1024 nskip=4 duty=0.5 fsamp=100e6 \
+        fs_peak=0.9987 vcm_in=0.45 rsrc=50 cload=50f nfmax=20G
+parameters amp=fs_peak*pow(10, amp_dbfs/20) tper=1/fsamp \
+        tstart=(nskip-0.5)*tper tstop=(nskip+npts+0.6)*tper
+// differential sine, each side through rsrc (no input driver)
+VSP (SRCP 0) vsource type=sine sinedc=vcm_in ampl=amp/2 freq=fin
+VSN (SRCN 0) vsource type=sine sinedc=vcm_in ampl=-amp/2 freq=fin
+RSP (SRCP VINP) resistor r=rsrc
+RSN (SRCN VINN) resistor r=rsrc
+// sampling clock: high = track (first falling edge at duty*tper), ideal 0.900 V reference
+VCLK (CLK 0) vsource type=pulse val0=0 val1=vdd period=tper width=duty*tper-20p rise=20p fall=20p
+VREF (VREF_IN 0) vsource dc=vref_in
+// supplies through current meters
+VAVDD (AVDD_S 0) vsource dc=vdd
+VDVDD (DVDD_S 0) vsource dc=vdd
+VAVDD18 (AVDD18_S 0) vsource dc=vdd18
+IMA (AVDD_S AVDD) tb_imeter_va tstart=tstart tstop=tstop label="AVDD" fname="power.txt"
+IMD (DVDD_S DVDD) tb_imeter_va tstart=tstart tstop=tstop label="DVDD" fname="power.txt"
+IMH (AVDD18_S AVDD18) tb_imeter_va tstart=tstart tstop=tstop label="AVDD18" fname="power.txt"
+// device under test
+XDUT (VINP VINN CLK VREF_IN D13 D12 D11 D10 D9 D8 D7 D6 D5 D4 D3 D2 D1 D0 RDY AVDD DVDD \
+        AVDD18 0) adc_top
+// capture (one line per RDY rise); it also loads every output with cload
+ICAP (CLK RDY D13 D12 D11 D10 D9 D8 D7 D6 D5 D4 D3 D2 D1 D0 0) tb_capture_va vth=vdd/2 tstart=tstart cload=cload fname="capture.txt"
+tran1 tran stop=tstop errpreset=moderate noisefmax=nfmax*noise_en*devnoise noiseseed=1
+tbopts options save=none
+// @RNL {
+//   /* --- semantics --- */
+//   &0 @ADD-TO $GROUND_NET_SET;
+//   {&AVDD &DVDD &AVDD18} @ADD-TO $SUPPLY_NET_SET;
+//   {#VSP #VSN} @AS $MATCHED;
+//   {#RSP #RSN} @AS $MATCHED;
+//   {#VSP #RSP #XDUT #ICAP} @AS(direction="left-to-right") $FLOW;
+//   /* --- placement --- */
+//   #XDUT @PLACE(0, 0);
+//   #ICAP @PLACE(40, -2);
+//   #VSP @PLACE(-30, 14);
+//   #VSN @PLACE(-30, 2);
+//   #RSP @PLACE(-25, 18) => @ORIENT("R90");
+//   #RSN @PLACE(-25, 6) => @ORIENT("R90");
+//   #VCLK @PLACE(-30, -10);
+//   #VREF @PLACE(-22, -16);
+//   #VAVDD @PLACE(-14, 34) => @ORIENT("R180");
+//   #VDVDD @PLACE(-2, 34) => @ORIENT("R180");
+//   #VAVDD18 @PLACE(10, 34) => @ORIENT("R180");
+//   #IMA @PLACE(-14, 26);
+//   #IMD @PLACE(-2, 26);
+//   #IMH @PLACE(10, 26);
+//   /* --- wires --- */
+//   &SRCP @WIRE {#VSP:1 (-30, 18) #RSP:1};
+//   &SRCN @WIRE {#VSN:1 (-30, 6) #RSN:1};
+//   &VINP @WIRE {#RSP:2 (-13, 18) (-13, 3) #XDUT:VINP};
+//   &VINN @WIRE {#RSN:2 (-15, 6) (-15, 1) #XDUT:VINN};
+//   %g1 = $GROUND @ATTACH &0 => @PLACE(-30, 10);
+//   &0 @WIRE {#VSP:2 %g1:p};
+//   %g2 = $GROUND @ATTACH &0 => @PLACE(-30, -2);
+//   &0 @WIRE {#VSN:2 %g2:p};
+//   &CLK @WIRE {#VCLK:1 (-30, -6) (-17, -6) (-17, -1) #XDUT:CLK};
+//   %g3 = $GROUND @ATTACH &0 => @PLACE(-30, -14);
+//   &0 @WIRE {#VCLK:2 %g3:p};
+//   &VREF_IN @WIRE {#VREF:1 (-22, -12) (-11, -12) (-11, -3) #XDUT:VREF_IN};
+//   %g4 = $GROUND @ATTACH &0 => @PLACE(-22, -20);
+//   &0 @WIRE {#VREF:2 %g4:p};
+//   &AVDD_S @WIRE {#VAVDD:1 #IMA:1};
+//   %gVAVDD = $GROUND @ATTACH &0 => @PLACE(-11, 38);
+//   &0 @WIRE {#VAVDD:2 (-14, 38) (-11, 38) %gVAVDD:p};
+//   &AVDD @WIRE {#IMA:2 (-14, 21) (-4, 21) #XDUT:AVDD};
+//   &DVDD_S @WIRE {#VDVDD:1 #IMD:1};
+//   %gVDVDD = $GROUND @ATTACH &0 => @PLACE(1, 38);
+//   &0 @WIRE {#VDVDD:2 (-2, 38) (1, 38) %gVDVDD:p};
+//   &DVDD @WIRE {#IMD:2 (-2, 21) (0, 21) #XDUT:DVDD};
+//   &AVDD18_S @WIRE {#VAVDD18:1 #IMH:1};
+//   %gVAVDD18 = $GROUND @ATTACH &0 => @PLACE(13, 38);
+//   &0 @WIRE {#VAVDD18:2 (10, 38) (13, 38) %gVAVDD18:p};
+//   &AVDD18 @WIRE {#IMH:2 (10, 21) (4, 21) #XDUT:AVDD18};
+//   %g5 = $GROUND @ATTACH &0 => @PLACE(0, -19);
+//   &0 @WIRE {#XDUT:VSS %g5:p};
+//   &D13 @WIRE {#XDUT:D13 (20, 14) (20, 9) #ICAP:D13};
+//   &D12 @WIRE {#XDUT:D12 (20.8, 12) (20.8, 7) #ICAP:D12};
+//   &D11 @WIRE {#XDUT:D11 (21.6, 10) (21.6, 5) #ICAP:D11};
+//   &D10 @WIRE {#XDUT:D10 (22.4, 8) (22.4, 3) #ICAP:D10};
+//   &D9 @WIRE {#XDUT:D9 (23.2, 6) (23.2, 1) #ICAP:D9};
+//   &D8 @WIRE {#XDUT:D8 (24, 4) (24, -1) #ICAP:D8};
+//   &D7 @WIRE {#XDUT:D7 (24.8, 2) (24.8, -3) #ICAP:D7};
+//   &D6 @WIRE {#XDUT:D6 (25.6, 0) (25.6, -5) #ICAP:D6};
+//   &D5 @WIRE {#XDUT:D5 (26.4, -2) (26.4, -7) #ICAP:D5};
+//   &D4 @WIRE {#XDUT:D4 (27.2, -4) (27.2, -9) #ICAP:D4};
+//   &D3 @WIRE {#XDUT:D3 (28, -6) (28, -11) #ICAP:D3};
+//   &D2 @WIRE {#XDUT:D2 (28.8, -8) (28.8, -13) #ICAP:D2};
+//   &D1 @WIRE {#XDUT:D1 (29.6, -10) (29.6, -15) #ICAP:D1};
+//   &D0 @WIRE {#XDUT:D0 (30.4, -12) (30.4, -17) #ICAP:D0};
+//   &RDY @WIRE {#XDUT:RDY (31.2, -14) (31.2, 11) #ICAP:RDY};
+//   &CLK @WIRE {#ICAP:CLK (32, 13)};
+//   %g6 = $GROUND @ATTACH &0 => @PLACE(40, -22);
+//   &0 @WIRE {#ICAP:VSS %g6:p};
+//   (-34, 44) @TEXT("tb_top_sine: coherent sine, 50 ohm per side, ideal CLK and VREF_IN, supply current meters", halign="start") => @SET-STYLE $title_style;
+//   (-34, 42.5) @TEXT("tb_capture_va logs D13..D0 and CLK-fall -> RDY time at every RDY rise (capture.txt); tb_imeter_va writes average currents (power.txt)", halign="start") => @SET-STYLE $note_style
+// }

@@ -1,0 +1,46 @@
+// CDAC-like load of a reference: at every CLK falling edge (conversion start)
+// a charge q_start is drawn from P to N, then 13 charges w_j * q_lsb (j = 12..0)
+// at intervals t_step starting t_first later. Every `nalt` conversions the
+// pattern alternates between scale 1 and scale `heavy` (code-dependent part).
+`include "disciplines.vams"
+`include "constants.vams"
+`include "adc_arch.vams"
+
+module tb_refload_va(CLK, P, N);
+  input CLK;
+  inout P, N;
+  electrical CLK, P, N;
+
+  parameter real q_start = 0.46e-12;      // C, H halves VIN -> VREFP at conversion start
+  parameter real q_lsb = 0.225e-15;       // C per LSB of weight (cu/2 * VREF)
+  parameter real t_first = 0.25e-9;
+  parameter real t_step = 0.15e-9;
+  parameter real tw = 20e-12;             // width of every current pulse
+  parameter integer nalt = 64;
+  parameter real heavy = 1.2;
+  parameter real vth = 0.45;
+
+  `include "adc_arch_func.vams"
+
+  integer n, k;
+  real t_next, ipulse, t_end, scale;
+
+  analog begin
+    @(initial_step) begin n = 0; k = -1; t_next = 1e9; t_end = 1e9; ipulse = 0; scale = 1; end
+    @(cross(V(CLK) - vth, -1)) begin
+      n = n + 1;
+      scale = (((n - 1) / nalt) % 2 == 1) ? heavy : 1.0;
+      ipulse = q_start / tw; t_end = $abstime + tw;
+      k = 12; t_next = $abstime + t_first;
+    end
+    @(timer(t_next)) begin
+      if (k >= 0) begin
+        ipulse = scale * capw(k) * q_lsb / tw; t_end = $abstime + tw;
+        k = k - 1;
+        t_next = (k >= 0) ? $abstime + t_step : 1e9;
+      end
+    end
+    @(timer(t_end)) begin ipulse = 0; t_end = 1e9; end
+    I(P, N) <+ transition(ipulse, 0, 4e-12);
+  end
+endmodule

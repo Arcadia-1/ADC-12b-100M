@@ -1,0 +1,65 @@
+/* adc28 0.1 -- the RNL package of the ADC-12b-100M project.
+   Every netlist of design/ and tb/ uses it in its header record:
+     @USE-PACKAGE(name="adc28", version="0.1", path="<relative>/design/rnl/adc28.rnl")
+   It brings the standard full package, the generated block / Verilog-A
+   symbols, the terminal names of the TSMC 28 nm devices (the model cards stay
+   on the server, so RNL cannot read their polarity), the symbol rules of those
+   devices and the project styles. */
+@RNL(type="header") {
+  @VERSION("0.3");
+  @PACKAGE(name="adc28", version="0.1");
+  @USE-PACKAGE(name="rnl-std-full", version="0.3");
+  @USE-PACKAGE(name="adc28-blocks", version="0.1", path="adc28_blocks.rnl");
+  @USE-PACKAGE(name="adc28-va", version="0.1", path="adc28_va.rnl");
+  /* thin-oxide core MOS (0.9 V) */
+  @DEVICE(name="*", model="nch_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="nch_lvt_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="nch_ulvt_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="nch_hvt_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="nch_uhvt_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="nch_ehvt_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="nch_avt_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="nch_na_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="pch_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="pch_lvt_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="pch_ulvt_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="pch_hvt_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="pch_uhvt_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="pch_ehvt_mac", terminals=["d", "g", "s", "b"]);
+  /* thick-oxide 1.8 V MOS (reference driver only) */
+  @DEVICE(name="*", model="nch_18_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="pch_18_mac", terminals=["d", "g", "s", "b"]);
+  @DEVICE(name="*", model="nch_na18_mac", terminals=["d", "g", "s", "b"]);
+  /* passives */
+  @DEVICE(name="*", model="cfmom_2t", terminals=["p", "n"]);
+  @DEVICE(name="*", model="nmoscap", terminals=["p", "n"]);
+  @DEVICE(name="*", model="nmoscap_18", terminals=["p", "n"]);
+  @DEVICE(name="*", model="pmoscap", terminals=["p", "n"]);
+  @DEVICE(name="*", model="pmoscap_18", terminals=["p", "n"])
+}
+
+@RNL {
+  /* ---- symbols of the PDK devices ---- */
+  # @SELECT-INSTANCE(model="nch*_mac") => @SET-SYMBOL $NMOS_4TERM;
+  # @SELECT-INSTANCE(model="pch*_mac") => @SET-SYMBOL $PMOS_4TERM;
+  # @SELECT-INSTANCE(model="cfmom*") => @SET-SYMBOL $CAPACITOR;
+  # @SELECT-INSTANCE(model="*moscap*") => @SET-SYMBOL $CAPACITOR;
+
+  /* ---- styles ---- */
+  $title_style = @DEFINE-STYLE(textcolor="#1a365d", size=1.1, bold=true) {};
+  $note_style = @DEFINE-STYLE(textcolor="#4a5568", size=0.75, italic=true) {};
+  $param_style = @DEFINE-STYLE(textcolor="#4a5568", size=0.65) {};
+  $analog_style = @DEFINE-STYLE(linecolor="#2b6cb0", textcolor="#2c5282") {};
+  $digital_style = @DEFINE-STYLE(linecolor="#2f855a", textcolor="#276749") {};
+  $clock_style = @DEFINE-STYLE(linecolor="#b7791f", textcolor="#975a16") {};
+  $tb_style = @DEFINE-STYLE(linecolor="#718096", textcolor="#4a5568", linestyle="dashed") {};
+
+  /* blocks by domain */
+  # @SELECT-INSTANCE(model="adc_cdac") => @SET-STYLE $analog_style;
+  # @SELECT-INSTANCE(model="adc_comp") => @SET-STYLE $analog_style;
+  # @SELECT-INSTANCE(model="adc_bootstrap") => @SET-STYLE $analog_style;
+  # @SELECT-INSTANCE(model="adc_ref") => @SET-STYLE $analog_style;
+  # @SELECT-INSTANCE(model="adc_sarlogic") => @SET-STYLE $digital_style;
+  # @SELECT-INSTANCE(model="adc_clkgen") => @SET-STYLE $clock_style;
+  # @SELECT-INSTANCE(model="tb_*") => @SET-STYLE $tb_style
+}

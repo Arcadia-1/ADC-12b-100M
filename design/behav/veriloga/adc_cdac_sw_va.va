@@ -1,0 +1,56 @@
+// Behavioral switch matrix of adc_cdac (behav view): for every half capacitor
+// the bootstrapped input switch and the tri-state VREFP/VREFN driver.
+// B[2m] is the H half and B[2m+1] the L half of cap j = 12 - m.
+//   input switch (sampled caps only): on while V(VG) - V(VIN) > vgon,
+//     R = ron_in * C_S / C_half (all halves share one time constant);
+//   driver: enabled while CONV is high (always for non-sampled caps);
+//     H half to VREFP unless DH<j>, L half to VREFN unless RL<j>;
+//     R = tau_drv / C_half.
+`include "disciplines.vams"
+`include "constants.vams"
+`include "adc_arch.vams"
+
+module adc_cdac_sw_va(VIN, VG, VREFP, VREFN, CONV, DH, RL, B, VSS);
+  input VIN, VG, CONV;
+  input [12:0] DH, RL;
+  inout VREFP, VREFN, VSS;
+  inout [0:25] B;
+  electrical VIN, VG, VREFP, VREFN, CONV, VSS;
+  electrical [12:0] DH, RL;
+  electrical [0:25] B;
+
+  parameter real cu = `ADC_CU from (0:inf);
+  parameter real ron_in = 25 from (0:inf);     // parallel input-switch resistance per side
+  parameter real tau_drv = 12e-12 from (0:inf);
+  parameter real vgon = 0.45;                  // VG - VIN above which the input switch is on
+  parameter real goff = 1e-12;
+  parameter real tsw = 10e-12 from (0:inf);    // switch transition time
+
+  `include "adc_arch_func.vams"
+
+  real vth, cs;
+  integer conv;
+  genvar m;
+
+  analog begin
+    vth = 0.5 * V(VREFP, VREFN);
+    cs = `ADC_CS;
+    conv = (V(CONV, VSS) > 0.45) ? 1 : 0;
+    for (m = 0; m <= 12; m = m + 1) begin : half
+      // H half of cap j = 12 - m
+      I(B[2*m], VIN)   <+ V(B[2*m], VIN) * (goff + transition((caps(12 - m) && (V(VG, VIN) > vgon)) ? 1 : 0, 0, tsw)
+                           * (capw(12 - m) * cu / 2) / (ron_in * cs));
+      I(B[2*m], VREFP) <+ V(B[2*m], VREFP) * (goff + transition(((conv || !caps(12 - m)) && V(DH[12 - m], VSS) < vth) ? 1 : 0, 0, tsw)
+                           * (capw(12 - m) * cu / 2) / tau_drv);
+      I(B[2*m], VREFN) <+ V(B[2*m], VREFN) * (goff + transition(((conv || !caps(12 - m)) && V(DH[12 - m], VSS) > vth) ? 1 : 0, 0, tsw)
+                           * (capw(12 - m) * cu / 2) / tau_drv);
+      // L half of cap j = 12 - m
+      I(B[2*m+1], VIN)   <+ V(B[2*m+1], VIN) * (goff + transition((caps(12 - m) && (V(VG, VIN) > vgon)) ? 1 : 0, 0, tsw)
+                           * (capw(12 - m) * cu / 2) / (ron_in * cs));
+      I(B[2*m+1], VREFP) <+ V(B[2*m+1], VREFP) * (goff + transition(((conv || !caps(12 - m)) && V(RL[12 - m], VSS) > vth) ? 1 : 0, 0, tsw)
+                           * (capw(12 - m) * cu / 2) / tau_drv);
+      I(B[2*m+1], VREFN) <+ V(B[2*m+1], VREFN) * (goff + transition(((conv || !caps(12 - m)) && V(RL[12 - m], VSS) < vth) ? 1 : 0, 0, tsw)
+                           * (capw(12 - m) * cu / 2) / tau_drv);
+    end
+  end
+endmodule

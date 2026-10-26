@@ -1,0 +1,29 @@
+// Behavioral bootstrapped gate generator for adc_bootstrap (behav view).
+// PHI_B high: VG -> VIN + kboost * AVDD (rise t_on); PHI_B low: VG -> 0
+// (fall t_off). VG is driven through rout (gate load is external).
+`include "disciplines.vams"
+`include "constants.vams"
+
+module adc_bootstrap_va(VIN, PHI_B, PHI_BB, VG, AVDD, VSS);
+  input VIN, PHI_B, PHI_BB;
+  output VG;
+  inout AVDD, VSS;
+  electrical VIN, PHI_B, PHI_BB, VG, AVDD, VSS, vgi;
+
+  parameter real kboost = 0.95 from (0:1.2];  // Vboot / AVDD (charge sharing with the gate load)
+  parameter real t_on = 60e-12 from (0:inf);
+  parameter real t_off = 15e-12 from (0:inf);
+  parameter real rout = 50 from (0:inf);
+  parameter real iavg = 15e-6 from [0:inf);   // average AVDD current (budget)
+
+  integer on;
+
+  analog begin
+    @(initial_step) on = (V(PHI_B, VSS) > 0.5 * V(AVDD, VSS)) ? 1 : 0;
+    @(cross(V(PHI_B, VSS) - 0.5 * V(AVDD, VSS), +1)) on = 1;
+    @(cross(V(PHI_B, VSS) - 0.5 * V(AVDD, VSS), -1)) on = 0;
+    V(vgi, VSS) <+ transition(on, 0, t_on, t_off) * (V(VIN, VSS) + kboost * V(AVDD, VSS));
+    I(vgi, VG) <+ V(vgi, VG) / rout;
+    I(AVDD, VSS) <+ iavg;
+  end
+endmodule

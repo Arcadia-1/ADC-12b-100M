@@ -1,0 +1,32 @@
+// Sampled kT/C noise of a top-plate node (behav view of adc_cdac).
+// A voltage source V(P, N) = vn in series with the top-plate reset switch;
+// vn is redrawn when PHI rises (start of tracking) with sigma = sqrt(kT/ctot),
+// so the top plate is left at VCM + vn when the switch opens.
+`include "disciplines.vams"
+`include "constants.vams"
+
+module adc_ktc_va(P, N, PHI, VSS);
+  inout P, N;
+  input PHI, VSS;
+  electrical P, N, PHI, VSS;
+
+  parameter real ctot = 1.25e-12 from (0:inf);
+  parameter real tempc = 27;
+  parameter integer en = 1;
+  parameter integer seed0 = 101;
+
+  integer seed;
+  real vn, sig;
+
+  analog begin
+    @(initial_step) begin
+      // $random differs between instances, so the P and N sides are independent
+      seed = seed0 + ($random % 100000); vn = 0;
+      sig = sqrt(`P_K * (tempc + `P_CELSIUS0) / ctot);
+    end
+    @(cross(V(PHI, VSS) - 0.45, +1)) begin
+      vn = (en != 0) ? sig * $rdist_normal(seed, 0.0, 1.0) : 0.0;
+    end
+    V(P, N) <+ transition(vn, 0, 50e-12);
+  end
+endmodule

@@ -1,0 +1,49 @@
+// adc_ref, behavioral view: reference driver and VCM
+// @RNL(type="header") {
+//   @VERSION("0.3");
+//   @USE-PACKAGE(name="adc28", version="0.1", path="../rnl/adc28.rnl")
+// }
+simulator lang=spectre
+
+subckt adc_ref (VREF_IN VREFP VCM AVDD18 AVDD VSS)
+// Behavioral view.
+parameters cdec=2n esr=0.5 ccm=100p rout=1 fbw=50M iq18=150u iq09=5u
+I0 (VREF_IN VREFP VCM AVDD18 AVDD VSS) adc_ref_va \
+        rout=rout fbw=fbw iq18=iq18 iq09=iq09
+CDEC (VREFP NDEC) capacitor c=cdec
+RESR (NDEC VSS) resistor r=esr
+CCM (VCM VSS) capacitor c=ccm
+// @RNL {
+//   {&AVDD &AVDD18} @ADD-TO $SUPPLY_NET_SET;
+//   &VSS @ADD-TO $GROUND_NET_SET;
+//   #I0 @PLACE(0, 0);
+//   #CDEC @PLACE(12, 3);
+//   #RESR @PLACE(12, -1);
+//   #CCM @PLACE(16, -10);
+//   %p_vref_in = $IO_PORT @ATTACH &VREF_IN => @PLACE(-11, 0) => @ORIENT("R0");
+//   &VREF_IN @WIRE {%p_vref_in:p #I0:VREF_IN};
+//   %jref = (12, 5);
+//   $JUNCTION @ATTACH %jref;
+//   %p_vrefp = $IO_PORT @ATTACH &VREFP => @PLACE(18, 5) => @ORIENT("MY");
+//   &VREFP @WIRE {#I0:VREFP (9, 1) (9, 5) %jref %p_vrefp:p};
+//   &VREFP @WIRE {%jref #CDEC:1};
+//   &NDEC @WIRE {#CDEC:2 #RESR:1};
+//   %g1 = $GROUND @ATTACH &VSS => @PLACE(12, -4);
+//   &VSS @WIRE {#RESR:2 %g1:p};
+//   %jcm = (16, -8);
+//   $JUNCTION @ATTACH %jcm;
+//   %p_vcm = $IO_PORT @ATTACH &VCM => @PLACE(20, -8) => @ORIENT("MY");
+//   &VCM @WIRE {#I0:VCM (8, -1) (8, -8) %jcm %p_vcm:p};
+//   &VCM @WIRE {%jcm #CCM:1};
+//   %g2 = $GROUND @ATTACH &VSS => @PLACE(16, -13);
+//   &VSS @WIRE {#CCM:2 %g2:p};
+//   %s1 = $SUPPLY @ATTACH &AVDD18 => @PLACE(-2, 6);
+//   &AVDD18 @WIRE {#I0:AVDD18 %s1:p};
+//   %s2 = $SUPPLY @ATTACH &AVDD => @PLACE(2, 6);
+//   &AVDD @WIRE {#I0:AVDD %s2:p};
+//   %g3 = $GROUND @ATTACH &VSS => @PLACE(0, -6);
+//   &VSS @WIRE {#I0:VSS %g3:p};
+//   (-12, 12) @TEXT("adc_ref (behavioral): VREFP follows VREF_IN through rout with a single-pole loop (fbw)", halign="start") => @SET-STYLE $title_style;
+//   (-12, 10.5) @TEXT("on-chip decoupling CDEC (>= 2 nF) with ESR; VCM = VREFP / 2 through rcm with CCM", halign="start") => @SET-STYLE $note_style
+// }
+ends adc_ref

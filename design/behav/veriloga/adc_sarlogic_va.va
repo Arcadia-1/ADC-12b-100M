@@ -1,0 +1,150 @@
+// Behavioral asynchronous SAR controller for adc_sarlogic (behav view).
+// See specs/blocks/adc_sarlogic.yaml for the contract. Timing parameters are
+// the TT targets of docs/architecture.md; `speed` scales all of them.
+`include "disciplines.vams"
+`include "constants.vams"
+`include "adc_arch.vams"
+
+// one decision with value b (1 = UP); shared by OUTP, OUTN and timeout events
+`define SAR_DECIDE(bval) \
+  begin \
+    waiting = 0; t_to = 1e9; \
+    bits[`ADC_NDEC - 1 - k] = bval; \
+    if (k < `ADC_NDEC - 1) begin \
+      pj = `ADC_NCAP - 1 - k; pb = bval; \
+      t_bit = $abstime + speed * t_bitd; \
+      t_dacd = $abstime + speed * (t_bitd + ((k < n_fast) ? t_dac_fast : t_dac_slow)); \
+      dac_done = 0; \
+    end \
+    t_clk_fall = $abstime + speed * t_rst; \
+    k = k + 1; \
+    if (k == `ADC_NDEC) begin \
+      running = 0; t_eoc = $abstime + speed * t_dreg; \
+    end \
+    ipulse = e_dec / (max(V(DVDD, VSS), 0.1) * tw); t_iend = $abstime + tw; \
+  end
+
+module adc_sarlogic_va(CONV, OUTP, OUTN, CLKC, UP, DN, D, RDY, DVDD, VSS);
+  input CONV, OUTP, OUTN;
+  output CLKC, RDY;
+  output [12:0] UP, DN;
+  output [13:0] D;
+  inout DVDD, VSS;
+  electrical CONV, OUTP, OUTN, CLKC, RDY, DVDD, VSS;
+  electrical [12:0] UP, DN;
+  electrical [13:0] D;
+
+  parameter real speed = 1.0 from (0:inf);       // timing scale (1 = TT)
+  parameter real t_start = 100e-12;               // CONV rise -> first CLKC rise
+  parameter real t_bitd = 30e-12;                 // decision -> UP/DN
+  parameter real t_rst = 35e-12;                  // decision -> CLKC fall
+  parameter real t_dac_fast = 40e-12;             // UP/DN -> next CLKC, steps 1..n_fast
+  parameter real t_dac_slow = 75e-12;             // UP/DN -> next CLKC, later steps
+  parameter integer n_fast = 6;
+  parameter real t_and = 8e-12;                   // handshake gate delay
+  parameter real t_timeout = 250e-12;             // forced decision
+  parameter real t_dreg = 30e-12;                 // EOC -> D register
+  parameter real t_rdy = 140e-12;                 // EOC -> RDY rise (>= 100 ps after D)
+  parameter real t_rdyf = 40e-12;                 // CONV rise -> RDY fall
+  parameter real tr = 10e-12;                     // output edges
+  parameter real e_dec = 150e-15 from [0:inf);    // J per decision (logic + drivers)
+  parameter real tw = 30e-12 from (0:inf);
+  parameter real ileak = 1e-6 from [0:inf);
+
+  integer running, waiting, k, clkc, rdy, dac_done, valid_low, pj, pb, i;
+  integer up[0:12], dn[0:12], bits[0:13], dreg[0:13];
+  real t_clk_rise, t_clk_fall, t_bit, t_dacd, t_to, t_eoc, t_rdy_rise, t_rdy_fall, t_iend, ipulse;
+  real vth;
+
+  genvar g;
+
+  analog begin
+    vth = 0.5 * V(DVDD, VSS);
+    @(initial_step) begin
+      running = 0; waiting = 0; k = 0; clkc = 0; rdy = 0; dac_done = 1; valid_low = 1;
+      pj = 0; pb = 0;
+      for (i = 0; i <= 12; i = i + 1) begin up[i] = 0; dn[i] = 0; end
+      for (i = 0; i <= 13; i = i + 1) begin bits[i] = 0; dreg[i] = 0; end
+      t_clk_rise = 1e9; t_clk_fall = 1e9; t_bit = 1e9; t_dacd = 1e9; t_to = 1e9;
+      t_eoc = 1e9; t_rdy_rise = 1e9; t_rdy_fall = 1e9; t_iend = 1e9; ipulse = 0;
+    end
+
+    // ---- conversion window
+    @(cross(V(CONV, VSS) - vth, +1)) begin
+      running = 1; waiting = 0; k = 0; dac_done = 1; valid_low = 1;
+      t_clk_rise = $abstime + speed * t_start;
+      t_rdy_fall = $abstime + speed * t_rdyf;
+    end
+    @(cross(V(CONV, VSS) - vth, -1)) begin
+      if (running || t_eoc < 1e8) begin       // not finished: load what is decided
+        for (i = 0; i <= 13; i = i + 1) dreg[i] = bits[i];
+        t_eoc = 1e9;
+        t_rdy_rise = $abstime + speed * t_rdy;
+      end
+      running = 0; waiting = 0; k = 0; clkc = 0;
+      for (i = 0; i <= 12; i = i + 1) begin up[i] = 0; dn[i] = 0; end
+      for (i = 0; i <= 13; i = i + 1) bits[i] = 0;
+      t_clk_rise = 1e9; t_clk_fall = 1e9; t_bit = 1e9; t_dacd = 1e9; t_to = 1e9;
+    end
+
+    // ---- comparator clock
+    @(timer(t_clk_rise)) begin
+      if (running && k < `ADC_NDEC) begin
+        clkc = 1; waiting = 1;
+        t_to = $abstime + speed * t_timeout;
+      end
+      t_clk_rise = 1e9;
+    end
+    @(timer(t_clk_fall)) begin
+      clkc = 0; t_clk_fall = 1e9;
+    end
+
+    // ---- decisions
+    @(cross(V(OUTP, VSS) - vth, +1)) begin
+      if (waiting) begin valid_low = 0; `SAR_DECIDE(1) end
+    end
+    @(cross(V(OUTN, VSS) - vth, +1)) begin
+      if (waiting) begin valid_low = 0; `SAR_DECIDE(0) end
+    end
+    @(timer(t_to)) begin
+      if (waiting) begin valid_low = 1; `SAR_DECIDE(1) end
+      t_to = 1e9;
+    end
+
+    // ---- handshake: next comparison after DAC wait AND comparator reset
+    @(cross(V(OUTP, VSS) - vth, -1) or cross(V(OUTN, VSS) - vth, -1)) begin
+      if (V(OUTP, VSS) < vth && V(OUTN, VSS) < vth) begin
+        valid_low = 1;
+        if (dac_done && running && !waiting && k < `ADC_NDEC) t_clk_rise = $abstime + speed * t_and;
+      end
+    end
+    @(timer(t_dacd)) begin
+      dac_done = 1; t_dacd = 1e9;
+      if (valid_low && running && !waiting && k < `ADC_NDEC) t_clk_rise = $abstime + speed * t_and;
+    end
+    @(timer(t_bit)) begin
+      up[pj] = pb; dn[pj] = 1 - pb; t_bit = 1e9;
+    end
+
+    // ---- output register
+    @(timer(t_eoc)) begin
+      for (i = 0; i <= 13; i = i + 1) dreg[i] = bits[i];
+      t_eoc = 1e9;
+      t_rdy_rise = $abstime + speed * (t_rdy - t_dreg);
+    end
+    @(timer(t_rdy_rise)) begin rdy = 1; t_rdy_rise = 1e9; end
+    @(timer(t_rdy_fall)) begin rdy = 0; t_rdy_fall = 1e9; end
+    @(timer(t_iend)) begin ipulse = 0; t_iend = 1e9; end
+
+    // ---- outputs
+    V(CLKC, VSS) <+ transition(clkc, 0, tr) * V(DVDD, VSS);
+    V(RDY, VSS) <+ transition(rdy, 0, tr) * V(DVDD, VSS);
+    for (g = 0; g <= 12; g = g + 1) begin
+      V(UP[g], VSS) <+ transition(up[g], 0, tr) * V(DVDD, VSS);
+      V(DN[g], VSS) <+ transition(dn[g], 0, tr) * V(DVDD, VSS);
+    end
+    for (g = 0; g <= 13; g = g + 1)
+      V(D[g], VSS) <+ transition(dreg[g], 0, tr) * V(DVDD, VSS);
+    I(DVDD, VSS) <+ ileak + transition(ipulse, 0, 5e-12);
+  end
+endmodule

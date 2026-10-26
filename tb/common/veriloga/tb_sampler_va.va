@@ -1,0 +1,31 @@
+// Event sampler: at every crossing of TRIG (direction dir = +1 / -1) waits
+// `delay` and writes "<index> <time> <V(P) - V(N)>" to fname.
+`include "disciplines.vams"
+`include "constants.vams"
+
+module tb_sampler_va(P, N, TRIG, VSS);
+  input P, N, TRIG, VSS;
+  electrical P, N, TRIG, VSS;
+
+  parameter real vth = 0.45;
+  parameter integer dir = -1;
+  parameter real delay = 0 from [0:inf);
+  parameter real tstart = 0;
+  parameter string fname = "samples.txt";
+
+  integer fh, n;
+  real t_s;
+
+  analog begin
+    @(initial_step) begin fh = $fopen(fname, "w"); n = 0; t_s = 1e9; end
+    @(cross(V(TRIG, VSS) - vth, dir)) begin
+      if ($abstime >= tstart) t_s = $abstime + delay;
+    end
+    @(timer(t_s)) begin
+      n = n + 1;
+      $fwrite(fh, "%d %.9e %.12e\n", n, $abstime, V(P, N));
+      t_s = 1e9;
+    end
+    @(final_step) $fclose(fh);
+  end
+endmodule

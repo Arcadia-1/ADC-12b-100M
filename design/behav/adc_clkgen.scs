@@ -1,0 +1,37 @@
+// adc_clkgen, behavioral view: sampling phase generator
+// @RNL(type="header") {
+//   @VERSION("0.3");
+//   @USE-PACKAGE(name="adc28", version="0.1", path="../rnl/adc28.rnl")
+// }
+simulator lang=spectre
+
+subckt adc_clkgen (CLK PHI_S PHI_SB PHI_B PHI_BB CONV AVDD VSS)
+// Behavioral view. Uses the deck globals noise_en and beh_speed.
+parameters td_s=40p dt_b=40p dt_conv=30p td_r=40p dt_rise=30p jitter=50f iavg=25u
+I0 (CLK PHI_S PHI_SB PHI_B PHI_BB CONV AVDD VSS) adc_clkgen_va \
+        td_s=td_s*beh_speed dt_b=dt_b*beh_speed dt_conv=dt_conv*beh_speed td_r=td_r*beh_speed \
+        dt_rise=dt_rise*beh_speed jitter=jitter*noise_en iavg=iavg
+// @RNL {
+//   &AVDD @ADD-TO $SUPPLY_NET_SET;
+//   &VSS @ADD-TO $GROUND_NET_SET;
+//   #I0 @PLACE(0, 0);
+//   %p_clk = $IO_PORT @ATTACH &CLK => @PLACE(-11, 0) => @ORIENT("R0");
+//   &CLK @WIRE {%p_clk:p #I0:CLK};
+//   %p_phi_s = $IO_PORT @ATTACH &PHI_S => @PLACE(11, 4) => @ORIENT("MY");
+//   &PHI_S @WIRE {#I0:PHI_S %p_phi_s:p};
+//   %p_phi_sb = $IO_PORT @ATTACH &PHI_SB => @PLACE(11, 2) => @ORIENT("MY");
+//   &PHI_SB @WIRE {#I0:PHI_SB %p_phi_sb:p};
+//   %p_phi_b = $IO_PORT @ATTACH &PHI_B => @PLACE(11, 0) => @ORIENT("MY");
+//   &PHI_B @WIRE {#I0:PHI_B %p_phi_b:p};
+//   %p_phi_bb = $IO_PORT @ATTACH &PHI_BB => @PLACE(11, -2) => @ORIENT("MY");
+//   &PHI_BB @WIRE {#I0:PHI_BB %p_phi_bb:p};
+//   %p_conv = $IO_PORT @ATTACH &CONV => @PLACE(11, -4) => @ORIENT("MY");
+//   &CONV @WIRE {#I0:CONV %p_conv:p};
+//   %s1 = $SUPPLY @ATTACH &AVDD => @PLACE(0, 9);
+//   &AVDD @WIRE {#I0:AVDD %s1:p};
+//   %g1 = $GROUND @ATTACH &VSS => @PLACE(0, -9);
+//   &VSS @WIRE {#I0:VSS %g1:p};
+//   (-12, 14) @TEXT("adc_clkgen (behavioral): CLK fall -> PHI_S fall -> PHI_B fall -> CONV rise", halign="start") => @SET-STYLE $title_style;
+//   (-12, 12.5) @TEXT("CLK rise -> CONV fall -> PHI_B, PHI_S rise (break before make); delays scaled by beh_speed", halign="start") => @SET-STYLE $note_style
+// }
+ends adc_clkgen
