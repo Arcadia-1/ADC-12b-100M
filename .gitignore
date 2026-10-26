@@ -19,7 +19,7 @@ scratch/
 # --- PDK / foundry data: NEVER commit model files or extracted device data ---
 pdk_local/
 *.lib.scs
-**/models/spectre/**
+models/
 *_pdk_dump*
 *.pdkcache
 

@@ -1,0 +1,60 @@
+name: ci
+
+on:
+  push:
+    branches: [main, "feat/**", "block/**"]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  RNL_VERSION: core-v0.5.2      # keep in step with tools/adcflow/checks.py RNL_PINNED
+
+jobs:
+  checks:
+    name: contracts, drawings, results
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install adcflow
+        run: pip install -e ".[analysis,dev]"
+      - name: Install the rnl CLI (pinned, checksum verified)
+        run: |
+          set -eu
+          a=rnl-x86_64-unknown-linux-musl.tar.gz
+          base=https://github.com/rich-netlist/rnl/releases/download/$RNL_VERSION
+          mkdir -p .rnl-cli && cd .rnl-cli
+          curl -fsSL -o "$a" "$base/$a"
+          curl -fsSL -o SHA256SUMS.txt "$base/SHA256SUMS.txt"
+          grep "  $a$" SHA256SUMS.txt | sha256sum --check -
+          tar -xzf "$a"
+          ./rnl --version
+          echo "$PWD" >> "$GITHUB_PATH"
+      - name: Hygiene (no site data, model cards or large files)
+        run: python -m adcflow check hygiene
+      - name: Port contracts (specs vs every view, instance and Verilog-A header)
+        run: python -m adcflow check ports
+      - name: RNL (no errors, no warnings, complete drawings)
+        run: python -m adcflow check rnl
+      - name: Generated files are up to date
+        run: python -m adcflow gen --check
+      - name: Recorded results against the current limits
+        run: python -m adcflow check results --strict
+      - name: Unit tests
+        run: python -m pytest -q -m "not slow"
+
+  model:
+    name: system-model budget (slow)
+    runs-on: ubuntu-latest
+    if: github.event_name != 'push' || github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[analysis,dev]"
+      - run: python -m pytest -q -m slow

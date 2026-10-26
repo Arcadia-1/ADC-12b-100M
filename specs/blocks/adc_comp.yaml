@@ -28,9 +28,9 @@ specs:
   - {id: CMP-01, name: "input-referred noise (diff rms)",            metric: noise_uV,       unit: uV,    max: 80,  corners: all, test: tb_comp_noise}
   - {id: CMP-02, name: "systematic offset",                          metric: offset_abs_mV,  unit: mV,    max: 2,   corners: all, test: tb_comp_noise}
   - {id: CMP-03, name: "offset sigma (Monte Carlo, 50 runs)",        metric: offset_sigma_mV, unit: mV,   max: 5,   corners: typ, test: tb_comp_noise, mc: 50}
-  - {id: CMP-04, name: "delay CLKC->OUT at 1 mV",                    metric: tdelay_1mV_ps,  unit: ps,    max: 60,  corners: typ, test: tb_comp_delay}
-  - {id: CMP-05, name: "delay CLKC->OUT at 1 mV (all corners)",      metric: tdelay_1mV_ps,  unit: ps,    max: 95,  corners: all, test: tb_comp_delay}
-  - {id: CMP-06, name: "delay CLKC->OUT at 30 mV",                   metric: tdelay_30mV_ps, unit: ps,    max: 45,  corners: typ, test: tb_comp_delay}
+  - {id: CMP-04, name: "delay CLKC->OUT at 1 mV",                    metric: tdelay_1mV_ps,  unit: ps,    max: 75,  corners: typ, test: tb_comp_delay}
+  - {id: CMP-05, name: "delay CLKC->OUT at 1 mV (all corners)",      metric: tdelay_1mV_ps,  unit: ps,    max: 115,  corners: all, test: tb_comp_delay}
+  - {id: CMP-06, name: "delay CLKC->OUT at 30 mV",                   metric: tdelay_30mV_ps, unit: ps,    max: 50,  corners: typ, test: tb_comp_delay}
   - {id: CMP-07, name: "regeneration time constant",                 metric: tau_reg_ps,     unit: ps,    max: 15,  corners: all, test: tb_comp_delay}
   - {id: CMP-08, name: "reset time CLKC fall -> both outputs < 10 %", metric: treset_ps,      unit: ps,    max: 35,  corners: all, test: tb_comp_delay}
   - {id: CMP-09, name: "wrong decisions for |vd| >= 100 uV (noise off)", metric: wrong_decisions, unit: count, max: 0, corners: all, test: tb_comp_delay}

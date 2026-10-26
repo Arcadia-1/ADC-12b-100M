@@ -13,14 +13,22 @@ from .common import read_capture, read_meters, spectrum
 
 
 def prepare(params: dict) -> dict:
-    """Replace fin_target by the coherent input frequency for npts samples."""
+    """Replace fin_target by the coherent input frequency for npts samples.
+
+    The tone is kept at least 3 bins below Nyquist so that the window main lobe
+    does not touch bin N/2 (otherwise the spectrum analysis reports the lobe as
+    a spur): for N = 1024 at 100 MS/s a 49.9 MHz target becomes 49.71 MHz.
+    """
     from adctoolbox import find_coherent_frequency
 
-    fs = float(params.get("fsamp", 100e6))
+    fs = float(params.get("fsamp", 1 / float(params.get("tper", 10e-9))))
     n = int(float(params.get("npts", 1024)))
     if "fin_target" in params:
+        target = min(float(params.pop("fin_target")), (n / 2 - 3) * fs / n)
         with contextlib.redirect_stdout(io.StringIO()):
-            fin, _ = find_coherent_frequency(fs, float(params.pop("fin_target")), n)
+            fin, k = find_coherent_frequency(fs, target, n)
+        if k > n / 2 - 3:
+            fin, k = find_coherent_frequency(fs, (k - 2) * fs / n, n)
         params["fin"] = f"{fin:.9e}"
     return params
 

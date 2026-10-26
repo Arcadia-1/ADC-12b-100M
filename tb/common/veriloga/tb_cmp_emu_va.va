@@ -31,12 +31,15 @@ module tb_cmp_emu_va(CONV, CLKC, UP, DN, OUTP, OUTN, VDD, VSS);
 
   `include "adc_arch_func.vams"
 
-  integer seed, fh, conv, k, dec, outp, outn, pending, j;
-  real vin, level, res, td, t_out, t_rst, vth;
+  integer seed, fh, conv, k, dec, outp, outn, pending;
+  real vin, level, lev_now, res, td, t_out, t_rst, vth;
   genvar g;
 
   analog begin
     vth = 0.5 * V(VDD, VSS);
+    lev_now = 0;
+    for (g = 0; g <= 12; g = g + 1)
+      lev_now = lev_now + ((V(UP[g], VSS) > vth) ? capw(g) : 0) - ((V(DN[g], VSS) > vth) ? capw(g) : 0);
     @(initial_step) begin
       seed = seed0; fh = $fopen(fname, "w"); conv = 0; k = 0;
       outp = 0; outn = 0; pending = 0; t_out = 1e9; t_rst = 1e9; vin = 0;
@@ -48,11 +51,7 @@ module tb_cmp_emu_va(CONV, CLKC, UP, DN, OUTP, OUTN, VDD, VSS);
     end
     @(cross(V(CLKC, VSS) - vth, +1)) begin
       k = k + 1;
-      level = 0;
-      for (j = 0; j <= 12; j = j + 1) begin
-        if (V(UP[j], VSS) > vth) level = level + capw(j);
-        if (V(DN[j], VSS) > vth) level = level - capw(j);
-      end
+      level = lev_now;
       res = vin - level;
       dec = (res > 0) ? 1 : 0;
       if (abs(res) >= vsat) td = t0;

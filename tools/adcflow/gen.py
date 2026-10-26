@@ -372,11 +372,13 @@ TARGETS = {
 
 
 def generate(what: str = "all", check: bool = False) -> int:
-    from . import gen_top
+    from . import gen_docs, gen_tb, gen_top
 
     targets = dict(TARGETS)
     targets["top"] = [(REPO_ROOT / "design" / "top" / "adc_top.scs", gen_top.gen_top)]
-    keys = list(targets) if what in ("all", "docs") else [what]
+    targets["tb"] = gen_tb.targets()
+    targets["docs"] = [(REPO_ROOT / "docs" / "specs.md", gen_docs.gen_specs_md)]
+    keys = list(targets) if what == "all" else [what]
     stale = 0
     for k in keys:
         for path, fn in targets[k]:

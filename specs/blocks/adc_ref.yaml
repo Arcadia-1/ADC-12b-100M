@@ -28,7 +28,7 @@ specs:
   - {id: REF-02, name: "VCM",                                     metric: vcm_V,        unit: V,  min: 0.44, max: 0.46, corners: all, test: tb_ref_dc}
   - {id: REF-03, name: "load regulation 0 -> 200 uA",             metric: loadreg_mV,   unit: mV, max: 1.0, corners: all, test: tb_ref_dc}
   - {id: REF-04, name: "VREFP sensitivity to AVDD18 (DC)",        metric: line_mV_per_V, unit: mV/V, max: 5, corners: all, test: tb_ref_dc}
-  - {id: REF-05, name: "VREFP ripple p-p under conversion load",  metric: ripple_pp_mV, unit: mV, max: 2.0, corners: all, test: tb_ref_dyn}
+  - {id: REF-05, name: "VREFP ripple p-p at the decision instants", metric: ripple_pp_mV, unit: mV, max: 1.0, corners: all, test: tb_ref_dyn}
   - {id: REF-06, name: "VREFP deviation at conversion start vs mean (memory)", metric: start_dev_uV, unit: uV, max: 50, corners: all, test: tb_ref_dyn}
   - {id: REF-07, name: "code-dependent VREFP shift (heavy vs light pattern)", metric: pattern_dev_uV, unit: uV, max: 50, corners: all, test: tb_ref_dyn}
   - {id: REF-08, name: "VREFP integrated noise 1 kHz - 1 GHz",   metric: noise_uV,     unit: uV, max: 50, corners: typ, test: tb_ref_noise}
@@ -50,7 +50,9 @@ tests:
       of w_j * 0.225 fC/LSB, alternating every 64 conversions between the
       nominal pattern and a pattern with 20 % more charge (code-dependent
       coupling). Measures ripple, start-of-conversion deviation and the
-      pattern-dependent shift after 2 us of settling.
+      pattern-dependent shift after 2 us of settling. The ripple is taken at
+      the instants just before every charge pulse (where comparisons happen),
+      not at the brief ESR spikes of the pulses themselves.
   tb_ref_noise:
     netlist: tb/ref/tb_ref_noise.scs
     measure: adcflow.measure.ref:noise

@@ -45,11 +45,18 @@ def read(path: Path | str) -> dict[str, np.ndarray]:
                 continue
             name = _unesc(toks[0])
             try:
-                val = float(toks[1])
-            except ValueError:
+                vt = toks[1]
+                if not vt.startswith("(") and not re.match(r"^[-+0-9.]", vt) and len(toks) > 2:
+                    vt = toks[2]                       # DC op point: "name" "type" value
+                    toks = toks[1:]
+                if vt.startswith("("):                 # complex: (re im)
+                    val = complex(float(vt[1:]), float(toks[2].rstrip(")")))
+                else:
+                    val = float(vt)
+            except (ValueError, IndexError):
                 continue
             data.setdefault(name, []).append(val)
-    return {k: np.asarray(v, dtype=float) for k, v in data.items() if v}
+    return {k: np.asarray(v) for k, v in data.items() if v}
 
 
 def find(raw_dir: Path | str, pattern: str) -> Path | None:

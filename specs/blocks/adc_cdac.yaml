@@ -93,6 +93,8 @@ tests:
   tb_cdac_track:
     netlist: tb/cdac/tb_cdac_track.scs
     measure: adcflow.measure.cdac:track
+    prepare: adcflow.measure.top:prepare
+    params: {fin_target: 49.9e6, npts: 256}
     desc: >
       Two CDACs (P and N) with ideal bootstrapped gates, sine from 50 ohm per
       side at 49.9 MHz, -1 dBFS, 100 MS/s ideal phases, no decisions. The

@@ -11,6 +11,7 @@ module tb_sampler_va(P, N, TRIG, VSS);
   parameter integer dir = -1;
   parameter real delay = 0 from [0:inf);
   parameter real tstart = 0;
+  parameter real ttol = 10e-15 from (0:inf);   // crossing time tolerance (sampling-time accuracy)
   parameter string fname = "samples.txt";
 
   integer fh, n;
@@ -18,8 +19,14 @@ module tb_sampler_va(P, N, TRIG, VSS);
 
   analog begin
     @(initial_step) begin fh = $fopen(fname, "w"); n = 0; t_s = 1e9; end
-    @(cross(V(TRIG, VSS) - vth, dir)) begin
-      if ($abstime >= tstart) t_s = $abstime + delay;
+    @(cross(V(TRIG, VSS) - vth, dir, ttol)) begin
+      if ($abstime >= tstart) begin
+        if (delay > 0) t_s = $abstime + delay;
+        else begin
+          n = n + 1;
+          $fwrite(fh, "%d %.9e %.12e\n", n, $abstime, V(P, N));
+        end
+      end
     end
     @(timer(t_s)) begin
       n = n + 1;

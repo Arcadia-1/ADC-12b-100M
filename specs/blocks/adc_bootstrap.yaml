@@ -48,6 +48,8 @@ tests:
   tb_bootstrap_track:
     netlist: tb/bootstrap/tb_bootstrap_track.scs
     measure: adcflow.measure.bootstrap:track
+    prepare: adcflow.measure.top:prepare
+    params: {fin_target: 49.9e6, npts: 256}
     needs_pdk: true
     desc: >
       Two bootstraps with reference loads, differential sine from 50 ohm per

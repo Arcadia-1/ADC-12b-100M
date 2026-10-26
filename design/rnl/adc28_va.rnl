@@ -16,6 +16,7 @@
   @DEVICE(name="*", model="tb_imeter_va", terminals=["P", "N"]);
   @DEVICE(name="*", model="tb_sampler_va", terminals=["P", "N", "TRIG", "VSS"]);
   @DEVICE(name="*", model="tb_cmp_emu_va", terminals=["CONV", "CLKC", "UP12", "UP11", "UP10", "UP9", "UP8", "UP7", "UP6", "UP5", "UP4", "UP3", "UP2", "UP1", "UP0", "DN12", "DN11", "DN10", "DN9", "DN8", "DN7", "DN6", "DN5", "DN4", "DN3", "DN2", "DN1", "DN0", "OUTP", "OUTN", "VDD", "VSS"]);
+  @DEVICE(name="*", model="tb_refload_va", terminals=["CLK", "P", "N"]);
   @DEVICE(name="*", model="tb_cdac_seq_va", terminals=["CONV", "DH12", "DH11", "DH10", "DH9", "DH8", "DH7", "DH6", "DH5", "DH4", "DH3", "DH2", "DH1", "DH0", "RL12", "RL11", "RL10", "RL9", "RL8", "RL7", "RL6", "RL5", "RL4", "RL3", "RL2", "RL1", "RL0", "VDD", "VSS"]);
   @DEVICE(name="*", model="adc_cdac_sw_va", terminals=["VIN", "VG", "VREFP", "VREFN", "CONV", "DH12", "DH11", "DH10", "DH9", "DH8", "DH7", "DH6", "DH5", "DH4", "DH3", "DH2", "DH1", "DH0", "RL12", "RL11", "RL10", "RL9", "RL8", "RL7", "RL6", "RL5", "RL4", "RL3", "RL2", "RL1", "RL0", "BH12", "BL12", "BH11", "BL11", "BH10", "BL10", "BH9", "BL9", "BH8", "BL8", "BH7", "BL7", "BH6", "BL6", "BH5", "BL5", "BH4", "BL4", "BH3", "BL3", "BH2", "BL2", "BH1", "BL1", "BH0", "BL0", "VSS"])
 }
@@ -166,6 +167,18 @@
     (0, -28) @PIN(terminal=32, label="VSS", direction="down");
     @LINE {(0, -28) (0, -27)};
     ? @TEXT("comparator emulator", key="model", size=0.9, bold=true) => @PLACE(0, 0.6);
+    ? @TEXT("${name}", key="name", size=0.8) => @PLACE(0, -0.8)
+  };
+
+  $TB_REFLOAD_VA_SYM = @DEFINE-SYMBOL(box=[-7, -4, 7, 4]) {
+    (0, 0) @RECTANGLE(width=12, height=6);
+    (-7, 0) @PIN(terminal=1, label="CLK", direction="left");
+    @LINE {(-7, 0) (-6, 0)};
+    (0, 4) @PIN(terminal=2, label="P", direction="up");
+    @LINE {(0, 4) (0, 3)};
+    (0, -4) @PIN(terminal=3, label="N", direction="down");
+    @LINE {(0, -4) (0, -3)};
+    ? @TEXT("CDAC-like reference load", key="model", size=0.9, bold=true) => @PLACE(0, 0.6);
     ? @TEXT("${name}", key="name", size=0.8) => @PLACE(0, -0.8)
   };
 
@@ -365,6 +378,7 @@
   # @SELECT-INSTANCE(model="tb_imeter_va") => @SET-SYMBOL $TB_IMETER_VA_SYM;
   # @SELECT-INSTANCE(model="tb_sampler_va") => @SET-SYMBOL $TB_SAMPLER_VA_SYM;
   # @SELECT-INSTANCE(model="tb_cmp_emu_va") => @SET-SYMBOL $TB_CMP_EMU_VA_SYM;
+  # @SELECT-INSTANCE(model="tb_refload_va") => @SET-SYMBOL $TB_REFLOAD_VA_SYM;
   # @SELECT-INSTANCE(model="tb_cdac_seq_va") => @SET-SYMBOL $TB_CDAC_SEQ_VA_SYM;
   # @SELECT-INSTANCE(model="adc_cdac_sw_va") => @SET-SYMBOL $ADC_CDAC_SW_VA_SYM
 }

@@ -195,7 +195,7 @@ def measure(test: dict, job_dir: Path, ctx: dict) -> dict:
 
 
 def record(block: Block, test_id: str, viewsig: str, job: Job, metrics: dict, meta: dict) -> Path:
-    specs = [s for s in block.specs if s.test == test_id]
+    specs = [s for s in block.specs if s.test == test_id and (not s.mc or meta.get("mc"))]
     verdict = {}
     for s in specs:
         v = metrics.get(s.metric)
@@ -264,17 +264,19 @@ def run_test(test_id: str, block_name: str | None = None, corners: str = "typ",
             metrics = measure(test, jd, ctx) if rc[0] == "0" else {}
             if rc[0] != "0":
                 metrics = {"error": "; ".join(errs) or f"spectre rc={rc[0]}"}
+            if "error" in metrics:                 # never record server paths
+                metrics["error"] = str(metrics["error"]).replace(rroot, "<run>")
         except Exception as e:  # keep going, record the failure
             traceback.print_exc()
             metrics = {"error": f"measure failed: {e}"}
         out = record(block, test_id, viewsig, j, metrics, meta) if do_record else None
         summary.append({"job": j.name, "rc": rc[0], "metrics": metrics, "out": out})
-    _print_summary(block, test_id, summary)
+    _print_summary(block, test_id, summary, mc)
     return summary
 
 
-def _print_summary(block: Block, test_id: str, summary: list[dict]) -> None:
-    specs = [s for s in block.specs if s.test == test_id]
+def _print_summary(block: Block, test_id: str, summary: list[dict], mc: str | None = None) -> None:
+    specs = [s for s in block.specs if s.test == test_id and (not s.mc or mc)]
     for row in summary:
         m = row["metrics"]
         if "error" in m:
