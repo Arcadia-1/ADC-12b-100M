@@ -20,6 +20,8 @@ ISMP (VREFP 0 CLK 0) tb_sampler_va dir=-1 delay=0 fname="vstart.txt"
 tran1 tran stop=tstop outputstart=tstop-200n
 save VREFP
 // @RNL {
+//   /* pins connected by net name: the net-name label of rnl-std-fill on every unwired pin, placed below by its key netname */
+//   $LABEL_TERMINAL_SET @TEXT("${net}", key="netname", size=0.6);
 //   /* --- semantics --- */
 //   &0 @ADD-TO $GROUND_NET_SET;
 //   #XDUT @PLACE(6, 0);
@@ -29,46 +31,33 @@ save VREFP
 //   #ILD @PLACE(0, -15);
 //   #VH @PLACE(0, 17);
 //   #VA @PLACE(12, 17);
-//   &VREF_IN @WIRE {#XDUT:VREF_IN (-2, 0)};
-//   (-2.3, -0.25) @TEXT("VREF_IN", size=0.6, halign="end");
-//   &VREFP @WIRE {#XDUT:VREFP (17, 0)};
-//   (17.3, -0.25) @TEXT("VREFP", size=0.6, halign="start");
-//   &VCM @WIRE {#XDUT:VCM (17, -4)};
-//   (17.3, -4.25) @TEXT("VCM", size=0.6, halign="start");
-//   &AVDD18 @WIRE {#XDUT:AVDD18 (3, 7)};
-//   (3.25, 7.3) @TEXT("AVDD18", size=0.6, rotate=90, halign="start");
-//   &AVDD @WIRE {#XDUT:AVDD (7, 7)};
-//   (7.25, 7.3) @TEXT("AVDD", size=0.6, rotate=90, halign="start");
+//   #XDUT:VREF_IN @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", dx=-0.4, dy=0);
+//   #XDUT:VREFP @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", dx=0.4, dy=0);
+//   #XDUT:VCM @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", dx=0.4, dy=0);
+//   #XDUT:AVDD18 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
+//   #XDUT:AVDD @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g1 = $GROUND @ATTACH &0 => @PLACE(6, -6.5);
 //   &0 @WIRE {#XDUT:VSS %g1:p};
-//   &VREF_IN @WIRE {#VREF:1 (-16, 9)};
-//   (-15.75, 9.3) @TEXT("VREF_IN", size=0.6, rotate=90, halign="start");
+//   #VREF:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g2 = $GROUND @ATTACH &0 => @PLACE(-16, 1.5);
 //   &0 @WIRE {#VREF:2 %g2:p};
-//   &AVDD18 @WIRE {#VH:1 (0, 21)};
-//   (0.25, 21.3) @TEXT("AVDD18", size=0.6, rotate=90, halign="start");
+//   #VH:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g3 = $GROUND @ATTACH &0 => @PLACE(0, 13.5);
 //   &0 @WIRE {#VH:2 %g3:p};
-//   &AVDD @WIRE {#VA:1 (12, 21)};
-//   (12.25, 21.3) @TEXT("AVDD", size=0.6, rotate=90, halign="start");
+//   #VA:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g4 = $GROUND @ATTACH &0 => @PLACE(12, 13.5);
 //   &0 @WIRE {#VA:2 %g4:p};
-//   &CLK @WIRE {#VCLK:1 (-16, 0)};
-//   (-15.75, 0.3) @TEXT("CLK", size=0.6, rotate=90, halign="start");
+//   #VCLK:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g5 = $GROUND @ATTACH &0 => @PLACE(-16, -7.5);
 //   &0 @WIRE {#VCLK:2 %g5:p};
-//   &CLK @WIRE {#ILD:CLK (-6, -15)};
-//   (-6.3, -15.25) @TEXT("CLK", size=0.6, halign="end");
-//   &VREFP @WIRE {#ILD:P (0, -9)};
-//   (0.25, -8.7) @TEXT("VREFP", size=0.6, rotate=90, halign="start");
+//   #ILD:CLK @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", dx=-0.4, dy=0);
+//   #ILD:P @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g6 = $GROUND @ATTACH &0 => @PLACE(0, -20.5);
 //   &0 @WIRE {#ILD:N %g6:p};
-//   &VREFP @WIRE {#ISMP:P (29, 5)};
-//   (28.7, 4.75) @TEXT("VREFP", size=0.6, halign="end");
+//   #ISMP:P @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", dx=-0.4, dy=0);
 //   %g7 = $GROUND @ATTACH &0 => @PLACE(29.5, 3);
 //   &0 @WIRE {#ISMP:N (29.5, 3) (29.5, 3) %g7:p};
-//   &CLK @WIRE {#ISMP:TRIG (35, -2)};
-//   (35.25, -2.3) @TEXT("CLK", size=0.6, rotate=90, halign="end");
+//   #ISMP:TRIG @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", rotate=90, dx=0, dy=-0.4);
 //   %g8 = $GROUND @ATTACH &0 => @PLACE(38, -1.5);
 //   &0 @WIRE {#ISMP:VSS %g8:p};
 //   (-30, 31) @TEXT("tb_ref_dyn: VREFP under the CDAC conversion load pattern", halign="start") => @SET-STYLE $title_style

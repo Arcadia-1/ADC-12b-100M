@@ -240,14 +240,6 @@
     (9, 0) @PIN(terminal=2, direction="right");
     @LINE {(9, 0) (4, 0)};
     (8.8, 0.25) @TEXT("VREFP", size=0.55, halign="end", valign="bottom");
-    (5.5, 0) @CIRCLE(radius=0.18, fill="linecolor", linestyle="none");
-    @LINE {(5.5, 0) (5.5, -1.1)};
-    @LINE(linewidth=0.24) {(4.8, -1.1) (6.2, -1.1)};
-    @LINE(linewidth=0.24) {(4.8, -1.6) (6.2, -1.6)};
-    @LINE {(5.5, -1.6) (5.5, -2.3)};
-    @LINE {(4.95, -2.3) (6.05, -2.3)};
-    @LINE {(5.15, -2.65) (5.85, -2.65)};
-    @LINE {(5.35, -3) (5.65, -3)};
     (7.5, 0) @CIRCLE(radius=0.18, fill="linecolor", linestyle="none");
     @LINE {(7.5, 0) (7.5, -2.1)};
     @LINE {(6.85, -2.1) (8.15, -2.1) (8.15, -3.3) (6.85, -3.3) (6.85, -2.1)};

@@ -6,7 +6,8 @@ instance's terminal list is produced in the port order of specs/blocks.
 
 from __future__ import annotations
 
-from .gen import GEN_HEADER, block_symbols
+from . import symbols
+from .gen import GEN_HEADER, block_symbols, io_rows
 from .rnldraw import Sheet, turn
 from .specs import blocks
 
@@ -93,6 +94,11 @@ def _draw(s: Sheet, syms: dict) -> None:
     up = [f"UP{j}" for j in JS]
     dn = [f"DN{j}" for j in JS]
     ds = [f"D{i}" for i in DS]
+    s.emit("/* --- the block symbol of adc_top: how its instances are drawn wherever this subcircuit is read"
+           " (9.2.6); adc28-blocks has the same drawing, $ADC_TOP_SYM, for files that do not read it --- */")
+    body = symbols.top("%adc_top", blocks()["adc_top"].port_names).define().splitlines()
+    s.emit("\n".join(ln[2:] for ln in body) + ";")
+    s.emit("# @SET-SYMBOL %adc_top;")
     s.emit("/* --- semantics --- */")
     s.emit("{&AVDD &DVDD &AVDD18} @ADD-TO $SUPPLY_NET_SET;")
     s.emit("&VSS @ADD-TO $GROUND_NET_SET;")
@@ -219,5 +225,6 @@ def _draw(s: Sheet, syms: dict) -> None:
     s.text(X_L, 49, "P CDAC drawn mirrored (MX): its control buses on top. P side: RL<j> = UP<j>, DH<j> = DN<j>;"
                     " N side: DH<j> = UP<j>, RL<j> = DN<j>. Phases connect by net name.",
            style="note_style", halign="start")
+    s.io_table(2, N_Y - 18, "adc_top ports", io_rows("adc_top"))
     s.text(34, 2.4, "TOPN \\to INP, TOPP \\to INN (crossed): OUTP = 1 means UP", style="note_style",
            halign="middle")

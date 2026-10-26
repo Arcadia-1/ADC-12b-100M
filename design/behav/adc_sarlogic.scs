@@ -47,6 +47,56 @@ I0 (CONV OUTP OUTN CLKC UP12 UP11 UP10 UP9 UP8 UP7 UP6 UP5 UP4 UP3 UP2 UP1 UP0 D
 //   &DVDD @WIRE {#I0:DVDD %s1:p};
 //   /* --- annotations --- */
 //   (-12, 16) @TEXT("adc_sarlogic (behavioral): asynchronous SAR controller, bit and output registers", halign="start") => @SET-STYLE $title_style;
-//   (-12, 14.5) @TEXT("decision k -> UP/DN<13-k>, D<14-k>; DAC wait 40 ps (steps 1-6) / 75 ps; timeout 250 ps forces 1; all delays scaled by beh_speed", halign="start") => @SET-STYLE $note_style
+//   (-12, 14.5) @TEXT("decision k -> UP/DN<13-k>, D<14-k>; DAC wait 40 ps (steps 1-6) / 75 ps; timeout 250 ps forces 1; all delays scaled by beh_speed", halign="start") => @SET-STYLE $note_style;
+//   (20, 12.5) @TEXT("adc_sarlogic ports", halign="start", bold=true) => @SET-STYLE $note_style;
+//   @RECTANGLE {(20, 12) (52.391, -0.705)} => @SET-STYLE $table_style;
+//   @LINE {(20, 10.845) (52.391, 10.845)} => @SET-STYLE $table_style;
+//   @LINE {(23.552, 12) (23.552, -0.705)} => @SET-STYLE $table_style;
+//   @LINE {(27.423, 12) (27.423, -0.705)} => @SET-STYLE $table_style;
+//   @LINE {(30.656, 12) (30.656, -0.705)} => @SET-STYLE $table_style;
+//   (20.5, 11.4225) @TEXT("pin", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (24.052, 11.4225) @TEXT("direction", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (27.923, 11.4225) @TEXT("type", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (31.156, 11.4225) @TEXT("description", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (20.5, 10.2675) @TEXT("CONV", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 10.2675) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 10.2675) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 10.2675) @TEXT("conversion window from adc_clkgen (high = convert)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 9.1125) @TEXT("OUTP", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 9.1125) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 9.1125) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 9.1125) @TEXT("comparator output, 1 = input above DAC level", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 7.9575) @TEXT("OUTN", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 7.9575) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 7.9575) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 7.9575) @TEXT("comparator output, 1 = input below DAC level", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 6.8025) @TEXT("CLKC", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 6.8025) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 6.8025) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 6.8025) @TEXT("comparator clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 5.6475) @TEXT("UP<12:0>", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 5.6475) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 5.6475) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 5.6475) @TEXT("decision 1 was 1 (raise cap j=12)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 4.4925) @TEXT("DN<12:0>", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 4.4925) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 4.4925) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 4.4925) @TEXT("decision 1 was 0", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 3.3375) @TEXT("D<13:0>", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 3.3375) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 3.3375) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 3.3375) @TEXT("raw bit of decision 1, weight 2048", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 2.1825) @TEXT("RDY", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 2.1825) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 2.1825) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 2.1825) @TEXT("data valid: rises >= 100 ps after D settles, falls at CONV rising", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 1.0275) @TEXT("DVDD", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 1.0275) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 1.0275) @TEXT("supply", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 1.0275) @TEXT("0.9 V digital supply", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, -0.1275) @TEXT("VSS", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, -0.1275) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, -0.1275) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, -0.1275) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style
 // }
 ends adc_sarlogic

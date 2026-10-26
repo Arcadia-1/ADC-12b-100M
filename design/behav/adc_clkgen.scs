@@ -35,6 +35,48 @@ I0 (CLK PHI_S PHI_SB PHI_B PHI_BB CONV AVDD VSS) adc_clkgen_va \
 //   &VSS @WIRE {#I0:VSS %g1:p};
 //   /* --- annotations --- */
 //   (-12, 15.5) @TEXT("adc_clkgen (behavioral): CLK fall -> PHI_S fall -> PHI_B fall -> CONV rise", halign="start") => @SET-STYLE $title_style;
-//   (-12, 14) @TEXT("CLK rise -> CONV fall -> PHI_B, PHI_S rise (break before make); delays scaled by beh_speed", halign="start") => @SET-STYLE $note_style
+//   (-12, 14) @TEXT("CLK rise -> CONV fall -> PHI_B, PHI_S rise (break before make); delays scaled by beh_speed", halign="start") => @SET-STYLE $note_style;
+//   (15, 10.5) @TEXT("adc_clkgen ports", halign="start", bold=true) => @SET-STYLE $note_style;
+//   @RECTANGLE {(15, 10) (44.201, -0.395)} => @SET-STYLE $table_style;
+//   @LINE {(15, 8.845) (44.201, 8.845)} => @SET-STYLE $table_style;
+//   @LINE {(17.914, 10) (17.914, -0.395)} => @SET-STYLE $table_style;
+//   @LINE {(21.785, 10) (21.785, -0.395)} => @SET-STYLE $table_style;
+//   @LINE {(24.699, 10) (24.699, -0.395)} => @SET-STYLE $table_style;
+//   (15.5, 9.4225) @TEXT("pin", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (18.414, 9.4225) @TEXT("direction", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (22.285, 9.4225) @TEXT("type", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (25.199, 9.4225) @TEXT("description", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (15.5, 8.2675) @TEXT("CLK", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 8.2675) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 8.2675) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 8.2675) @TEXT("external sampling clock, 0.9 V CMOS, 100 MHz, duty 45-55 %", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 7.1125) @TEXT("PHI_S", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 7.1125) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 7.1125) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 7.1125) @TEXT("top-plate sampling phase", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 5.9575) @TEXT("PHI_SB", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 5.9575) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 5.9575) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 5.9575) @TEXT("complement of PHI_S", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 4.8025) @TEXT("PHI_B", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 4.8025) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 4.8025) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 4.8025) @TEXT("bottom-plate (bootstrap) phase", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 3.6475) @TEXT("PHI_BB", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 3.6475) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 3.6475) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 3.6475) @TEXT("complement of PHI_B", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 2.4925) @TEXT("CONV", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 2.4925) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 2.4925) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 2.4925) @TEXT("conversion window", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 1.3375) @TEXT("AVDD", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 1.3375) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 1.3375) @TEXT("supply", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 1.3375) @TEXT("0.9 V", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 0.1825) @TEXT("VSS", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 0.1825) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 0.1825) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 0.1825) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style
 // }
 ends adc_clkgen

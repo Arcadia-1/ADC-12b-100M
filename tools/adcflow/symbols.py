@@ -120,21 +120,13 @@ def bootstrap(sym: str, order: list[str]) -> SymBuilder:
 
 
 def ref(sym: str, order: list[str]) -> SymBuilder:
-    """Reference driver: a unity buffer from VREF_IN, the decoupled VREFP, VCM = VREFP / 2."""
+    """Reference driver: a unity buffer from VREF_IN to VREFP, VCM = VREFP / 2. Decoupling is
+    not drawn: it is not necessarily inside the block."""
     s = SymBuilder(sym, order)
     s.poly((-4, 4), (-4, -4), (4, 0), linewidth=BODY_W)
     s.pin("VREF_IN", (-6, 0), "left", lead_to=(-4, 0), text_at=(-3.7, 0.3, "start", "bottom"))
     s.text(-1.5, -0.35, "\\times{}1", size=0.9, bold=True, halign="middle", valign="middle")
     s.pin("VREFP", (9, 0), "right", lead_to=(4, 0), text_at=(8.8, 0.25, "end", "bottom"))
-    # decoupling capacitor on VREFP
-    s.dot(5.5, 0)
-    s.line((5.5, 0), (5.5, -1.1))
-    s.line((4.8, -1.1), (6.2, -1.1), linewidth=BODY_W)
-    s.line((4.8, -1.6), (6.2, -1.6), linewidth=BODY_W)
-    s.line((5.5, -1.6), (5.5, -2.3))
-    s.line((4.95, -2.3), (6.05, -2.3))
-    s.line((5.15, -2.65), (5.85, -2.65))
-    s.line((5.35, -3.0), (5.65, -3.0))
     # divider to VCM
     s.dot(7.5, 0)
     s.line((7.5, 0), (7.5, -2.1))

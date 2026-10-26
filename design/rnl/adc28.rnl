@@ -63,6 +63,7 @@
   $title_style = @DEFINE-STYLE(textcolor="#1a365d", size=1.1, bold=true) {};
   $note_style = @DEFINE-STYLE(textcolor="#4a5568", size=0.75, italic=true) {};
   $param_style = @DEFINE-STYLE(textcolor="#4a5568", size=0.65) {};
+  $table_style = @DEFINE-STYLE(linecolor="#a0aec0", textcolor="#2d3748", size=0.55) {};
   $analog_style = @DEFINE-STYLE(linecolor="#2b6cb0", textcolor="#2c5282") {};
   $digital_style = @DEFINE-STYLE(linecolor="#2f855a", textcolor="#276749") {};
   $clock_style = @DEFINE-STYLE(linecolor="#b7791f", textcolor="#975a16") {};

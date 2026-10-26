@@ -52,6 +52,40 @@ CCM (VCM VSS) capacitor c=ccm
 //   &VSS @WIRE {#I0:VSS %g3:p};
 //   /* --- annotations --- */
 //   (-12, 13.5) @TEXT("adc_ref (behavioral): VREFP follows VREF_IN through rout with a single-pole loop (fbw)", halign="start") => @SET-STYLE $title_style;
-//   (-12, 12) @TEXT("on-chip decoupling CDEC (>= 2 nF) with ESR; VCM = VREFP / 2 through rcm with CCM", halign="start") => @SET-STYLE $note_style
+//   (-12, 12) @TEXT("on-chip decoupling CDEC (>= 2 nF) with ESR; VCM = VREFP / 2 through rcm with CCM", halign="start") => @SET-STYLE $note_style;
+//   (29, 8.5) @TEXT("adc_ref ports", halign="start", bold=true) => @SET-STYLE $note_style;
+//   @RECTANGLE {(29, 8) (55.33, -0.085)} => @SET-STYLE $table_style;
+//   @LINE {(29, 6.845) (55.33, 6.845)} => @SET-STYLE $table_style;
+//   @LINE {(32.233, 8) (32.233, -0.085)} => @SET-STYLE $table_style;
+//   @LINE {(36.104, 8) (36.104, -0.085)} => @SET-STYLE $table_style;
+//   @LINE {(39.018, 8) (39.018, -0.085)} => @SET-STYLE $table_style;
+//   (29.5, 7.4225) @TEXT("pin", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (32.733, 7.4225) @TEXT("direction", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (36.604, 7.4225) @TEXT("type", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (39.518, 7.4225) @TEXT("description", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (29.5, 6.2675) @TEXT("VREF_IN", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (32.733, 6.2675) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (36.604, 6.2675) @TEXT("analog", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (39.518, 6.2675) @TEXT("0.900 V reference input, high impedance (< 1 uA)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (29.5, 5.1125) @TEXT("VREFP", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (32.733, 5.1125) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (36.604, 5.1125) @TEXT("analog", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (39.518, 5.1125) @TEXT("buffered 0.9 V reference for the CDAC", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (29.5, 3.9575) @TEXT("VCM", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (32.733, 3.9575) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (36.604, 3.9575) @TEXT("analog", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (39.518, 3.9575) @TEXT("0.45 V top-plate reset level", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (29.5, 2.8025) @TEXT("AVDD18", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (32.733, 2.8025) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (36.604, 2.8025) @TEXT("supply", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (39.518, 2.8025) @TEXT("1.8 V supply (thick-oxide devices allowed)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (29.5, 1.6475) @TEXT("AVDD", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (32.733, 1.6475) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (36.604, 1.6475) @TEXT("supply", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (39.518, 1.6475) @TEXT("0.9 V supply (bias / VCM if used)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (29.5, 0.4925) @TEXT("VSS", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (32.733, 0.4925) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (36.604, 0.4925) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (39.518, 0.4925) @TEXT("ground (also VREFN)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style
 // }
 ends adc_ref

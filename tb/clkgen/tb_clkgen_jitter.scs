@@ -21,6 +21,8 @@ VAVDD (AVDD 0) vsource dc=vdd
 tran1 tran stop=tstop noisefmax=nfmax*noise_en*devnoise noiseseed=1 outputstart=tstop
 tbopts options save=none
 // @RNL {
+//   /* pins connected by net name: the net-name label of rnl-std-fill on every unwired pin, placed below by its key netname */
+//   $LABEL_TERMINAL_SET @TEXT("${net}", key="netname", size=0.6);
 //   /* --- semantics --- */
 //   &0 @ADD-TO $GROUND_NET_SET;
 //   #XDUT @PLACE(6, 0);
@@ -32,56 +34,40 @@ tbopts options save=none
 //   #CLPHI_BB @PLACE(24, -17);
 //   #CLCONV @PLACE(32, -17);
 //   #VAVDD @PLACE(0, 19);
-//   &CLK @WIRE {#XDUT:CLK (-2, 0)};
-//   (-2.3, -0.25) @TEXT("CLK", size=0.6, halign="end");
-//   &PHI_S @WIRE {#XDUT:PHI_S (14, 4)};
-//   (14.3, 3.75) @TEXT("PHI_S", size=0.6, halign="start");
-//   &PHI_SB @WIRE {#XDUT:PHI_SB (14, 2)};
-//   (14.3, 1.75) @TEXT("PHI_SB", size=0.6, halign="start");
-//   &PHI_B @WIRE {#XDUT:PHI_B (14, 0)};
-//   (14.3, -0.25) @TEXT("PHI_B", size=0.6, halign="start");
-//   &PHI_BB @WIRE {#XDUT:PHI_BB (14, -2)};
-//   (14.3, -2.25) @TEXT("PHI_BB", size=0.6, halign="start");
-//   &CONV @WIRE {#XDUT:CONV (14, -4)};
-//   (14.3, -4.25) @TEXT("CONV", size=0.6, halign="start");
-//   &AVDD @WIRE {#XDUT:AVDD (6, 9)};
-//   (6.25, 9.3) @TEXT("AVDD", size=0.6, rotate=90, halign="start");
+//   #XDUT:CLK @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", dx=-0.4, dy=0);
+//   #XDUT:PHI_S @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", dx=0.4, dy=0);
+//   #XDUT:PHI_SB @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", dx=0.4, dy=0);
+//   #XDUT:PHI_B @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", dx=0.4, dy=0);
+//   #XDUT:PHI_BB @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", dx=0.4, dy=0);
+//   #XDUT:CONV @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", dx=0.4, dy=0);
+//   #XDUT:AVDD @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g1 = $GROUND @ATTACH &0 => @PLACE(6, -8.5);
 //   &0 @WIRE {#XDUT:VSS %g1:p};
-//   &CLK @WIRE {#VCLK:1 (-16, 11)};
-//   (-15.75, 11.3) @TEXT("CLK", size=0.6, rotate=90, halign="start");
+//   #VCLK:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g2 = $GROUND @ATTACH &0 => @PLACE(-16, 3.5);
 //   &0 @WIRE {#VCLK:2 %g2:p};
-//   &PHI_S @WIRE {#ISMP:P (26, 7)};
-//   (25.7, 6.75) @TEXT("PHI_S", size=0.6, halign="end");
+//   #ISMP:P @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", dx=-0.4, dy=0);
 //   %g3 = $GROUND @ATTACH &0 => @PLACE(26.5, 5);
 //   &0 @WIRE {#ISMP:N (26.5, 5) (26.5, 5) %g3:p};
-//   &PHI_S @WIRE {#ISMP:TRIG (32, 0)};
-//   (32.25, -0.3) @TEXT("PHI_S", size=0.6, rotate=90, halign="end");
+//   #ISMP:TRIG @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", rotate=90, dx=0, dy=-0.4);
 //   %g4 = $GROUND @ATTACH &0 => @PLACE(35, 0.5);
 //   &0 @WIRE {#ISMP:VSS %g4:p};
-//   &PHI_S @WIRE {#CLPHI_S:1 (0, -13)};
-//   (0.25, -12.7) @TEXT("PHI_S", size=0.6, rotate=90, halign="start");
+//   #CLPHI_S:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g5 = $GROUND @ATTACH &0 => @PLACE(0, -20.5);
 //   &0 @WIRE {#CLPHI_S:2 %g5:p};
-//   &PHI_SB @WIRE {#CLPHI_SB:1 (8, -13)};
-//   (8.25, -12.7) @TEXT("PHI_SB", size=0.6, rotate=90, halign="start");
+//   #CLPHI_SB:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g6 = $GROUND @ATTACH &0 => @PLACE(8, -20.5);
 //   &0 @WIRE {#CLPHI_SB:2 %g6:p};
-//   &PHI_B @WIRE {#CLPHI_B:1 (16, -13)};
-//   (16.25, -12.7) @TEXT("PHI_B", size=0.6, rotate=90, halign="start");
+//   #CLPHI_B:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g7 = $GROUND @ATTACH &0 => @PLACE(16, -20.5);
 //   &0 @WIRE {#CLPHI_B:2 %g7:p};
-//   &PHI_BB @WIRE {#CLPHI_BB:1 (24, -13)};
-//   (24.25, -12.7) @TEXT("PHI_BB", size=0.6, rotate=90, halign="start");
+//   #CLPHI_BB:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g8 = $GROUND @ATTACH &0 => @PLACE(24, -20.5);
 //   &0 @WIRE {#CLPHI_BB:2 %g8:p};
-//   &CONV @WIRE {#CLCONV:1 (32, -13)};
-//   (32.25, -12.7) @TEXT("CONV", size=0.6, rotate=90, halign="start");
+//   #CLCONV:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g9 = $GROUND @ATTACH &0 => @PLACE(32, -20.5);
 //   &0 @WIRE {#CLCONV:2 %g9:p};
-//   &AVDD @WIRE {#VAVDD:1 (0, 23)};
-//   (0.25, 23.3) @TEXT("AVDD", size=0.6, rotate=90, halign="start");
+//   #VAVDD:1 @TEXT("${net}", key="netname", size=0.6, halign="start", valign="middle", rotate=90, dx=0, dy=0.4);
 //   %g10 = $GROUND @ATTACH &0 => @PLACE(0, 15.5);
 //   &0 @WIRE {#VAVDD:2 %g10:p};
 //   (-30, 33) @TEXT("tb_clkgen_jitter: PHI_S falling-edge jitter with transient noise", halign="start") => @SET-STYLE $title_style

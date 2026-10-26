@@ -30,6 +30,40 @@ I0 (VIN PHI_B PHI_BB VG AVDD VSS) adc_bootstrap_va \
 //   &VSS @WIRE {#I0:VSS %g1:p};
 //   /* --- annotations --- */
 //   (-12, 13.5) @TEXT("adc_bootstrap (behavioral): VG = VIN + kboost*AVDD while PHI_B, 0 V otherwise", halign="start") => @SET-STYLE $title_style;
-//   (-12, 12) @TEXT("edges t_on / t_off scaled by beh_speed; VG is driven through rout = 50 ohm", halign="start") => @SET-STYLE $note_style
+//   (-12, 12) @TEXT("edges t_on / t_off scaled by beh_speed; VG is driven through rout = 50 ohm", halign="start") => @SET-STYLE $note_style;
+//   (15, 8.5) @TEXT("adc_bootstrap ports", halign="start", bold=true) => @SET-STYLE $note_style;
+//   @RECTANGLE {(15, 8) (33.993, -0.085)} => @SET-STYLE $table_style;
+//   @LINE {(15, 6.845) (33.993, 6.845)} => @SET-STYLE $table_style;
+//   @LINE {(17.914, 8) (17.914, -0.085)} => @SET-STYLE $table_style;
+//   @LINE {(21.785, 8) (21.785, -0.085)} => @SET-STYLE $table_style;
+//   @LINE {(24.699, 8) (24.699, -0.085)} => @SET-STYLE $table_style;
+//   (15.5, 7.4225) @TEXT("pin", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (18.414, 7.4225) @TEXT("direction", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (22.285, 7.4225) @TEXT("type", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (25.199, 7.4225) @TEXT("description", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (15.5, 6.2675) @TEXT("VIN", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 6.2675) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 6.2675) @TEXT("analog", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 6.2675) @TEXT("input (switch source side)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 5.1125) @TEXT("PHI_B", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 5.1125) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 5.1125) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 5.1125) @TEXT("high = track", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 3.9575) @TEXT("PHI_BB", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 3.9575) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 3.9575) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 3.9575) @TEXT("complement of PHI_B", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 2.8025) @TEXT("VG", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 2.8025) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 2.8025) @TEXT("analog", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 2.8025) @TEXT("boosted gate", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 1.6475) @TEXT("AVDD", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 1.6475) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 1.6475) @TEXT("supply", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 1.6475) @TEXT("0.9 V", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 0.4925) @TEXT("VSS", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 0.4925) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 0.4925) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 0.4925) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style
 // }
 ends adc_bootstrap
