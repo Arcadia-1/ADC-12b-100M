@@ -60,7 +60,11 @@ def ssh_script(script: str, timeout: float | None = None, stdin_bytes: bytes | N
 def ssh_pipe(remote_cmd: str, data: bytes | None = None, timeout: float | None = None) -> bytes:
     """Run one command through bash (the login shell may be csh) with binary stdin/stdout."""
     wrapped = "bash -c " + shlex.quote(remote_cmd)
-    p = subprocess.run(_ssh_base() + [wrapped], input=data, capture_output=True, timeout=timeout)
+    cmd = _ssh_base() + [wrapped]
+    if data is not None:
+        p = subprocess.run(cmd, input=data, capture_output=True, timeout=timeout)
+    else:   # stdin must be closed: Windows OpenSSH otherwise may never exit
+        p = subprocess.run(cmd, stdin=subprocess.DEVNULL, capture_output=True, timeout=timeout)
     if p.returncode != 0:
         raise RuntimeError(f"ssh {remote_cmd!r} failed: {p.stderr.decode(errors='replace')[-2000:]}")
     return p.stdout

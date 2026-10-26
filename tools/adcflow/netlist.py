@@ -68,11 +68,14 @@ def logical_lines(text: str):
         yield start, buf
 
 
-def parse(path: Path | str) -> Netlist:
+def parse(path: Path | str, text: str | None = None) -> Netlist:
+    """Parse a netlist file (or `text`, reported under `path`)."""
     path = Path(path)
     nl = Netlist(path=path)
     cur: Subckt | None = None
-    for ln, line in logical_lines(path.read_text(encoding="utf-8")):
+    if text is None:
+        text = path.read_text(encoding="utf-8")
+    for ln, line in logical_lines(text):
         m = SUBCKT_RE.match(line)
         if m:
             if cur is not None:

@@ -92,10 +92,7 @@ def _needed_va(netlists: list[Path], tb_text: str) -> list[Path]:
         for sc in nl.subckts.values():
             masters |= {i.master for i in sc.instances}
         masters |= {i.master for i in nl.top_instances}
-    tmp = REPO_ROOT / "build" / "_tb_parse.scs"
-    tmp.parent.mkdir(parents=True, exist_ok=True)
-    tmp.write_text(tb_text, encoding="utf-8")
-    nl = parse(tmp)
+    nl = parse("tb.scs", text=tb_text)
     masters |= {i.master for i in nl.top_instances}
     for sc in nl.subckts.values():
         masters |= {i.master for i in sc.instances}
