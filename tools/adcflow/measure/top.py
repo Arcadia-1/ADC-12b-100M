@@ -66,10 +66,11 @@ def sine(job_dir: Path, ctx: dict) -> dict:
     with contextlib.redirect_stdout(io.StringIO()):
         cal = calibrate_weight_sine(bits, freq=fin / fs, nominal_weights=a.out_weights)
         w = np.asarray(cal["weight"], dtype=float)
-        mc = spectrum(bits @ (w / w[-1]), fs, None)
+        w = w * (a.out_weights.sum() / w.sum())      # scale to the nominal sum (the LSB estimate is noisy)
+        mc = spectrum(bits @ w, fs, None)
     m["enob_cal"] = mc["enob"]
     m["sfdr_cal_dBc"] = mc["sfdr_dBc"]
-    m["weights_cal"] = [round(float(x), 3) for x in w / w[-1]]
+    m["weights_cal"] = [round(float(x), 3) for x in w]
     meters = read_meters(Path(job_dir) / "power.txt")
     vdd, vdd18 = float(g["vdd"]), float(g["vdd18"])
     pw = {"AVDD": vdd, "DVDD": vdd, "AVDD18": vdd18}

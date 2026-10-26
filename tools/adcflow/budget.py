@@ -79,7 +79,7 @@ def mismatch_table(arch: Arch, sigmas=(0.005, 0.01, 0.02), runs: int = 8) -> str
                 met = m.spectrum_metrics(r.codes, arch.fs, arch.n_codes)
                 cal = calibrate_weight_sine(r.bits, freq=fin / arch.fs, nominal_weights=arch.out_weights)
                 w = np.asarray(cal["weight"], dtype=float)
-                metc = m.spectrum_metrics(r.bits @ (w / w[-1]), arch.fs, None)
+                metc = m.spectrum_metrics(r.bits @ (w * arch.out_weights.sum() / w.sum()), arch.fs, None)
             e_nom.append(met["enob"]); sf_nom.append(met["sfdr_dbc"]); e_cal.append(metc["enob"])
         out.append(f"| {s*100:.1f} % | {min(e_nom):.2f} / {np.mean(e_nom):.2f} | {min(sf_nom):.1f} | {np.mean(e_cal):.2f} |")
     return "\n".join(out)

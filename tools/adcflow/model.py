@@ -37,7 +37,8 @@ class NonIdeal:
     tau_start: float = 20e-12        # conversion-start (VIN -> neutral) settling
     # reference
     c_dec: float = 2e-9              # VREFP decoupling (F)
-    tau_ref: float = 50e-9           # driver recovery time constant
+    tau_ref: float = 50e-9           # recovery time constant of VREFP (driver output R x C_dec, or loop)
+    ref_start_charge: bool = True    # H halves VIN -> VREFP at CONV rise (C_S*(VREF - Vcm_in), ~0.46 pC)
     ref_signal_coupling: bool = True # second-order top-plate coupling charge
     # comparator / loop timing
     t_cmp0: float = 45e-12           # comparator delay for large input
@@ -124,6 +125,12 @@ def convert(vin: np.ndarray, arch: Arch | None = None, ni: NonIdeal | None = Non
     # reference droop bookkeeping (V), deterministic sequence + optional coupling
     dvref = np.zeros(n)
     t_prev = np.full(n, ni.t_start)
+    if ni.ref_start_charge:
+        # conversion start (CONV rise, ~100 ps before the first comparison): the H halves
+        # of the sampled caps go from VIN to VREFP; the P+N sum is signal independent
+        vin_cm = float(arch.raw["reference"]["vin_cm"])
+        dvref = dvref - arch.c_s * (arch.vref - vin_cm) / ni.c_dec
+        t_prev = np.full(n, ni.t_start - 0.1e-9)
     sig_cmp_lsb = ni.sigma_cmp_top / gain_top / lsb
     vos_lsb = ni.vos_cmp_top / gain_top / lsb
 

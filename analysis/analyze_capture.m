@@ -23,7 +23,7 @@ end
 title(sprintf('nominal weights: ENOB %.2f, SFDR %.1f dB', rep.enob, rep.sfdr));
 
 [w, ~, postcal] = wcalsin(bits, 'freq', fin / fs, 'order', 3);
-rep.weights = w / w(end);
+rep.weights = w * (sum(W) / sum(w));   % scale to the nominal sum (the LSB estimate is noisy)
 figure;
 [rep.enob_cal, rep.sndr_cal, rep.sfdr_cal] = plotspec(postcal, 'Fs', fs, 'disp', true);
 title(sprintf('calibrated weights: ENOB %.2f, SFDR %.1f dB', rep.enob_cal, rep.sfdr_cal));

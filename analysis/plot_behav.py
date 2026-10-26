@@ -87,7 +87,8 @@ def sheet_top(corner: str, out: Path) -> Path | None:
         met = analyze_spectrum(codes, fs=fs, max_scale_range=a.n_codes, create_plot=False)
         fit = fit_sine_4param(codes, max_iterations=5)
         cal = calibrate_weight_sine(bits, freq=fit["frequency"], nominal_weights=a.out_weights)
-        wc = np.asarray(cal["weight"], float) / cal["weight"][-1]
+        wc = np.asarray(cal["weight"], float)
+        wc = wc * (a.out_weights.sum() / wc.sum())       # nominal-sum scaling (LSB estimate is noisy)
         metc = analyze_spectrum(bits @ wc, fs=fs, create_plot=False)
     fig, axs = plt.subplots(2, 2, figsize=(12, 7.5))
     fig.suptitle(f"adc_top behavioral, {corner}: fin = {fit['frequency'] * fs / 1e6:.2f} MHz, -1 dBFS, "
