@@ -1,0 +1,75 @@
+name: site
+
+# Builds the project website (site/) from the repository: needs only the repo, no simulation server, no PDK.
+#   pull_request : build (fails on build errors or broken links), upload the site as an artifact
+#   push to main : build, deploy to GitHub Pages (repository setting: Pages > Source = GitHub Actions)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: build site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0              # tags and dates for the progress page
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            site/requirements.txt
+      - name: Install adcflow and the site generator
+        run: pip install -e . -r site/requirements.txt
+      - name: Build (pull request)
+        if: github.event_name == 'pull_request'
+        env:
+          # the PR head, not the merge commit: schematics are fetched from this commit by the hosted RNL viewer
+          ADC_SITE_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: python site/build.py --netlist-base "https://raw.githubusercontent.com/$HEAD_REPO/$ADC_SITE_SHA/"
+      - name: Build (deploy)
+        if: github.event_name != 'pull_request'
+        run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          python site/build.py --base-url "https://${owner}.github.io/${GITHUB_REPOSITORY#*/}/"
+      - name: Upload the site (pull request preview)
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: site-preview
+          path: build/site
+          retention-days: 14
+      - name: Upload the site (Pages)
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: build/site
+
+  deploy:
+    name: deploy to GitHub Pages
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

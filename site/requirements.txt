@@ -1,0 +1,2 @@
+# Build dependencies of the site generator (adcflow itself comes from `pip install -e .`).
+markdown-it-py>=3
