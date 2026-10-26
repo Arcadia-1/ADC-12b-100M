@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import difflib
+import re
 import sys
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -112,6 +113,38 @@ def va_symbols() -> dict[str, Sym]:
         else:
             out[mod] = _sym(draw(sym, [p for p, _ in va_ports(mod)]), f"{mod}: {cfg.get('title', '')}")
     return out
+
+
+SYM_AUTHOR = "adcflow gen"
+HAND_VIEWS = ("adc_comp", "adc_bootstrap", "adc_clkgen", "adc_ref", "adc_sarlogic")
+
+
+def block_symbol_record(block: str) -> list[str]:
+    """The record, written inside `subckt block`, that gives the subcircuit its block symbol
+    (9.2.6): the drawing of symbols.py under the local name %block. Instances of the block are
+    drawn with it wherever the subcircuit is read; adc28-blocks has the same drawing as
+    $BLOCK_SYM for files that instantiate the block without reading it."""
+    draw = symbols.BLOCKS[block]
+    body = draw(f"%{block}", blocks()[block].port_names).define().splitlines()
+    out = [f'// @RNL(author="{SYM_AUTHOR}") {{',
+           f"//   /* block symbol of {block}, generated from tools/adcflow/symbols.py by"
+           " `python -m adcflow gen` -- do not edit this record */"]
+    out += [f"// {ln}" for ln in body[:-1]] + [f"// {body[-1]};", f"//   # @SET-SYMBOL %{block}", "// }"]
+    return out
+
+
+def splice_block_symbol(block: str, text: str) -> str:
+    """Put (or replace) the block symbol record of `block` just before `ends block`."""
+    rec = "\n".join(block_symbol_record(block)) + "\n"
+    pat = re.compile(r'^// @RNL\(author="' + SYM_AUTHOR + r'"\) \{\n(?:^//.*\n)*?^// \}\n', re.M)
+    text = pat.sub("", text)
+    m = re.search(rf"^ends {block}\b", text, re.M)
+    return text[:m.start()] + rec + text[m.start():]
+
+
+def _hand_view(block: str):
+    path = REPO_ROOT / "design" / "behav" / f"{block}.scs"
+    return path, lambda: splice_block_symbol(block, path.read_text(encoding="utf-8"))
 
 
 DIRECTION = {"in": "input", "out": "output", "inout": "inout", "supply": "inout", "ground": "inout"}
@@ -371,13 +404,15 @@ def gen_behav_cdac() -> str:
            " is w*cu/2; * = not sampled (range extension). H halves: neutral VREFP, dropped by DH; L halves:"
            " neutral VREFN, raised by RL", style="note_style", halign="start")
     L += s.record()
+    L += block_symbol_record("adc_cdac")
     L.append("ends adc_cdac")
     return "\n".join(L) + "\n"
 
 
 TARGETS = {
     "rnl": [(REPO_ROOT / "design" / "rnl" / "adc28_blocks.rnl", gen_rnl_blocks),
-            (REPO_ROOT / "design" / "rnl" / "adc28_va.rnl", gen_rnl_va)],
+            (REPO_ROOT / "design" / "rnl" / "adc28_va.rnl", gen_rnl_va)]
+           + [_hand_view(b) for b in HAND_VIEWS],
     "va-params": [(REPO_ROOT / "design" / "behav" / "veriloga" / "adc_arch.vams", gen_va_params),
                   (REPO_ROOT / "design" / "behav" / "veriloga" / "adc_arch_func.vams", gen_va_funcs),
                   (REPO_ROOT / "design" / "behav" / "adc_cdac.scs", gen_behav_cdac)],

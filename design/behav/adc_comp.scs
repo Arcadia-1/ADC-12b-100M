@@ -90,4 +90,35 @@ CINN (INN VSS) capacitor c=cin
 //   (22.647, -0.6625) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
 //   (25.88, -0.6625) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style
 // }
+// @RNL(author="adcflow gen") {
+//   /* block symbol of adc_comp, generated from tools/adcflow/symbols.py by `python -m adcflow gen` -- do not edit this record */
+//   %adc_comp = @DEFINE-SYMBOL(box=[-6, -5, 6, 5]) {
+//     @LINE(linewidth=0.24) {(-4, 4) (-4, -4) (4, 0) (-4, 4)};
+//     (-6, 1) @PIN(terminal=1, direction="left");
+//     @LINE {(-6, 1) (-4, 1)};
+//     (-6, -1) @PIN(terminal=2, direction="left");
+//     @LINE {(-6, -1) (-4, -1)};
+//     @LINE(cap="round") {(-3.55, 1) (-2.95, 1)};
+//     @LINE(cap="round") {(-3.25, 1.3) (-3.25, 0.7)};
+//     @LINE(cap="round") {(-3.55, -1) (-2.95, -1)};
+//     (6, 1) @PIN(terminal=4, direction="right");
+//     @LINE {(6, 1) (2, 1)};
+//     (5.8, 1.25) @TEXT("OUTP", size=0.55, halign="end", valign="bottom");
+//     (6, -1) @PIN(terminal=5, direction="right");
+//     @LINE {(6, -1) (2, -1)};
+//     (5.8, -1.25) @TEXT("OUTN", size=0.55, halign="end", valign="top");
+//     (-2, 5) @PIN(terminal=6, direction="up");
+//     @LINE {(-2, 5) (-2, 3)};
+//     (-2, -5) @PIN(terminal=7, direction="down");
+//     @LINE {(-2, -5) (-2, -3)};
+//     (1, -5) @PIN(terminal=3, direction="down");
+//     @LINE {(1, -5) (1, -1.5)};
+//     (1.45, -2.55) @TEXT("CLKC", size=0.55, halign="start", valign="middle");
+//     @LINE {(1.45, -4.45) (1.85, -4.45) (1.85, -3.75) (2.45, -3.75) (2.45, -4.45) (2.85, -4.45)};
+//     @LINE {(-2, -0.7) (-1.2, -0.7) (-1.2, 0.7) (-0.4, 0.7)};
+//     ? @TEXT("${name}", key="name", size=0.8, valign="bottom") => @PLACE(0.2, 3.1);
+//     ? @TEXT("${model}", key="model", size=0.5) => @PLACE(0.2, 2.25)
+//   };
+//   # @SET-SYMBOL %adc_comp
+// }
 ends adc_comp

@@ -79,4 +79,42 @@ I0 (CLK PHI_S PHI_SB PHI_B PHI_BB CONV AVDD VSS) adc_clkgen_va \
 //   (22.285, 0.1825) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
 //   (25.199, 0.1825) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style
 // }
+// @RNL(author="adcflow gen") {
+//   /* block symbol of adc_clkgen, generated from tools/adcflow/symbols.py by `python -m adcflow gen` -- do not edit this record */
+//   %adc_clkgen = @DEFINE-SYMBOL(box=[-6, -7, 6, 7]) {
+//     @LINE(linewidth=0.24) {(-5, -6) (5, -6) (5, 6) (-5, 6) (-5, -6)};
+//     (-6, 0) @PIN(terminal=1, direction="left");
+//     @LINE {(-6, 0) (-5, 0)};
+//     (-4.65, -0.75) @TEXT("CLK", size=0.55, halign="start", valign="top");
+//     @LINE {(-4.6, -0.3) (-4.1, -0.3) (-4.1, 0.4) (-3.4, 0.4) (-3.4, -0.3) (-2.7, -0.3) (-2.7, 0.4) (-2, 0.4) (-2, -0.3) (-1.5, -0.3)};
+//     (-3.2, 3.3) @TEXT("\Phi", size=1.8, bold=true, halign="middle", valign="middle");
+//     (6, 4) @PIN(terminal=2, direction="right");
+//     @LINE {(6, 4) (5, 4)};
+//     (4.65, 4) @TEXT("PHI_S", size=0.55, halign="end", valign="middle");
+//     @LINE {(-0.9, 4.3) (-0, 4.3) (-0, 3.7) (1.7, 3.7)};
+//     (6, 2) @PIN(terminal=3, direction="right");
+//     @LINE {(6, 2) (5, 2)};
+//     (4.65, 2) @TEXT("PHI_SB", size=0.55, halign="end", valign="middle");
+//     @LINE {(-0.9, 1.7) (-0, 1.7) (-0, 2.3) (1.7, 2.3)};
+//     (6, 0) @PIN(terminal=4, direction="right");
+//     @LINE {(6, 0) (5, 0)};
+//     (4.65, 0) @TEXT("PHI_B", size=0.55, halign="end", valign="middle");
+//     @LINE {(-0.9, 0.3) (0.45, 0.3) (0.45, -0.3) (1.7, -0.3)};
+//     (6, -2) @PIN(terminal=5, direction="right");
+//     @LINE {(6, -2) (5, -2)};
+//     (4.65, -2) @TEXT("PHI_BB", size=0.55, halign="end", valign="middle");
+//     @LINE {(-0.9, -2.3) (0.45, -2.3) (0.45, -1.7) (1.7, -1.7)};
+//     (6, -4) @PIN(terminal=6, direction="right");
+//     @LINE {(6, -4) (5, -4)};
+//     (4.65, -4) @TEXT("CONV", size=0.55, halign="end", valign="middle");
+//     @LINE {(-0.9, -4.3) (0.9, -4.3) (0.9, -3.7) (1.7, -3.7)};
+//     (0, 7) @PIN(terminal=7, direction="up");
+//     @LINE {(0, 7) (0, 6)};
+//     (0, -7) @PIN(terminal=8, direction="down");
+//     @LINE {(0, -7) (0, -6)};
+//     ? @TEXT("${name}", key="name", size=0.8, valign="bottom") => @PLACE(-5, 6.5);
+//     ? @TEXT("${model}", key="model", size=0.5, valign="bottom") => @PLACE(-4.65, -5.65)
+//   };
+//   # @SET-SYMBOL %adc_clkgen
+// }
 ends adc_clkgen

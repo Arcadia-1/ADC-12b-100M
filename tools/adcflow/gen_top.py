@@ -6,8 +6,7 @@ instance's terminal list is produced in the port order of specs/blocks.
 
 from __future__ import annotations
 
-from . import symbols
-from .gen import GEN_HEADER, block_symbols, io_rows
+from .gen import GEN_HEADER, block_symbol_record, block_symbols, io_rows
 from .rnldraw import Sheet, turn
 from .specs import blocks
 
@@ -78,6 +77,7 @@ def gen_top() -> str:
     s = Sheet()
     _draw(s, syms)
     L += s.record()
+    L += block_symbol_record("adc_top")
     L.append("ends adc_top")
     return "\n".join(L) + "\n"
 
@@ -94,11 +94,6 @@ def _draw(s: Sheet, syms: dict) -> None:
     up = [f"UP{j}" for j in JS]
     dn = [f"DN{j}" for j in JS]
     ds = [f"D{i}" for i in DS]
-    s.emit("/* --- the block symbol of adc_top: how its instances are drawn wherever this subcircuit is read"
-           " (9.2.6); adc28-blocks has the same drawing, $ADC_TOP_SYM, for files that do not read it --- */")
-    body = symbols.top("%adc_top", blocks()["adc_top"].port_names).define().splitlines()
-    s.emit("\n".join(ln[2:] for ln in body) + ";")
-    s.emit("# @SET-SYMBOL %adc_top;")
     s.emit("/* --- semantics --- */")
     s.emit("{&AVDD &DVDD &AVDD18} @ADD-TO $SUPPLY_NET_SET;")
     s.emit("&VSS @ADD-TO $GROUND_NET_SET;")

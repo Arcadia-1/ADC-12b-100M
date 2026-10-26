@@ -88,4 +88,34 @@ CCM (VCM VSS) capacitor c=ccm
 //   (36.604, 0.4925) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
 //   (39.518, 0.4925) @TEXT("ground (also VREFN)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style
 // }
+// @RNL(author="adcflow gen") {
+//   /* block symbol of adc_ref, generated from tools/adcflow/symbols.py by `python -m adcflow gen` -- do not edit this record */
+//   %adc_ref = @DEFINE-SYMBOL(box=[-6, -5, 9, 5]) {
+//     @LINE(linewidth=0.24) {(-4, 4) (-4, -4) (4, 0) (-4, 4)};
+//     (-6, 0) @PIN(terminal=1, direction="left");
+//     @LINE {(-6, 0) (-4, 0)};
+//     (-3.7, 0.3) @TEXT("VREF_IN", size=0.55, halign="start", valign="bottom");
+//     (-1.5, -0.35) @TEXT("\times{}1", size=0.9, bold=true, halign="middle", valign="middle");
+//     (9, 0) @PIN(terminal=2, direction="right");
+//     @LINE {(9, 0) (4, 0)};
+//     (8.8, 0.25) @TEXT("VREFP", size=0.55, halign="end", valign="bottom");
+//     (7.5, 0) @CIRCLE(radius=0.18, fill="linecolor", linestyle="none");
+//     @LINE {(7.5, 0) (7.5, -2.1)};
+//     @LINE {(6.85, -2.1) (8.15, -2.1) (8.15, -3.3) (6.85, -3.3) (6.85, -2.1)};
+//     (7.5, -2.7) @TEXT("1/2", size=0.5, halign="middle", valign="middle");
+//     @LINE {(7.5, -3.3) (7.5, -4)};
+//     (9, -4) @PIN(terminal=3, direction="right");
+//     @LINE {(9, -4) (7.5, -4)};
+//     (8.8, -4.25) @TEXT("VCM", size=0.55, halign="end", valign="top");
+//     (-3, 5) @PIN(terminal=4, direction="up");
+//     @LINE {(-3, 5) (-3, 3.5)};
+//     (1, 5) @PIN(terminal=5, direction="up");
+//     @LINE {(1, 5) (1, 1.5)};
+//     (0, -5) @PIN(terminal=6, direction="down");
+//     @LINE {(0, -5) (0, -2)};
+//     ? @TEXT("${name}", key="name", size=0.8, valign="top") => @PLACE(-4, -4.45);
+//     ? @TEXT("${model}", key="model", size=0.5, halign="middle", valign="top") => @PLACE(-1.5, -1.35)
+//   };
+//   # @SET-SYMBOL %adc_ref
+// }
 ends adc_ref

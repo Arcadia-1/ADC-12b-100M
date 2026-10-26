@@ -66,4 +66,47 @@ I0 (VIN PHI_B PHI_BB VG AVDD VSS) adc_bootstrap_va \
 //   (22.285, 0.4925) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
 //   (25.199, 0.4925) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style
 // }
+// @RNL(author="adcflow gen") {
+//   /* block symbol of adc_bootstrap, generated from tools/adcflow/symbols.py by `python -m adcflow gen` -- do not edit this record */
+//   %adc_bootstrap = @DEFINE-SYMBOL(box=[-6, -5, 6, 5]) {
+//     @LINE(linewidth=0.24) {(-5, -4) (5, -4) (5, 4) (-5, 4) (-5, -4)};
+//     (-6, 2) @PIN(terminal=1, direction="left");
+//     @LINE {(-6, 2) (-5, 2)};
+//     (-4.65, 2.25) @TEXT("VIN", size=0.55, halign="start", valign="bottom");
+//     (-6, 0) @PIN(terminal=2, direction="left");
+//     @LINE {(-6, 0) (-5, 0)};
+//     (-4.65, 0.2) @TEXT("PHI_B", size=0.55, halign="start", valign="bottom");
+//     (-6, -2) @PIN(terminal=3, direction="left");
+//     @LINE {(-6, -2) (-5, -2)};
+//     (-4.65, -1.8) @TEXT("PHI_BB", size=0.55, halign="start", valign="bottom");
+//     (6, 2) @PIN(terminal=4, direction="right");
+//     @LINE {(6, 2) (5, 2)};
+//     (4.65, 2.25) @TEXT("VG", size=0.55, halign="end", valign="bottom");
+//     (0, 5) @PIN(terminal=5, direction="up");
+//     @LINE {(0, 5) (0, 4)};
+//     (4, -5) @PIN(terminal=6, direction="down");
+//     @LINE {(4, -5) (4, -4)};
+//     @LINE {(-5, 2) (-1.3, 2)};
+//     @LINE(linewidth=0.24) {(-1.3, 1.5) (-1.3, 2.5)};
+//     @LINE(linewidth=0.24) {(-0.7, 1.1) (-0.7, 2.9)};
+//     (-0.3, 2.75) @TEXT("+", size=0.6);
+//     (-1, 0.85) @TEXT("V_{DD}", size=0.45, halign="middle", valign="top");
+//     @LINE {(-0.7, 2) (0.65, 2)};
+//     (0.85, 2) @CIRCLE(radius=0.2);
+//     @LINE {(1, 2.13) (2.05, 2.8)};
+//     (2.25, 2) @CIRCLE(radius=0.2);
+//     @LINE {(2.45, 2) (5, 2)};
+//     (4, 2) @CIRCLE(radius=0.18, fill="linecolor", linestyle="none");
+//     @LINE {(4, 2) (4, 1)};
+//     (4, 0.8) @CIRCLE(radius=0.2);
+//     @LINE {(3.88, 0.63) (3.2, -0.45)};
+//     (4, -0.75) @CIRCLE(radius=0.2);
+//     @LINE {(4, -0.95) (4, -4)};
+//     @LINE(linestyle="dashed") {(-5, 0) (1.55, 0) (1.55, 2.3)};
+//     @LINE(linestyle="dashed") {(-5, -2) (3.5, -2) (3.5, -0.05)};
+//     ? @TEXT("${name}", key="name", size=0.8, valign="bottom") => @PLACE(-5, 4.5);
+//     ? @TEXT("${model}", key="model", size=0.5, valign="bottom") => @PLACE(-4.65, -3.65)
+//   };
+//   # @SET-SYMBOL %adc_bootstrap
+// }
 ends adc_bootstrap

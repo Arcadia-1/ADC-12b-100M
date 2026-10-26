@@ -28,46 +28,6 @@ XLOG (CONV OUTP OUTN CLKC UP12 UP11 UP10 UP9 UP8 UP7 UP6 UP5 UP4 UP3 UP2 UP1 UP0
 // @RNL {
 //   /* pins connected by net name: the net-name label of rnl-std-fill on every unwired pin, placed below by its key netname */
 //   $LABEL_TERMINAL_SET @TEXT("${net}", key="netname", size=0.6);
-//   /* --- the block symbol of adc_top: how its instances are drawn wherever this subcircuit is read (9.2.6); adc28-blocks has the same drawing, $ADC_TOP_SYM, for files that do not read it --- */
-//   %adc_top = @DEFINE-SYMBOL(box=[-8, -7, 10, 7]) {
-//     @LINE(linewidth=0.24) {(-7, 0) (-5, 6) (8, 6) (8, -6) (-5, -6) (-7, 0)};
-//     (-8, 1) @PIN(terminal=1, direction="left");
-//     @LINE {(-8, 1) (-6.6667, 1)};
-//     (-6.2, 1) @TEXT("VINP", size=0.55, halign="start", valign="middle");
-//     (-8, -1) @PIN(terminal=2, direction="left");
-//     @LINE {(-8, -1) (-6.6667, -1)};
-//     (-6.2, -1) @TEXT("VINN", size=0.55, halign="start", valign="middle");
-//     (-7, 4) @PIN(terminal=4, direction="left");
-//     @LINE {(-7, 4) (-5.6667, 4)};
-//     (-5.3, 4) @TEXT("VREF_IN", size=0.55, halign="start", valign="middle");
-//     (-7, -4) @PIN(terminal=3, direction="left");
-//     @LINE {(-7, -4) (-5.6667, -4)};
-//     (-5.3, -4) @TEXT("CLK", size=0.55, halign="start", valign="middle");
-//     (10, 2) @PIN(terminal=[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], direction="right");
-//     @LINE(linewidth=0.32) {(10, 2) (8, 2)};
-//     @LINE {(8.75, 1.65) (9.25, 2.35)};
-//     (9, 2.45) @TEXT("14", size=0.45, halign="middle");
-//     (7.65, 2) @TEXT("D<13:0>", size=0.55, halign="end", valign="middle");
-//     (9, -2) @PIN(terminal=19, direction="right");
-//     @LINE {(9, -2) (8, -2)};
-//     (7.65, -2) @TEXT("RDY", size=0.55, halign="end", valign="middle");
-//     (-2, 7) @PIN(terminal=20, direction="up");
-//     @LINE {(-2, 7) (-2, 6)};
-//     (-2, 5.65) @TEXT("AVDD", size=0.55, halign="middle", valign="top");
-//     (2, 7) @PIN(terminal=21, direction="up");
-//     @LINE {(2, 7) (2, 6)};
-//     (2, 5.65) @TEXT("DVDD", size=0.55, halign="middle", valign="top");
-//     (6, 7) @PIN(terminal=22, direction="up");
-//     @LINE {(6, 7) (6, 6)};
-//     (6, 5.65) @TEXT("AVDD18", size=0.55, halign="middle", valign="top");
-//     (2, -7) @PIN(terminal=23, direction="down");
-//     @LINE {(2, -7) (2, -6)};
-//     (1.5, 0.4) @TEXT("ADC", size=1.8, bold=true, halign="middle", valign="middle");
-//     (1.5, -1.3) @TEXT("12 b, 100 MS/s, asynchronous SAR", size=0.45, halign="middle", valign="middle");
-//     ? @TEXT("${model}", key="model", size=0.5, halign="middle", valign="middle") => @PLACE(1.5, -2.3);
-//     ? @TEXT("${name}", key="name", size=0.8, valign="top") => @PLACE(-5, -6.5)
-//   };
-//   # @SET-SYMBOL %adc_top;
 //   /* --- semantics --- */
 //   {&AVDD &DVDD &AVDD18} @ADD-TO $SUPPLY_NET_SET;
 //   &VSS @ADD-TO $GROUND_NET_SET;
@@ -253,5 +213,47 @@ XLOG (CONV OUTP OUTN CLKC UP12 UP11 UP10 UP9 UP8 UP7 UP6 UP5 UP4 UP3 UP2 UP1 UP0
 //   (9.604, -30.1275) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
 //   (12.837, -30.1275) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
 //   (34, 2.4) @TEXT("TOPN \to INP, TOPP \to INN (crossed): OUTP = 1 means UP", halign="middle") => @SET-STYLE $note_style
+// }
+// @RNL(author="adcflow gen") {
+//   /* block symbol of adc_top, generated from tools/adcflow/symbols.py by `python -m adcflow gen` -- do not edit this record */
+//   %adc_top = @DEFINE-SYMBOL(box=[-8, -7, 10, 7]) {
+//     @LINE(linewidth=0.24) {(-7, 0) (-5, 6) (8, 6) (8, -6) (-5, -6) (-7, 0)};
+//     (-8, 1) @PIN(terminal=1, direction="left");
+//     @LINE {(-8, 1) (-6.6667, 1)};
+//     (-6.2, 1) @TEXT("VINP", size=0.55, halign="start", valign="middle");
+//     (-8, -1) @PIN(terminal=2, direction="left");
+//     @LINE {(-8, -1) (-6.6667, -1)};
+//     (-6.2, -1) @TEXT("VINN", size=0.55, halign="start", valign="middle");
+//     (-7, 4) @PIN(terminal=4, direction="left");
+//     @LINE {(-7, 4) (-5.6667, 4)};
+//     (-5.3, 4) @TEXT("VREF_IN", size=0.55, halign="start", valign="middle");
+//     (-7, -4) @PIN(terminal=3, direction="left");
+//     @LINE {(-7, -4) (-5.6667, -4)};
+//     (-5.3, -4) @TEXT("CLK", size=0.55, halign="start", valign="middle");
+//     (10, 2) @PIN(terminal=[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], direction="right");
+//     @LINE(linewidth=0.32) {(10, 2) (8, 2)};
+//     @LINE {(8.75, 1.65) (9.25, 2.35)};
+//     (9, 2.45) @TEXT("14", size=0.45, halign="middle");
+//     (7.65, 2) @TEXT("D<13:0>", size=0.55, halign="end", valign="middle");
+//     (9, -2) @PIN(terminal=19, direction="right");
+//     @LINE {(9, -2) (8, -2)};
+//     (7.65, -2) @TEXT("RDY", size=0.55, halign="end", valign="middle");
+//     (-2, 7) @PIN(terminal=20, direction="up");
+//     @LINE {(-2, 7) (-2, 6)};
+//     (-2, 5.65) @TEXT("AVDD", size=0.55, halign="middle", valign="top");
+//     (2, 7) @PIN(terminal=21, direction="up");
+//     @LINE {(2, 7) (2, 6)};
+//     (2, 5.65) @TEXT("DVDD", size=0.55, halign="middle", valign="top");
+//     (6, 7) @PIN(terminal=22, direction="up");
+//     @LINE {(6, 7) (6, 6)};
+//     (6, 5.65) @TEXT("AVDD18", size=0.55, halign="middle", valign="top");
+//     (2, -7) @PIN(terminal=23, direction="down");
+//     @LINE {(2, -7) (2, -6)};
+//     (1.5, 0.4) @TEXT("ADC", size=1.8, bold=true, halign="middle", valign="middle");
+//     (1.5, -1.3) @TEXT("12 b, 100 MS/s, asynchronous SAR", size=0.45, halign="middle", valign="middle");
+//     ? @TEXT("${model}", key="model", size=0.5, halign="middle", valign="middle") => @PLACE(1.5, -2.3);
+//     ? @TEXT("${name}", key="name", size=0.8, valign="top") => @PLACE(-5, -6.5)
+//   };
+//   # @SET-SYMBOL %adc_top
 // }
 ends adc_top
