@@ -158,8 +158,8 @@ def check_rnl() -> Report:
 
 # ------------------------------------------------------------------ results
 def _sha(path: Path) -> str:
-    import hashlib
-    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:16]
+    from .netlist import content_hash
+    return content_hash(path)
 
 
 def load_results() -> list[dict]:

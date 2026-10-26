@@ -34,7 +34,7 @@ import yaml
 from . import REPO_ROOT
 from . import remote
 from .corners import Corner, corner_set, model_includes, vref_in
-from .netlist import parse, substitute_parameters
+from .netlist import content_hash, parse, substitute_parameters
 from .specs import Block, blocks, find_test
 
 STAGE_DIRS = ("design", "tb")
@@ -59,7 +59,7 @@ def _va_modules() -> dict:
 
 
 def _sha(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:16]
+    return content_hash(path)
 
 
 def _git(*args: str) -> str:
@@ -251,8 +251,10 @@ def run_test(test_id: str, block_name: str | None = None, corners: str = "typ",
         jd = run_dir / "jobs" / j.name
         rc = (jd / "rc.txt").read_text().split() if (jd / "rc.txt").exists() else ["?", "?"]
         errs = _spectre_errors(jd / "spectre.log")
-        files = [p for p in used[j.name]] + [REPO_ROOT / test["netlist"], REPO_ROOT / "specs" / "arch.yaml",
-                                              block.path]
+        # what the simulation depends on: views, Verilog-A, testbench, architecture.
+        # The block spec is not hashed: limits are re-judged at check time and the
+        # test parameters are recorded with the result.
+        files = [p for p in used[j.name]] + [REPO_ROOT / test["netlist"], REPO_ROOT / "specs" / "arch.yaml"]
         meta = {**meta_base, "rc": rc[0], "sim_s": rc[1] if len(rc) > 1 else None,
                 "files": {p.relative_to(REPO_ROOT).as_posix(): _sha(p) for p in files}}
         ctx = {"corner": j.corner, "params": j.params, "globals": j.globals_, "test": test_id,

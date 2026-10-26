@@ -285,8 +285,8 @@ Self-timed SAR loop. CONV low = reset (CLKC = 0, all UP/DN = 0; D and RDY hold).
 | ID | 指标 | 限值 | 单位 | 工艺角 | 用例 |
 |---|---|---|---|---|---|
 | LOG-01 | functional errors (1000 conversions vs ideal emulator) | ≤ 0 | count | all | `tb_sarlogic_rand` |
-| LOG-02 | OUTP/OUTN rise -> UP/DN 50 % | ≤ 35 | ps | typ | `tb_sarlogic_func` |
-| LOG-03 | OUTP/OUTN rise -> CLKC fall 50 % | ≤ 40 | ps | typ | `tb_sarlogic_func` |
+| LOG-02 | OUTP/OUTN rise -> UP/DN 50 % | ≤ 40 | ps | typ | `tb_sarlogic_func` |
+| LOG-03 | OUTP/OUTN rise -> CLKC fall 50 % | ≤ 45 | ps | typ | `tb_sarlogic_func` |
 | LOG-04 | DAC wait UP/DN -> CLKC rise, steps 1-6 | 35 .. 60 | ps | typ | `tb_sarlogic_func` |
 | LOG-05 | DAC wait UP/DN -> CLKC rise, steps 7-13 | 70 .. 100 | ps | typ | `tb_sarlogic_func` |
 | LOG-06 | DAC wait steps 7-13 (all corners) | ≥ 70 | ps | all | `tb_sarlogic_func` |

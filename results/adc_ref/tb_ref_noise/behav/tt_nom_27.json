@@ -26,22 +26,22 @@
   }
  },
  "meta": {
-  "date": "2026-10-26T22:40:42",
-  "git": "5fc4eb6",
+  "date": "2026-10-26T22:44:58",
+  "git": "cff72f5",
   "mode": "aps",
   "pdk": false,
   "mc": null,
-  "wall_s": 25.7,
+  "wall_s": 22.1,
   "rc": "0",
-  "sim_s": "17",
+  "sim_s": "14",
   "files": {
-   "design/behav/adc_bootstrap.scs": "26fbce9bb84c29b7",
-   "design/behav/adc_cdac.scs": "67b731e22726f3a9",
-   "design/behav/adc_clkgen.scs": "7f106af5f27b5b27",
-   "design/behav/adc_comp.scs": "25d8ce19a12c4233",
-   "design/behav/adc_ref.scs": "5f2ba0ad8f9366a3",
-   "design/behav/adc_sarlogic.scs": "025d3b37b5911939",
-   "design/top/adc_top.scs": "65a5e9ca6189ff7d",
+   "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
+   "design/behav/adc_cdac.scs": "fd6d176e55deb68d",
+   "design/behav/adc_clkgen.scs": "dafb1c3438e33c9e",
+   "design/behav/adc_comp.scs": "96325d9474ae19a4",
+   "design/behav/adc_ref.scs": "b9aeae5cd8a3a347",
+   "design/behav/adc_sarlogic.scs": "356e911752c1b85e",
+   "design/top/adc_top.scs": "362a964ffe162797",
    "design/behav/veriloga/adc_bootstrap_va.va": "a6afdb6e2e03593b",
    "design/behav/veriloga/adc_cdac_sw_va.va": "cb43ced3f53d636b",
    "design/behav/veriloga/adc_clkgen_va.va": "727f8a54cde10a53",
@@ -49,9 +49,8 @@
    "design/behav/veriloga/adc_ktc_va.va": "a1cf98faf5bf9b33",
    "design/behav/veriloga/adc_ref_va.va": "1f0fb3058cf9ef9e",
    "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
-   "tb/ref/tb_ref_noise.scs": "e8c3fac1e506db3c",
-   "specs/arch.yaml": "1b6d99db0c79903d",
-   "specs/blocks/adc_ref.yaml": "f08a0431d6e51e56"
+   "tb/ref/tb_ref_noise.scs": "bacfc4fe38855205",
+   "specs/arch.yaml": "1b6d99db0c79903d"
   }
  }
 }

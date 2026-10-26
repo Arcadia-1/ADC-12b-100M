@@ -5,7 +5,8 @@
  "corner": "tt_nom_27",
  "params": {
   "t0cmp": 7e-11,
-  "nconv": 100
+  "nconv": 100,
+  "nowave": 1
  },
  "globals": {
   "vdd": 0.9,
@@ -23,22 +24,6 @@
   "n_conversions": 100,
   "t_conv_ns": 2.8755800000000002,
   "t_conv_mean_ns": 2.81490562,
-  "t_start_ps": 105.00500001114845,
-  "t_start_max_ps": 105.00500001128097,
-  "t_start_min_ps": 105.00500001104275,
-  "t_bit_ps": 35.00200000446188,
-  "t_bit_max_ps": 35.002000004573276,
-  "t_bit_min_ps": 35.00200000436152,
-  "t_rst_ps": 40.00200000444906,
-  "t_rst_max_ps": 40.00200000455247,
-  "t_rst_min_ps": 40.002000004340715,
-  "t_dac_fast_ps": 48.00000000001558,
-  "t_dac_fast_max_ps": 48.00000000010737,
-  "t_dac_fast_min_ps": 47.99999999992208,
-  "t_dac_slow_ps": 83.00000000001647,
-  "t_dac_slow_max_ps": 83.00000000012058,
-  "t_dac_slow_min_ps": 82.99999999990882,
-  "t_setup_ps": 109.99999999991297,
   "power_uW": 211.76778357
  },
  "specs": {
@@ -50,22 +35,22 @@
   }
  },
  "meta": {
-  "date": "2026-10-26T22:39:03",
-  "git": "5fc4eb6",
+  "date": "2026-10-26T22:43:20",
+  "git": "cff72f5",
   "mode": "aps",
   "pdk": false,
   "mc": null,
-  "wall_s": 69.2,
+  "wall_s": 74.4,
   "rc": "0",
-  "sim_s": "59",
+  "sim_s": "65",
   "files": {
-   "design/behav/adc_bootstrap.scs": "26fbce9bb84c29b7",
-   "design/behav/adc_cdac.scs": "67b731e22726f3a9",
-   "design/behav/adc_clkgen.scs": "7f106af5f27b5b27",
-   "design/behav/adc_comp.scs": "25d8ce19a12c4233",
-   "design/behav/adc_ref.scs": "5f2ba0ad8f9366a3",
-   "design/behav/adc_sarlogic.scs": "025d3b37b5911939",
-   "design/top/adc_top.scs": "65a5e9ca6189ff7d",
+   "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
+   "design/behav/adc_cdac.scs": "fd6d176e55deb68d",
+   "design/behav/adc_clkgen.scs": "dafb1c3438e33c9e",
+   "design/behav/adc_comp.scs": "96325d9474ae19a4",
+   "design/behav/adc_ref.scs": "b9aeae5cd8a3a347",
+   "design/behav/adc_sarlogic.scs": "356e911752c1b85e",
+   "design/top/adc_top.scs": "362a964ffe162797",
    "design/behav/veriloga/adc_bootstrap_va.va": "a6afdb6e2e03593b",
    "design/behav/veriloga/adc_cdac_sw_va.va": "cb43ced3f53d636b",
    "design/behav/veriloga/adc_clkgen_va.va": "727f8a54cde10a53",
@@ -73,12 +58,11 @@
    "design/behav/veriloga/adc_ktc_va.va": "a1cf98faf5bf9b33",
    "design/behav/veriloga/adc_ref_va.va": "1f0fb3058cf9ef9e",
    "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
-   "tb/common/veriloga/tb_capture_va.va": "1d2edfee91a60672",
-   "tb/common/veriloga/tb_cmp_emu_va.va": "2b3c5003483af6bb",
-   "tb/common/veriloga/tb_imeter_va.va": "1ed07a2d1cb2551c",
-   "tb/sarlogic/tb_sarlogic_func.scs": "898e4266443b91d2",
-   "specs/arch.yaml": "1b6d99db0c79903d",
-   "specs/blocks/adc_sarlogic.yaml": "0ba13d4909e9ffad"
+   "tb/common/veriloga/tb_capture_va.va": "1a05df990a1ef806",
+   "tb/common/veriloga/tb_cmp_emu_va.va": "1173f23365da8b7f",
+   "tb/common/veriloga/tb_imeter_va.va": "d4be49aca417ad61",
+   "tb/sarlogic/tb_sarlogic_func.scs": "ed18d9ea04787b9d",
+   "specs/arch.yaml": "1b6d99db0c79903d"
   }
  }
 }

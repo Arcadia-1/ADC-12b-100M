@@ -38,11 +38,14 @@ def report(block: str | None = None) -> int:
                 for d, j in rows:
                     if d["test"] != s.test:
                         continue
+                    if s.mc and not d.get("meta", {}).get("mc"):
+                        continue                  # judged on Monte Carlo runs only
                     v = j["specs"].get(s.id, {})
                     vals.append((d["corner"], v.get("value"), v.get("pass"), bool(j["stale"])))
                 need = len(corner_set(s.corners))
                 if not vals:
-                    print(f"   {s.id:8s} {s.limit_text():>16s} {'-':>10s} {'-':>6s} {0:>4d}/{need:<4d}  {s.test}")
+                    tag = f"MC{s.mc}" if s.mc else "-"
+                    print(f"   {s.id:8s} {s.limit_text():>16s} {'-':>10s} {tag:>6s} {0:>4d}/{need:<4d}  {s.test}")
                     continue
                 nums = [v for _, v, _, _ in vals if isinstance(v, (int, float))]
                 if s.max is not None and nums:

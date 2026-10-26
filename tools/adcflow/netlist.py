@@ -129,3 +129,20 @@ def substitute_parameters(text: str, values: dict[str, str]) -> tuple[str, set[s
                     done.add(k)
         out.append(raw)
     return "".join(out), done
+
+
+def content_hash(path: Path | str) -> str:
+    """Hash of what a simulation depends on.
+
+    Netlists (.scs) are hashed on their logical lines, so editing the RNL
+    drawing (comments) does not make recorded results stale; other files
+    (Verilog-A, YAML) are hashed byte for byte (line endings normalised).
+    """
+    import hashlib
+
+    path = Path(path)
+    if path.suffix == ".scs":
+        data = "\n".join(line for _, line in logical_lines(path.read_text(encoding="utf-8"))).encode()
+    else:
+        data = path.read_bytes().replace(b"\r\n", b"\n")
+    return hashlib.sha256(data).hexdigest()[:16]

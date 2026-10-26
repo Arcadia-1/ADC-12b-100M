@@ -40,8 +40,20 @@ def cfg() -> dict:
     return c
 
 
+def _tool(name: str) -> str:
+    """ssh / scp executable: site config `sim.<name>`, else Windows OpenSSH on
+    Windows (a Git-Bash msys ssh found first on PATH can hang on binary pipes)."""
+    if cfg().get(name):
+        return str(cfg()[name])
+    if os.name == "nt":
+        win = Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32" / "OpenSSH" / f"{name}.exe"
+        if win.exists():
+            return str(win)
+    return name
+
+
 def _ssh_base() -> list[str]:
-    return ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=20",
+    return [_tool("ssh"), "-o", "BatchMode=yes", "-o", "ConnectTimeout=20",
             "-o", "ServerAliveInterval=30", cfg()["host"]]
 
 
@@ -111,9 +123,20 @@ for j in jobs/*/; do
   done
 done
 sort -u fetch.list -o fetch.list
+tar czf fetch.tgz -T fetch.list skipped.list 2>/dev/null
 """
-    ssh_script(script, timeout=300)
-    blob = ssh_pipe(f"cd {shlex.quote(remote_dir)} && tar czf - -T fetch.list skipped.list 2>/dev/null", timeout=1800)
+    ssh_script(script, timeout=600)
+    # one archive, copied with scp: piping multi-MB binary output through
+    # Windows OpenSSH stdout can hang, and scp of several files at once is flaky
+    local_tgz = local_dir / "fetch.tgz"
+    local_dir.mkdir(parents=True, exist_ok=True)
+    p = subprocess.run([_tool("scp"), "-q", "-o", "BatchMode=yes", "-o", "ConnectTimeout=20",
+                        f"{cfg()['host']}:{remote_dir}/fetch.tgz", str(local_tgz)],
+                       stdin=subprocess.DEVNULL, capture_output=True, timeout=1800)
+    if p.returncode != 0:
+        raise RuntimeError(f"scp of results failed: {p.stderr.decode(errors='replace')[-1000:]}")
+    blob = local_tgz.read_bytes()
+    local_tgz.unlink()
     skipped: list[str] = []
     with tarfile.open(fileobj=io.BytesIO(blob), mode="r:gz") as tf:
         for m in tf.getmembers():

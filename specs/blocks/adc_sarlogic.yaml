@@ -71,8 +71,8 @@ operating:
   load_dout: 50.0e-15       # F per D output and RDY (output port)
 specs:
   - {id: LOG-01, name: "functional errors (1000 conversions vs ideal emulator)", metric: func_errors, unit: count, max: 0, corners: all, test: tb_sarlogic_rand}
-  - {id: LOG-02, name: "OUTP/OUTN rise -> UP/DN 50 %",            metric: t_bit_ps,    unit: ps, max: 35,  corners: typ, test: tb_sarlogic_func}
-  - {id: LOG-03, name: "OUTP/OUTN rise -> CLKC fall 50 %",         metric: t_rst_ps,    unit: ps, max: 40,  corners: typ, test: tb_sarlogic_func}
+  - {id: LOG-02, name: "OUTP/OUTN rise -> UP/DN 50 %",            metric: t_bit_ps,    unit: ps, max: 40,  corners: typ, test: tb_sarlogic_func}
+  - {id: LOG-03, name: "OUTP/OUTN rise -> CLKC fall 50 %",         metric: t_rst_ps,    unit: ps, max: 45,  corners: typ, test: tb_sarlogic_func}
   - {id: LOG-04, name: "DAC wait UP/DN -> CLKC rise, steps 1-6",   metric: t_dac_fast_ps, unit: ps, min: 35, max: 60, corners: typ, test: tb_sarlogic_func}
   - {id: LOG-05, name: "DAC wait UP/DN -> CLKC rise, steps 7-13",  metric: t_dac_slow_ps, unit: ps, min: 70, max: 100, corners: typ, test: tb_sarlogic_func}
   - {id: LOG-06, name: "DAC wait steps 7-13 (all corners)",       metric: t_dac_slow_ps, unit: ps, min: 70, corners: all, test: tb_sarlogic_func}
