@@ -1,16 +1,16 @@
 block: adc_cdac
 title: Split-capacitor redundant CDAC, one side (instantiated twice)
-version: 0.1.0
+version: 0.2.0
 owner: TBD
 status: behavioral
 views:
   behav: design/behav/adc_cdac.scs
   xtor: design/xtor/adc_cdac/adc_cdac.scs
 summary: >
-  13 weights w_j (j = 12..0) = 1024 512 256 192 128 64 32 32 16 8 4 2 1 x cu,
+  13 weights w_j (j = 12..0) = 980 560 318 180 102 57 32 18 10 6 3 2 1 x cu,
   cu = 0.5 fF. Each weight is two equal halves: H (neutral state VREFP) and
   L (neutral state VREFN). Bottom-plate sampling: while CONV = 0 the bottom
-  plates of the sampled weights (all but j = 9 and j = 5) track VIN through
+  plates of the sampled weights (all but j = 9 and j = 6) track VIN through
   NMOS switches whose gate is VG (bootstrapped, from adc_bootstrap) and the
   top plate is held at VCM by a switch on PHI_S/PHI_SB. Non-sampled weights
   stay in the neutral state. With CONV = 1 every half is driven by an inverter

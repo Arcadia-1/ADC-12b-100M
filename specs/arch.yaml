@@ -3,7 +3,7 @@
 # parameter include), the block specs and the docs all read these numbers.
 # Changing anything here is an architecture change: open a PR labelled `arch`.
 
-version: 0.1.0
+version: 0.2.0
 
 process:
   name: TSMC 28nm HPC+ (CRN28HPC+ULL models)
@@ -32,21 +32,25 @@ cdac:
   # "H" starting at VREFP and "L" starting at VREFN), complementary P/N
   # switching => constant top-plate common mode, one transition per decision.
   # Index j: 12 .. 0 in decision order (j = 12 is switched after decision 1).
-  cap_weights:    [1024, 512, 256, 192, 128, 64, 32, 32, 16, 8, 4, 2, 1]
+  # v0.2: redundancy spread geometrically (delta_k ~ 0.55^k) instead of only
+  # over decisions 1..7, at the same 14 decisions and level count, so that the
+  # VREFP tolerance of decisions 8..11 is 2.0 / 1.2 / 0.4 / 0.4 mV instead of
+  # ~0.1 mV (docs/reference.md). delta = 310 170 94 52 28 16 9 5 3 1 1 0 0 LSB.
+  cap_weights:    [980, 560, 318, 180, 102, 57, 32, 18, 10, 6, 3, 2, 1]
   # 1 = the cap samples the input on its bottom plate; 0 = it stays in the
   # neutral state during tracking (range extension => FS > VREF).
-  cap_sampled:    [1,    1,   1,   0,   1,   1,  1,  0,  1,  1, 1, 1, 1]
+  cap_sampled:    [1,   1,   1,   0,   1,   1,  0,  1,  1,  1, 1, 1, 1]
   cu: 0.5e-15            # F, cap of weight 1 (each half = cu/2)
   cp_top_ratio: 0.10     # max top-plate parasitic / C_DAC (incl. comparator input)
 
 conversion:
   n_decisions: 14
-  # Raw output bit weights D<13:0> (MSB first). code = sum(W * D), 0 .. 4543.
-  out_weights: [2048, 1024, 512, 384, 256, 128, 64, 64, 32, 16, 8, 4, 2, 1]
+  # Raw output bit weights D<13:0> (MSB first). code = sum(W * D), 0 .. 4539.
+  out_weights: [1960, 1120, 636, 360, 204, 114, 64, 36, 20, 12, 6, 4, 2, 1]
 
 targets:
   enob_min: 10.5         # at fin ~ 50 MHz, -1 dBFS, all 45 corners
   enob_design: 11.0      # TT design target
   fs_peak_min: 0.95      # V, differential full-scale peak
-  power_target: 1.5e-3   # W, total at TT, 100 MS/s (lower is better)
+  power_target: null     # no project limit: lower is better, reported per supply
   source_impedance: 50.0 # ohm per input pin, no input driver

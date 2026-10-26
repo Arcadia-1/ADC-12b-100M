@@ -48,7 +48,7 @@ ports:
   - {name: DN2,  dir: out, type: digital, side: right, bus: DN}
   - {name: DN1,  dir: out, type: digital, side: right, bus: DN}
   - {name: DN0,  dir: out, type: digital, side: right, bus: DN}
-  - {name: D13,  dir: out, type: digital, side: bottom, bus: D, desc: "raw bit of decision 1, weight 2048"}
+  - {name: D13,  dir: out, type: digital, side: bottom, bus: D, desc: "raw bit of decision 1, weight 1960"}
   - {name: D12,  dir: out, type: digital, side: bottom, bus: D}
   - {name: D11,  dir: out, type: digital, side: bottom, bus: D}
   - {name: D10,  dir: out, type: digital, side: bottom, bus: D}

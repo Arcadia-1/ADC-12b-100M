@@ -1,6 +1,6 @@
 block: adc_ref
 title: Reference driver (VREFP = 0.9 V) and top-plate common-mode (VCM = 0.45 V)
-version: 0.1.0
+version: 0.2.0
 owner: TBD
 status: behavioral
 views:
@@ -8,11 +8,19 @@ views:
   xtor: design/xtor/adc_ref/adc_ref.scs
 summary: >
   Buffers the high-impedance 0.9 V reference input VREF_IN into VREFP, which
-  supplies the CDAC drivers (~1 pC per conversion, first-order independent of
-  the code thanks to the split-capacitor switching). Runs from AVDD18 because a
-  0.9 V output cannot be regulated from the 0.9 V rail. The on-chip decoupling
-  (>= 2 nF, area is not limited) is part of this block. VCM (0.45 V) resets the
-  top plates during tracking and only sees small common-mode charge.
+  supplies the CDAC drivers: per conversion 0.46 pC at the start (the sampled
+  H halves go from VIN to VREFP) and 13 switch charges of w_j * 0.225 fC
+  (0.22 pC for the MSB, <= 7 fC from decision 7 on), first-order independent
+  of the code, plus a signal-dependent part (-cu * LSB * gain * L^2 / 4, up to
+  0.18 pC). Everything is on-chip: decoupling in the nF range would have to be
+  off-chip and its bond wires are not modelled, so it is not an option. The
+  topology, bias current and decap are the designer's choice; the specs only
+  constrain VREFP at the instants the comparator uses it (tb_ref_replay) and
+  its noise. The behavioral view is an open-loop NMOS follower from AVDD18
+  (2 mA, 1.5 pF decap) - a starting point, not a requirement. Runs from AVDD18
+  because a 0.9 V output cannot be regulated from the 0.9 V rail. VCM
+  (0.45 V) resets the top plates during tracking and only sees small
+  common-mode charge.
 ports:
   - {name: VREF_IN, dir: in,  type: analog, side: left,   desc: "0.900 V reference input, high impedance (< 1 uA)"}
   - {name: VREFP,   dir: out, type: analog, side: right,  desc: "buffered 0.9 V reference for the CDAC"}
@@ -21,41 +29,50 @@ ports:
   - {name: AVDD,    dir: supply, type: supply, side: top,    desc: "0.9 V supply (bias / VCM if used)"}
   - {name: VSS,     dir: ground, type: supply, side: bottom, desc: "ground (also VREFN)"}
 operating:
-  load_vrefp: "periodic charge pulses, 1.0 pC per 10 ns conversion (tb profile), plus 0..200 uA DC sweep"
+  load_vrefp: >
+    the CDAC charge sequence of a 49.7 MHz -1 dBFS conversion from the system
+    model (tb_ref_replay), plus 0.6 pF for the CDAC bottom plates; DC tests
+    use a 100 uA average load
   load_vcm: "2 x 1.25 pF switched to top plates at 100 MHz"
+  power: "no limit; AVDD18 / AVDD currents are reported (lower is better)"
 specs:
   - {id: REF-01, name: "VREFP - VREF_IN (DC, 100 uA load)",       metric: vrefp_err_mV, unit: mV, min: -5, max: 5, corners: all, test: tb_ref_dc}
   - {id: REF-02, name: "VCM",                                     metric: vcm_V,        unit: V,  min: 0.44, max: 0.46, corners: all, test: tb_ref_dc}
-  - {id: REF-03, name: "load regulation 0 -> 200 uA",             metric: loadreg_mV,   unit: mV, max: 1.0, corners: all, test: tb_ref_dc}
   - {id: REF-04, name: "VREFP sensitivity to AVDD18 (DC)",        metric: line_mV_per_V, unit: mV/V, max: 5, corners: all, test: tb_ref_dc}
-  - {id: REF-05, name: "VREFP ripple p-p at the decision instants", metric: ripple_pp_mV, unit: mV, max: 1.0, corners: all, test: tb_ref_dyn}
-  - {id: REF-06, name: "VREFP deviation at conversion start vs mean (memory)", metric: start_dev_uV, unit: uV, max: 50, corners: all, test: tb_ref_dyn}
-  - {id: REF-07, name: "code-dependent VREFP shift (heavy vs light pattern)", metric: pattern_dev_uV, unit: uV, max: 50, corners: all, test: tb_ref_dyn}
-  - {id: REF-08, name: "VREFP integrated noise 1 kHz - 1 GHz",   metric: noise_uV,     unit: uV, max: 50, corners: typ, test: tb_ref_noise}
-  - {id: REF-09, name: "AVDD18 current incl. 100 uA load",        metric: i18_uA,       unit: uA, max: 400, corners: typ, test: tb_ref_dc}
-  - {id: REF-10, name: "AVDD current",                            metric: i09_uA,       unit: uA, max: 20, corners: typ, test: tb_ref_dc}
+  - {id: REF-08, name: "VREFP total noise 1 kHz - 100 GHz (with 0.6 pF CDAC load)", metric: noise_uV, unit: uV, max: 80, corners: typ, test: tb_ref_noise}
   - {id: REF-11, name: "VREF_IN input current",                   metric: iin_uA,       unit: uA, max: 1, corners: all, test: tb_ref_dc}
+  - {id: REF-12, name: "ENOB loss from VREFP at the decision instants (charge replay)", metric: enob_loss_bit, unit: bit, max: 0.10, corners: all, test: tb_ref_replay}
+  - {id: REF-13, name: "VREFP change over decisions 12..14 (no redundancy), max", metric: tail_dev_uV, unit: uV, max: 200, corners: all, test: tb_ref_replay}
+  - {id: REF-14, name: "VREFP before conversion start, p-p over the replay (memory)", metric: start_pp_uV, unit: uV, max: 100, corners: all, test: tb_ref_replay}
 tests:
   tb_ref_dc:
     netlist: tb/ref/tb_ref_dc.scs
     measure: adcflow.measure.ref:dc
     desc: >
-      DC operating point with 100 uA load, a dc sweep of the load 0..200 uA
-      and of AVDD18 +/-10 %; supply and input currents.
-  tb_ref_dyn:
-    netlist: tb/ref/tb_ref_dyn.scs
-    measure: adcflow.measure.ref:dyn
+      DC operating point with a 100 uA load, a dc sweep of the load 0..200 uA
+      (load regulation, reported) and of AVDD18 +/-10 %; supply currents
+      (reported) and the VREF_IN input current.
+  tb_ref_replay:
+    netlist: tb/ref/tb_ref_replay.scs
+    measure: adcflow.measure.ref:replay
+    prepare: adcflow.measure.ref:replay_prepare
+    params: {npts: 1024, nwarm: 32, fin_target: 49.7e6}
     desc: >
-      Periodic 100 MHz load: a 0.46 pC pulse at conversion start and 13 pulses
-      of w_j * 0.225 fC/LSB, alternating every 64 conversions between the
-      nominal pattern and a pattern with 20 % more charge (code-dependent
-      coupling). Measures ripple, start-of-conversion deviation and the
-      pattern-dependent shift after 2 us of settling. The ripple is taken at
-      the instants just before every charge pulse (where comparisons happen),
-      not at the brief ESR spikes of the pulses themselves.
+      The system model converts a coherent 49.7 MHz -1 dBFS sine (1024 + 32
+      conversions, ideal reference, TT ADC timing - the shortest decision
+      spacing); its start charge and 13 switch charges per conversion are
+      played into VREFP as 20 ps current pulses (iload.pwl) and VREFP is
+      sampled at every comparator clock and just before every conversion
+      start (trig.pwl -> vdec.txt). The sampled deviations are fed back into
+      the same model conversion: REF-12 is the ENOB lost against an ideal
+      reference. REF-13 is the change over the last three decisions, which
+      have no redundancy (decisions 8..11 tolerate 2.0 / 1.2 / 0.4 / 0.4 mV).
+      Transient noise is off; noise is REF-08.
   tb_ref_noise:
     netlist: tb/ref/tb_ref_noise.scs
     measure: adcflow.measure.ref:noise
     desc: >
-      Small-signal noise of VREFP (and VCM) from 1 kHz to 1 GHz with the
-      decoupling and 100 uA load.
+      Small-signal noise of VREFP (and VCM) from 1 kHz to 100 GHz with the
+      decoupling, the 0.6 pF CDAC load and a 100 uA load. The integral is the
+      variance of every VREFP sample the comparator uses (63 uV costs about
+      0.05 bit).

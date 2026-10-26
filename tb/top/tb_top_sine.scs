@@ -7,7 +7,7 @@
 // Globals vdd, vdd18, tempc, noise_en, devnoise, beh_speed, vref_in come from the run deck.
 simulator lang=spectre
 parameters fin=49.8962402e6 amp_dbfs=-1 npts=1024 nskip=4 duty=0.5 fsamp=100e6 \
-        fs_peak=0.9987 vcm_in=0.45 rsrc=50 cload=50f nfmax=20G
+        fs_peak=0.9930 vcm_in=0.45 rsrc=50 cload=50f nfmax=20G
 parameters amp=fs_peak*pow(10, amp_dbfs/20) tper=1/fsamp \
         tstart=(nskip-0.5)*tper tstop=(nskip+npts+0.6)*tper
 XDUT (VINP VINN CLK VREF_IN D13 D12 D11 D10 D9 D8 D7 D6 D5 D4 D3 D2 D1 D0 RDY AVDD DVDD \

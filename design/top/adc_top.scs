@@ -160,7 +160,7 @@ XLOG (CONV OUTP OUTN CLKC UP12 UP11 UP10 UP9 UP8 UP7 UP6 UP5 UP4 UP3 UP2 UP1 UP0
 //   #XLOG:CONV @TEXT("${net}", key="netname", size=0.6, halign="end", valign="middle", dx=-0.4, dy=0);
 //   /* --- annotations --- */
 //   (-46, 52) @TEXT("adc_top: 100 MS/s asynchronous SAR, bottom-plate sampling, split-capacitor redundant CDAC", halign="start") => @SET-STYLE $title_style;
-//   (-46, 50.3) @TEXT("14 decisions, raw bits D<13:0> with weights 2048 1024 512 384 256 128 64 64 32 16 8 4 2 1; code = sum(W*D)", halign="start") => @SET-STYLE $note_style;
+//   (-46, 50.3) @TEXT("14 decisions, raw bits D<13:0> with weights 1960 1120 636 360 204 114 64 36 20 12 6 4 2 1; code = sum(W*D)", halign="start") => @SET-STYLE $note_style;
 //   (-46, 49) @TEXT("P CDAC drawn mirrored (MX): its control buses on top. P side: RL<j> = UP<j>, DH<j> = DN<j>; N side: DH<j> = UP<j>, RL<j> = DN<j>. Phases connect by net name.", halign="start") => @SET-STYLE $note_style;
 //   (2, -17.5) @TEXT("adc_top ports", halign="start", bold=true) => @SET-STYLE $note_style;
 //   @RECTANGLE {(2, -18) (33.753, -30.705)} => @SET-STYLE $table_style;
@@ -191,7 +191,7 @@ XLOG (CONV OUTP OUTN CLKC UP12 UP11 UP10 UP9 UP8 UP7 UP6 UP5 UP4 UP3 UP2 UP1 UP0
 //   (2.5, -24.3525) @TEXT("D<13:0>", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
 //   (5.733, -24.3525) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
 //   (9.604, -24.3525) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
-//   (12.837, -24.3525) @TEXT("raw bit, weight 2048", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (12.837, -24.3525) @TEXT("raw bit, weight 1960", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
 //   (2.5, -25.5075) @TEXT("RDY", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
 //   (5.733, -25.5075) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
 //   (9.604, -25.5075) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;

@@ -48,17 +48,17 @@ analog function real outw;   // output weight of D<i>
   input i; integer i;
   begin
     case (i)
-      13: outw = 2048;
-      12: outw = 1024;
-      11: outw = 512;
-      10: outw = 384;
-      9: outw = 256;
-      8: outw = 128;
+      13: outw = 1960;
+      12: outw = 1120;
+      11: outw = 636;
+      10: outw = 360;
+      9: outw = 204;
+      8: outw = 114;
       7: outw = 64;
-      6: outw = 64;
-      5: outw = 32;
-      4: outw = 16;
-      3: outw = 8;
+      6: outw = 36;
+      5: outw = 20;
+      4: outw = 12;
+      3: outw = 6;
       2: outw = 4;
       1: outw = 2;
       0: outw = 1;

@@ -18,37 +18,37 @@ ISW (VIN VG VREFP VREFN CONV \
         BH12 BL12 BH11 BL11 BH10 BL10 BH9 BL9 BH8 BL8 BH7 BL7 BH6 \
         BL6 BH5 BL5 BH4 BL4 BH3 BL3 BH2 BL2 BH1 BL1 BH0 BL0 VSS) adc_cdac_sw_va cu=cu ron_in=ron_in tau_drv=tau_drv
 // capacitor array: weight w = two halves of w*cu/2 (H: neutral VREFP, L: neutral VREFN)
-CH12 (BH12 TOP) capacitor c=512*cu
-CL12 (BL12 TOP) capacitor c=512*cu
-CH11 (BH11 TOP) capacitor c=256*cu
-CL11 (BL11 TOP) capacitor c=256*cu
-CH10 (BH10 TOP) capacitor c=128*cu
-CL10 (BL10 TOP) capacitor c=128*cu
-CH9 (BH9 TOP) capacitor c=96*cu
-CL9 (BL9 TOP) capacitor c=96*cu
-CH8 (BH8 TOP) capacitor c=64*cu
-CL8 (BL8 TOP) capacitor c=64*cu
-CH7 (BH7 TOP) capacitor c=32*cu
-CL7 (BL7 TOP) capacitor c=32*cu
+CH12 (BH12 TOP) capacitor c=490*cu
+CL12 (BL12 TOP) capacitor c=490*cu
+CH11 (BH11 TOP) capacitor c=280*cu
+CL11 (BL11 TOP) capacitor c=280*cu
+CH10 (BH10 TOP) capacitor c=159*cu
+CL10 (BL10 TOP) capacitor c=159*cu
+CH9 (BH9 TOP) capacitor c=90*cu
+CL9 (BL9 TOP) capacitor c=90*cu
+CH8 (BH8 TOP) capacitor c=51*cu
+CL8 (BL8 TOP) capacitor c=51*cu
+CH7 (BH7 TOP) capacitor c=28.5*cu
+CL7 (BL7 TOP) capacitor c=28.5*cu
 CH6 (BH6 TOP) capacitor c=16*cu
 CL6 (BL6 TOP) capacitor c=16*cu
-CH5 (BH5 TOP) capacitor c=16*cu
-CL5 (BL5 TOP) capacitor c=16*cu
-CH4 (BH4 TOP) capacitor c=8*cu
-CL4 (BL4 TOP) capacitor c=8*cu
-CH3 (BH3 TOP) capacitor c=4*cu
-CL3 (BL3 TOP) capacitor c=4*cu
-CH2 (BH2 TOP) capacitor c=2*cu
-CL2 (BL2 TOP) capacitor c=2*cu
+CH5 (BH5 TOP) capacitor c=9*cu
+CL5 (BL5 TOP) capacitor c=9*cu
+CH4 (BH4 TOP) capacitor c=5*cu
+CL4 (BL4 TOP) capacitor c=5*cu
+CH3 (BH3 TOP) capacitor c=3*cu
+CL3 (BL3 TOP) capacitor c=3*cu
+CH2 (BH2 TOP) capacitor c=1.5*cu
+CL2 (BL2 TOP) capacitor c=1.5*cu
 CH1 (BH1 TOP) capacitor c=1*cu
 CL1 (BL1 TOP) capacitor c=1*cu
 CH0 (BH0 TOP) capacitor c=0.5*cu
 CL0 (BL0 TOP) capacitor c=0.5*cu
 // top-plate parasitic: routing, switch junctions, comparator input
-CP (TOP VSS) capacitor c=cp_ratio*2271*cu
+CP (TOP VSS) capacitor c=cp_ratio*2269*cu
 // top-plate reset switch (PHI_S high = track) in series with the sampled kT/C source
 STOP (TOP NK PHI_S VSS) relay vt1=0.35 vt2=0.55 ropen=1e12 rclosed=ron_top
-IKTC (NK VCM PHI_S VSS) adc_ktc_va ctot=(1+cp_ratio)*2271*cu tempc=tempc en=noise_en
+IKTC (NK VCM PHI_S VSS) adc_ktc_va ctot=(1+cp_ratio)*2269*cu tempc=tempc en=noise_en
 // @RNL {
 //   /* --- semantics --- */
 //   &VSS @ADD-TO $GROUND_NET_SET;
@@ -394,17 +394,17 @@ IKTC (NK VCM PHI_S VSS) adc_ktc_va ctot=(1+cp_ratio)*2271*cu tempc=tempc en=nois
 //   #CH0 @TEXT("${name}", key="name", size=0.5, rotate=90, halign="middle") => @PLACE(73.3, 13);
 //   #CL0 @TEXT("", key="value");
 //   #CL0 @TEXT("${name}", key="name", size=0.5, rotate=90, halign="middle") => @PLACE(76.3, 13);
-//   (1.5, 17.4) @TEXT("1024", size=0.6, halign="middle");
-//   (7.5, 17.4) @TEXT("512", size=0.6, halign="middle");
-//   (13.5, 17.4) @TEXT("256", size=0.6, halign="middle");
-//   (19.5, 17.4) @TEXT("192*", size=0.6, halign="middle");
-//   (25.5, 17.4) @TEXT("128", size=0.6, halign="middle");
-//   (31.5, 17.4) @TEXT("64", size=0.6, halign="middle");
-//   (37.5, 17.4) @TEXT("32", size=0.6, halign="middle");
-//   (43.5, 17.4) @TEXT("32*", size=0.6, halign="middle");
-//   (49.5, 17.4) @TEXT("16", size=0.6, halign="middle");
-//   (55.5, 17.4) @TEXT("8", size=0.6, halign="middle");
-//   (61.5, 17.4) @TEXT("4", size=0.6, halign="middle");
+//   (1.5, 17.4) @TEXT("980", size=0.6, halign="middle");
+//   (7.5, 17.4) @TEXT("560", size=0.6, halign="middle");
+//   (13.5, 17.4) @TEXT("318", size=0.6, halign="middle");
+//   (19.5, 17.4) @TEXT("180*", size=0.6, halign="middle");
+//   (25.5, 17.4) @TEXT("102", size=0.6, halign="middle");
+//   (31.5, 17.4) @TEXT("57", size=0.6, halign="middle");
+//   (37.5, 17.4) @TEXT("32*", size=0.6, halign="middle");
+//   (43.5, 17.4) @TEXT("18", size=0.6, halign="middle");
+//   (49.5, 17.4) @TEXT("10", size=0.6, halign="middle");
+//   (55.5, 17.4) @TEXT("6", size=0.6, halign="middle");
+//   (61.5, 17.4) @TEXT("3", size=0.6, halign="middle");
 //   (67.5, 17.4) @TEXT("2", size=0.6, halign="middle");
 //   (73.5, 17.4) @TEXT("1", size=0.6, halign="middle");
 //   (-17, -18.5) @TEXT("adc_cdac ports", halign="start", bold=true) => @SET-STYLE $note_style;
@@ -469,7 +469,7 @@ IKTC (NK VCM PHI_S VSS) adc_ktc_va ctot=(1+cp_ratio)*2271*cu tempc=tempc en=nois
 //   (-12.948, -34.5925) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
 //   (-9.077, -34.5925) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
 //   (-5.844, -34.5925) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
-//   (-17, 26) @TEXT("adc_cdac (behavioral): 13 weights x 2 halves, cu = 0.5 fF, C_S = 1.0235 pF, C_DAC = 1.1355 pF", halign="start") => @SET-STYLE $title_style;
+//   (-17, 26) @TEXT("adc_cdac (behavioral): 13 weights x 2 halves, cu = 0.5 fF, C_S = 1.0285 pF, C_DAC = 1.1345 pF", halign="start") => @SET-STYLE $title_style;
 //   (-17, 24.3) @TEXT("numbers above the array: the weight of each H/L pair, each half is w*cu/2; * = not sampled (range extension). H halves: neutral VREFP, dropped by DH; L halves: neutral VREFN, raised by RL", halign="start") => @SET-STYLE $note_style
 // }
 // @RNL(author="adcflow gen") {

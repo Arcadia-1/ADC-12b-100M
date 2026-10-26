@@ -1,8 +1,12 @@
 // Behavioral reference driver for adc_ref (behav view).
-// VREFP is pulled toward VREF_IN through an output conductance 1/rout with
-// a single-pole loop (bandwidth fbw); the sourced current comes from AVDD18,
-// the sunk current goes to VSS. VCM = vcm_ratio * VREFP through rcm (sourced
-// from AVDD). The decoupling capacitors are separate elements of adc_ref.
+// VREFP is the source of an open-loop NMOS follower from AVDD18 (EKV, bulk at
+// VSS), biased by a current sink ibias at inversion coefficient ic; its gate
+// sits one bias-point Vgs above VREF_IN (an ideal replica), so VREFP = VREF_IN
+// at no load and the output conductance at bias is
+// g_s = ibias * (1 - exp(-sqrt(ic))) / (sqrt(ic) * Vt), 24.5 mS/mA at ic = 1, 27 C.
+// The follower and its sink add a white noise current 4 kT gamma g_s.
+// VCM = vcm_ratio * VREFP through rcm (sourced from AVDD). The decoupling
+// capacitors are separate elements of adc_ref.
 `include "disciplines.vams"
 `include "constants.vams"
 
@@ -12,26 +16,33 @@ module adc_ref_va(VREF_IN, VREFP, VCM, AVDD18, AVDD, VSS);
   inout AVDD18, AVDD, VSS;
   electrical VREF_IN, VREFP, VCM, AVDD18, AVDD, VSS;
 
-  parameter real rout = 1.0 from (0:inf);      // DC output resistance of VREFP
-  parameter real fbw = 50e6 from (0:inf);      // loop bandwidth of the correction
+  parameter real ibias = 2e-3 from (0:inf);    // follower bias current (from AVDD18)
+  parameter real ic = 1.0 from (0:inf);        // inversion coefficient at bias
+  parameter real gamma = 2.0 from [0:inf);     // noise: follower + bias sink
   parameter real vcm_ratio = 0.5;
   parameter real rcm = 500 from (0:inf);
-  parameter real iq18 = 150e-6 from [0:inf);   // quiescent AVDD18 current
   parameter real iq09 = 5e-6 from [0:inf);     // quiescent AVDD current
   parameter real vos = 0.0;                    // output offset
 
-  real verr, iout, icm;
+  real vt, s, v0, ispec, gs0, v, e, l1, ifol, icm;
 
   analog begin
-    // error filtered by the loop bandwidth, converted to an output current
-    verr = laplace_nd(V(VREF_IN, VSS) + vos - V(VREFP, VSS), {1}, {1, 1 / (2 * `M_PI * fbw)});
-    iout = verr / rout;                       // > 0: sourcing into VREFP
+    vt = $vt;
+    s = sqrt(ic);
+    v0 = 2 * ln(exp(s) - 1);
+    ispec = ibias / ic;
+    gs0 = ibias * (1 - exp(-s)) / (s * vt);
+    // source-referred overdrive in units of Vt; a droop of VREFP raises it
+    v = v0 + (V(VREF_IN, VSS) + vos - V(VREFP, VSS)) / vt;
+    e = exp(min(v / 2, 60));
+    l1 = ln(1 + e);
+    ifol = ispec * l1 * l1;
     icm = (vcm_ratio * V(VREFP, VSS) - V(VCM, VSS)) / rcm;
-    I(AVDD18, VREFP) <+ max(iout, 0);
-    I(VREFP, VSS) <+ max(-iout, 0);
+    I(AVDD18, VREFP) <+ ifol;
+    I(VREFP, VSS) <+ ibias;
+    I(VREFP, VSS) <+ white_noise(4 * `P_K * $temperature * gamma * gs0, "follower");
     I(AVDD, VCM) <+ max(icm, 0);
     I(VCM, VSS) <+ max(-icm, 0);
-    I(AVDD18, VSS) <+ iq18;
     I(AVDD, VSS) <+ iq09;
   end
 endmodule

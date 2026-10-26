@@ -24,7 +24,7 @@ operating:
   load: >
     Reference load in the testbench: the input switch of the reference CDAC
     (nch_ulvt_mac, total W = 48 um, L = 30 nm, sized for 25 ohm at Vgs = 0.9 V)
-    driving C_S = 1.0235 pF whose top plate is reset to VCM by an ideal PHI_S
+    driving C_S = 1.0285 pF whose top plate is reset to VCM by an ideal PHI_S
     switch; VG wiring 10 fF.
   soa: "|Vgs|, |Vgd|, |Vds| <= 1.0 V for every thin-oxide device in every corner"
 specs:

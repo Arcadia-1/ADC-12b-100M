@@ -7,9 +7,9 @@ simulator lang=spectre
 
 subckt adc_ref (VREF_IN VREFP VCM AVDD18 AVDD VSS)
 // Behavioral view.
-parameters cdec=2n esr=0.5 ccm=100p rout=1 fbw=50M iq18=150u iq09=5u
+parameters cdec=1.5p esr=0.1 ccm=100p ibias=2m ic=1 gamma=2 iq09=5u
 I0 (VREF_IN VREFP VCM AVDD18 AVDD VSS) adc_ref_va \
-        rout=rout fbw=fbw iq18=iq18 iq09=iq09
+        ibias=ibias ic=ic gamma=gamma iq09=iq09
 CDEC (VREFP NDEC) capacitor c=cdec
 RESR (NDEC VSS) resistor r=esr
 CCM (VCM VSS) capacitor c=ccm
@@ -51,8 +51,8 @@ CCM (VCM VSS) capacitor c=ccm
 //   %g3 = $GROUND @ATTACH &VSS => @PLACE(0, -7);
 //   &VSS @WIRE {#I0:VSS %g3:p};
 //   /* --- annotations --- */
-//   (-12, 13.5) @TEXT("adc_ref (behavioral): VREFP follows VREF_IN through rout with a single-pole loop (fbw)", halign="start") => @SET-STYLE $title_style;
-//   (-12, 12) @TEXT("on-chip decoupling CDEC (>= 2 nF) with ESR; VCM = VREFP / 2 through rcm with CCM", halign="start") => @SET-STYLE $note_style;
+//   (-12, 13.5) @TEXT("adc_ref (behavioral): open-loop NMOS follower from AVDD18 (EKV, ibias at ic), gate = VREF_IN + Vgs (ideal replica)", halign="start") => @SET-STYLE $title_style;
+//   (-12, 12) @TEXT("small on-chip decoupling CDEC (1.5 pF) with ESR; VCM = VREFP / 2 through rcm with CCM", halign="start") => @SET-STYLE $note_style;
 //   (29, 8.5) @TEXT("adc_ref ports", halign="start", bold=true) => @SET-STYLE $note_style;
 //   @RECTANGLE {(29, 8) (55.33, -0.085)} => @SET-STYLE $table_style;
 //   @LINE {(29, 6.845) (55.33, 6.845)} => @SET-STYLE $table_style;
