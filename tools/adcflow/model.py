@@ -71,6 +71,36 @@ class RefNet:
         return poles.astype(complex) / ts, res.astype(complex) / ts
 
 
+@dataclass
+class Follower:
+    """Open-loop source follower driving VREFP directly, large signal.
+
+    An EKV NMOS (bulk at VSS, gate stiff) biased by the current source ``i_bias``
+    at inversion coefficient ``ic``: I = I_spec * ln(1 + exp(v / 2))^2 with v the
+    source-referred overdrive in U_T, so the output conductance at bias is
+    g_s = i_bias * (1 - exp(-sqrt(ic))) / (sqrt(ic) U_T) (24 S/A at ic = 1, 27 C).
+    VREFP carries ``c_node`` (CDAC bottom-plate wiring, follower source, any
+    low-ESR decap) and optionally ``c2`` behind ``r2``. CDAC charge arrives as
+    exponential pulses (``tau_q``, the switch RC). Thermal noise is a white
+    current of two-sided density 2 kT gamma g_s at the node (``gamma`` covers the
+    follower and its bias source). VREFP is taken as recovered between
+    conversions, so (c_node + c2) / g_s must stay well below the clock period.
+    """
+    i_bias: float = 300e-6
+    ic: float = 1.0
+    c_node: float = 2e-12
+    c2: float = 0.0
+    r2: float = 0.0
+    gamma: float = 2.0
+    tau_q: float = 15e-12
+    substeps: int = 16
+
+    def g_s(self, temp_c: float = 27.0) -> float:
+        ut = K_BOLTZMANN * (temp_c + 273.15) / 1.602176634e-19
+        s = np.sqrt(self.ic)
+        return self.i_bias * (1 - np.exp(-s)) / (s * ut)
+
+
 def _ref_modes(ni: "NonIdeal") -> tuple[np.ndarray, np.ndarray]:
     if ni.ref_net is None:
         return np.array([-1.0 / ni.tau_ref], complex), np.array([1.0 / ni.c_dec], complex)
@@ -97,6 +127,7 @@ class NonIdeal:
     tau_start: float = 20e-12        # conversion-start (VIN -> neutral) settling
     # reference
     ref_net: RefNet | None = field(default_factory=RefNet.behav)   # VREFP network (behavioral adc_ref)
+    ref_follower: Follower | None = None   # large-signal follower driving VREFP; overrides ref_net
     c_dec: float = 2e-9              # single-pole VREFP model when ref_net is None: decap (F) ...
     tau_ref: float = 50e-9           # ... and recovery time constant (s)
     ref_periodic: bool = True        # VREFP still recovering from the earlier conversions
@@ -149,6 +180,84 @@ def _cap_arrays(arch: Arch, ni: NonIdeal, rng: np.random.Generator):
     return up, dn, cs_eff / arch.w[samp].sum()
 
 
+class _ModalRef:
+    """Linear VREFP response as modes; ``x0`` is what earlier conversions leave at t_ref."""
+
+    def __init__(self, p, r, x0, t_ref: float, n: int):
+        self.p, self.r, self.x0, self.t_ref = p, r, x0, t_ref
+        self.own = np.zeros((n, p.size), complex)
+        self.t_prev = np.full(n, t_ref)
+
+    def value(self, t):
+        return ((self.own * np.exp(np.outer(t - self.t_prev, self.p))).sum(1)
+                + (self.x0 * np.exp(np.outer(t - self.t_ref, self.p))).sum(1)).real
+
+    def draw(self, t, q):
+        self.own = self.own * np.exp(np.outer(t - self.t_prev, self.p)) - np.outer(q, self.r)
+        self.t_prev = t
+
+
+class _FollowerRef:
+    """VREFP of a :class:`Follower`, integrated (backward Euler) between events."""
+
+    def __init__(self, f: Follower, t_ref: float, n: int, temp_c: float, seed: int):
+        self.f = f
+        self.ut = K_BOLTZMANN * (temp_c + 273.15) / 1.602176634e-19
+        self.kt = K_BOLTZMANN * (temp_c + 273.15)
+        s = np.sqrt(f.ic)
+        self.v0 = 2 * np.log(np.expm1(s))                 # F(v0) = ic
+        self.i_spec = f.i_bias / f.ic
+        self.gs0 = f.g_s(temp_c)
+        self.split = f.c2 > 0 and f.r2 > 0
+        self.c1 = f.c_node + (f.c2 if f.c2 > 0 and not self.split else 0.0)
+        self.rng = np.random.default_rng(seed + 7919)
+        c_all = self.c1 + (f.c2 if self.split else 0.0)
+        sig = np.sqrt(f.gamma * self.kt / c_all)
+        self.x2 = self.rng.normal(0, sig, n) if self.split else np.zeros(n)
+        self.x1 = self.x2 + self.rng.normal(0, np.sqrt(f.gamma * self.kt / self.c1) if not self.split
+                                            else np.sqrt(max(f.gamma * self.kt * (1 / self.c1 - 1 / c_all), 0)), n)
+        self.pend = np.zeros(n)                           # charge still to be drawn by the CDAC pulses
+        self.t = np.full(n, t_ref)
+
+    def _current(self, x):
+        """Follower current and conductance for the node deviation x (V, < 0 = droop)."""
+        e = np.exp(np.minimum((self.v0 - x / self.ut) / 2, 60.0))
+        l1 = np.log1p(e)
+        return self.i_spec * l1 * l1, self.i_spec * l1 * e / (1 + e) / self.ut
+
+    def value(self, t):
+        f, k = self.f, self.f.substeps
+        dt = np.maximum(t - self.t, 0.0) / k
+        dq = -np.expm1(-dt / f.tau_q)
+        if self.split:
+            a = f.c2 / (f.c2 + dt / f.r2)
+            b = 1.0 - a
+        for _ in range(k):
+            qs = self.pend * dq
+            self.pend = self.pend - qs
+            # white current noise, scaled so that the backward-Euler steady state keeps gamma kT / C
+            noise = self.rng.normal(0, 1, dt.size) * np.sqrt(
+                2 * self.kt * f.gamma * self.gs0 * dt * (1 + self.gs0 * dt / (2 * self.c1)))
+            y = self.x1.copy()
+            for _ in range(3):
+                i_f, g = self._current(y)
+                gfun = self.c1 * (y - self.x1) - dt * (i_f - f.i_bias) + qs - noise
+                dg = self.c1 + dt * g
+                if self.split:
+                    gfun = gfun + dt * ((1 - b) * y - a * self.x2) / f.r2
+                    dg = dg + dt * (1 - b) / f.r2
+                y = y - gfun / dg
+            if self.split:
+                self.x2 = a * self.x2 + b * y
+            self.x1 = y
+        self.t = np.maximum(t, self.t)
+        return self.x1
+
+    def draw(self, t, q):
+        self.value(t)
+        self.pend = self.pend + q
+
+
 def convert(vin: np.ndarray, arch: Arch | None = None, ni: NonIdeal | None = None,
             t_sample: np.ndarray | None = None, dvdt: np.ndarray | None = None) -> Result:
     """Convert differential input samples ``vin`` (V).
@@ -164,7 +273,7 @@ def convert(vin: np.ndarray, arch: Arch | None = None, ni: NonIdeal | None = Non
     p, r = _ref_modes(ni)
     x0 = np.zeros((np.size(vin), p.size), complex)
     res, own, t_last = _convert(vin, arch, ni, dvdt, p, r, x0)
-    if not ni.ref_periodic:
+    if not ni.ref_periodic or ni.ref_follower is not None:
         return res
     # conversion m-1 seen from the reference time of conversion m, then the geometric
     # tail of the older ones as a circular convolution over the samples
@@ -209,16 +318,19 @@ def _convert(vin, arch: Arch, ni: NonIdeal, dvdt, p, r, x0):
     active = np.ones(n, dtype=bool)
     forced = np.zeros(n, dtype=int)
     last_step = np.zeros(n)
-    # reference droop bookkeeping: modal state of the VREFP response (V) at t_prev,
-    # own = this conversion's charges only (deterministic sequence + optional coupling)
+    # reference droop bookkeeping: VREFP deviation (V) driven by this conversion's
+    # charges (deterministic sequence + optional coupling) and, for the linear
+    # network, the state x0 that the earlier conversions leave
     t_ref = ni.t_start - 0.1e-9 if ni.ref_start_charge else ni.t_start
-    own = np.zeros((n, p.size), complex)
-    t_prev = np.full(n, t_ref)
+    if ni.ref_follower is not None:
+        ref = _FollowerRef(ni.ref_follower, t_ref, n, ni.temp_c, ni.seed)
+    else:
+        ref = _ModalRef(p, r, x0, t_ref, n)
     if ni.ref_start_charge:
         # conversion start (CONV rise, ~100 ps before the first comparison): the H halves
         # of the sampled caps go from VIN to VREFP; the P+N sum is signal independent
         vin_cm = float(arch.raw["reference"]["vin_cm"])
-        own = own - arch.c_s * (arch.vref - vin_cm) * r
+        ref.draw(np.full(n, t_ref), np.full(n, arch.c_s * (arch.vref - vin_cm)))
     dv_dec = np.zeros((n, arch.n_dec))           # VREFP deviation seen by each decision (V)
     t_dec = np.zeros((n, arch.n_dec))            # comparator clock of each decision (s)
     q_sw = np.zeros((n, arch.n_dec - 1))         # VREFP charge of each DAC switch (C)
@@ -231,8 +343,7 @@ def _convert(vin, arch: Arch, ni: NonIdeal, dvdt, p, r, x0):
         # the part of the previous DAC step that has not settled yet, plus the
         # reference droop acting on the applied DAC level.
         settle = np.exp(-_t_dac(ni, k - 1) / ni.tau_dac) if k > 0 else 0.0
-        dv_ref_now = ((own * np.exp(np.outer(t - t_prev, p))).sum(1)
-                      + (x0 * np.exp(np.outer(t - t_ref, p))).sum(1)).real
+        dv_ref_now = ref.value(t)
         dv_dec[:, k] = dv_ref_now
         t_dec[:, k] = t
         seen = (res - level) + last_step * settle - level * dv_ref_now / arch.vref
@@ -263,8 +374,7 @@ def _convert(vin, arch: Arch, ni: NonIdeal, dvdt, p, r, x0):
                 q = q - 0.5 * step * lsb * gain_top * arch.cu * (level - 0.5 * step)
             t_sw = t + t_cmp
             q_sw[:, k], t_swk[:, k] = q, t_sw
-            own = own * np.exp(np.outer(t_sw - t_prev, p)) - np.outer(q * np.ones(n), r)
-            t_prev = t_sw
+            ref.draw(t_sw, q * np.ones(n))
             t = t + t_cmp + ni.t_loop + _t_dac(ni, k)
         else:
             t = t + t_cmp + ni.t_loop
@@ -276,7 +386,7 @@ def _convert(vin, arch: Arch, ni: NonIdeal, dvdt, p, r, x0):
                    info={"gain_top": gain_top, "lsb": lsb, "cs_scale": cs_scale,
                          "t_ref": t_ref, "dvref": dv_dec, "t_dec": t_dec,
                          "q_sw": q_sw, "t_sw": t_swk}),
-            own, t_prev)
+            getattr(ref, "own", None), getattr(ref, "t_prev", None))
 
 
 def sine_test(arch: Arch | None = None, ni: NonIdeal | None = None, n_fft: int = 4096,

@@ -59,3 +59,18 @@ def test_coupling_charge_is_signed_square_law():
     level = r.codes - a.code_offset
     expect = -a.cu * a.lsb * r.info["gain_top"] * level**2 / 4
     assert np.allclose(q_sig, expect, rtol=1e-3, atol=1e-17)
+
+
+def test_follower_matches_linear_for_small_droop_and_noise_level():
+    a = Arch.load()
+    f = m.Follower(i_bias=4e-3, ic=1.0, c_node=50e-12, gamma=0.0)
+    lin = m.NonIdeal(ref_net=m.RefNet(r_o=1 / f.g_s(), f_u=None, c1=50e-12), ref_periodic=False)
+    vin = np.linspace(-0.8, 0.8, 64) * a.fs_peak
+    dv_f = m.convert(vin, a, m.NonIdeal(ref_follower=f)).info["dvref"]
+    dv_l = m.convert(vin, a, lin).info["dvref"]
+    assert np.max(np.abs(dv_f - dv_l)) < 0.1 * np.max(np.abs(dv_l))      # < 10 mV droops: nearly linear
+    # node noise of the follower: gamma kT / C
+    f = m.Follower(i_bias=2e-3, c_node=2e-12, gamma=2.0)
+    ni = m.NonIdeal(ref_follower=f, ref_start_charge=False, ref_signal_coupling=False)
+    sd = m.convert(np.zeros(4000), a, ni).info["dvref"][:, 0].std()
+    assert sd == pytest.approx(np.sqrt(2.0 * 1.380649e-23 * 300.15 / 2e-12), rel=0.1)
