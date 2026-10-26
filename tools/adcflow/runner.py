@@ -51,6 +51,7 @@ class Job:
     globals_: dict
     tb_text: str = ""
     files: list[str] = field(default_factory=list)   # repo-relative files used (for hashes)
+    extra: dict[str, str] = field(default_factory=dict)  # job-local input files written by `prepare`
 
 
 def _va_modules() -> dict:
@@ -122,6 +123,7 @@ def build_jobs(block: Block, test_id: str, test: dict, corners: list[Corner], vi
             if test.get("prepare"):
                 mod, fn = test["prepare"].split(":")
                 params = getattr(importlib.import_module(mod), fn)(dict(params))
+            extra = params.pop("_files", {})
             g = {"vdd": c.vdd, "vdd18": c.vdd18, "tempc": c.temp,
                  "noise_en": 1 if test.get("tran_noise") else 0, "devnoise": 1 if needs_pdk else 0,
                  "beh_speed": 1.0, "vref_in": vref_in()}
@@ -134,7 +136,7 @@ def build_jobs(block: Block, test_id: str, test: dict, corners: list[Corner], vi
                 raise ValueError(f"{test['netlist']}: parameters not declared in the testbench: {sorted(missing)}")
             vname = "_".join(f"{k}{v}" for k, v in var.items())
             name = c.name + (f"__{vname}" if vname else "")
-            jobs.append(Job(name=name, corner=c, params=params, globals_=g, tb_text=text))
+            jobs.append(Job(name=name, corner=c, params=params, globals_=g, tb_text=text, extra=extra))
     return jobs
 
 
@@ -175,6 +177,8 @@ def stage(run_dir: Path, jobs: list[Job], decks: dict[str, str]) -> None:
         jd.mkdir(parents=True, exist_ok=True)
         (jd / "tb.scs").write_text(j.tb_text, encoding="utf-8", newline="\n")
         (jd / "deck.scs").write_text(decks[j.name], encoding="utf-8", newline="\n")
+        for fname, text in j.extra.items():
+            (jd / fname).write_text(text, encoding="utf-8", newline="\n")
 
 
 def _spectre_errors(log: Path) -> list[str]:

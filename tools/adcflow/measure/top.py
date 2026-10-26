@@ -42,7 +42,7 @@ def sine(job_dir: Path, ctx: dict) -> dict:
     npts = int(float(p.get("npts", 1024)))
     fs = float(p.get("fsamp", 100e6))
     fin = float(p["fin"])
-    amp_v = 0.9987 * 10 ** (float(p.get("amp_dbfs", -1)) / 20)
+    amp_v = a.fs_peak * 10 ** (float(p.get("amp_dbfs", -1)) / 20)
     cap = read_capture(Path(job_dir) / "capture.txt")
     bits = cap["bits"]
     m: dict = {"n_samples": int(len(bits))}

@@ -21,9 +21,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from . import REPO_ROOT
+from .arch import Arch
 from .gen import GEN_HEADER, block_symbols, va_symbols, va_ports
 from .rnldraw import STD_PINS, Sheet
 from .specs import blocks
+
+_ARCH = Arch.load()
+_FS = f"{_ARCH.fs_peak:.4f}"            # differential full-scale peak (V)
+_CS = f"{_ARCH.c_s * 1e12:.4f}p"       # sampling capacitance per side
 
 JS = list(range(12, -1, -1))
 DS = [f"D{i}" for i in range(13, -1, -1)]
@@ -373,7 +378,7 @@ def tb_cdac() -> list[TBDef]:
     els += _ideal_front()
     out.append(TBDef(
         "tb/cdac/tb_cdac_track.scs", "tb_cdac_track: sampling-network linearity of the two CDACs from 50 ohm",
-        ["parameters fin=49.8046875e6 amp_dbfs=-1 npts=256 nskip=4 tper=10n fs_peak=0.9987 vcm_in=0.45 rsrc=50 ctop=15f",
+        [f"parameters fin=49.8046875e6 amp_dbfs=-1 npts=256 nskip=4 tper=10n fs_peak={_FS} vcm_in=0.45 rsrc=50 ctop=15f",
          "parameters amp=fs_peak*pow(10, amp_dbfs/20) tstart=nskip*tper tstop=(nskip+npts+0.5)*tper"],
         els, ["tran1 tran stop=tstop outputstart=tstop", "tbopts options save=none reltol=1e-5 vabstol=1e-8"],
         notes=["V(TOPP) - V(TOPN) 300 ps after CONV rises (neutral DAC, no decisions) is the sampled input"]))
@@ -399,7 +404,7 @@ def tb_bootstrap() -> list[TBDef]:
     els += _sup("AVDD", "vdd", True, t0="tper", t1="tstop")
     out.append(TBDef(
         "tb/bootstrap/tb_bootstrap_dc.scs", "tb_bootstrap_dc: boosted gate over the input range, edges, current",
-        ["parameters tper=10n rsrc=50 wsw=48u cs=1.0235p", "parameters tstop=29*tper"],
+        [f"parameters tper=10n rsrc=50 wsw=48u cs={_CS}", "parameters tstop=29*tper"],
         els, ["tran1 tran stop=tstop", "save VG VIN PHI_B BP"],
         notes=["VIN steps 0 .. 0.9 V in 0.15 V steps, 4 cycles each, through 50 ohm with the reference switch load"]))
     els = [El("XBSP", "adc_bootstrap", ["VINP", "PHI_B", "PHI_BB", "VGP", "AVDD", "0"], where="dut"),
@@ -415,7 +420,7 @@ def tb_bootstrap() -> list[TBDef]:
     els += [El("VAVDD", "vsource", ["AVDD", "0"], "dc=vdd", "top")]
     out.append(TBDef(
         "tb/bootstrap/tb_bootstrap_track.scs", "tb_bootstrap_track: differential tracking linearity with the reference switch",
-        ["parameters fin=49.8046875e6 amp_dbfs=-1 npts=256 nskip=4 tper=10n fs_peak=0.9987 vcm_in=0.45 rsrc=50 wsw=48u cs=1.0235p",
+        [f"parameters fin=49.8046875e6 amp_dbfs=-1 npts=256 nskip=4 tper=10n fs_peak={_FS} vcm_in=0.45 rsrc=50 wsw=48u cs={_CS}",
          "parameters amp=fs_peak*pow(10, amp_dbfs/20) tstart=nskip*tper tstop=(nskip+npts+0.5)*tper"],
         els, ["tran1 tran stop=tstop outputstart=tstop", "tbopts options save=none reltol=1e-5 vabstol=1e-8"]))
     return out
@@ -468,20 +473,25 @@ def tb_ref() -> list[TBDef]:
          "dcline dc dev=VH param=dc start=vdd18*0.9 stop=vdd18*1.1 step=vdd18*0.05",
          "save VREFP VCM VH:p VA:p VREF:p"]))
     out.append(TBDef(
-        "tb/ref/tb_ref_dyn.scs", "tb_ref_dyn: VREFP under the CDAC conversion load pattern",
-        ["parameters tsettle=2u nconv=256", "parameters tstop=tsettle+nconv*10n"],
-        base + [El("VCLK", "vsource", ["CLK", "0"], "type=pulse val0=0 val1=vdd period=10n width=4.98n rise=20p fall=20p"),
-                El("ILD", "tb_refload_va", ["CLK", "VREFP", "0"], "nalt=64 heavy=1.2", "load",
-                   note="1 pC per conversion, every 64 conversions 20 % more charge in the decision pulses"),
-                El("ISMP", "tb_sampler_va", ["VREFP", "0", "CLK", "0"], 'dir=-1 delay=0 fname="vstart.txt"', "mon",
-                   note="VREFP at every conversion start")],
-        ["tran1 tran stop=tstop outputstart=tstop-200n", "save VREFP"]))
+        "tb/ref/tb_ref_replay.scs", "tb_ref_replay: VREFP under the CDAC charge sequence of a near-Nyquist conversion",
+        ["parameters npts=1024 nwarm=32 fin=48.828125e6 ccdac=0.6p", "parameters tstop=(nwarm+npts+2)*10n"],
+        base + [El("CDB", "capacitor", ["VREFP", "0"], "c=ccdac", "load",
+                   note="CDAC bottom plates seen from VREFP (both sides)"),
+                El("ILD", "isource", ["VREFP", "0"], 'type=pwl file="iload.pwl"', "load",
+                   note="CDAC charge per conversion from the system model: start + 13 switch pulses"),
+                El("VTRIG", "vsource", ["TRIG", "0"], 'type=pwl file="trig.pwl"',
+                   note="toggles at the comparator clock of every decision and just before each start"),
+                El("ISMP", "tb_sampler_va", ["VREFP", "0", "TRIG", "0"], 'vth=0.5 dir=0 delay=0 fname="vdec.txt"', "mon",
+                   note="VREFP at every toggle")],
+        ["tran1 tran stop=tstop outputstart=tstop", "tbopts options save=none"],
+        notes=["iload.pwl / trig.pwl are written into the job directory by adcflow.measure.ref:replay_prepare"]))
     out.append(TBDef(
-        "tb/ref/tb_ref_noise.scs", "tb_ref_noise: VREFP and VCM noise, 1 kHz - 1 GHz",
-        ["parameters iload=100u"],
-        base + [El("IL", "isource", ["VREFP", "0"], "dc=iload", "load")],
-        ["noise1 (VREFP 0) noise start=1k stop=1G dec=20",
-         "noise2 (VCM 0) noise start=1k stop=1G dec=20"]))
+        "tb/ref/tb_ref_noise.scs", "tb_ref_noise: VREFP and VCM noise, 1 kHz - 100 GHz",
+        ["parameters iload=100u ccdac=0.6p"],
+        base + [El("IL", "isource", ["VREFP", "0"], "dc=iload", "load"),
+                El("CDB", "capacitor", ["VREFP", "0"], "c=ccdac", "load")],
+        ["noise1 (VREFP 0) noise start=1k stop=100G dec=20",
+         "noise2 (VCM 0) noise start=1k stop=100G dec=20"]))
     return out
 
 
@@ -503,7 +513,7 @@ def tb_top() -> list[TBDef]:
     return [TBDef(
         "tb/top/tb_top_sine.scs", "tb_top_sine: full ADC, coherent differential sine from 50 ohm per side",
         ["parameters fin=49.8962402e6 amp_dbfs=-1 npts=1024 nskip=4 duty=0.5 fsamp=100e6 \\",
-         "        fs_peak=0.9987 vcm_in=0.45 rsrc=50 cload=50f nfmax=20G",
+         f"        fs_peak={_FS} vcm_in=0.45 rsrc=50 cload=50f nfmax=20G",
          "parameters amp=fs_peak*pow(10, amp_dbfs/20) tper=1/fsamp \\",
          "        tstart=(nskip-0.5)*tper tstop=(nskip+npts+0.6)*tper"],
         els, ["tran1 tran stop=tstop noisefmax=nfmax*noise_en*devnoise noiseseed=1 outputstart=tstop", "tbopts options save=none"],

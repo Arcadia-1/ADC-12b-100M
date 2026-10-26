@@ -106,10 +106,10 @@ def sheet_top(corner: str, out: Path) -> Path | None:
     order = np.argsort(ph)
     ax.plot(ph[order], fit["fitted_signal"][order], color=MUTED, lw=1.4, label="sine fit")
     ax.plot(ph, codes, "o", ms=2.2, color=C1, alpha=0.8, label=f"output code ({n} samples)")
-    ax.set(xlabel="phase of the input sine (rad)", ylabel="code (0 .. 4543)",
+    ax.set(xlabel="phase of the input sine (rad)", ylabel=f"code (0 .. {a.n_codes - 1})",
            title="Reconstructed codes folded on the input phase", xlim=(0, 2 * np.pi))
     ax.legend(loc="lower left")
-    note(ax, f"full scale from fit {0.9987 * 10 ** (-1 / 20) * a.code_offset / fit['amplitude']:.4f} V\n"
+    note(ax, f"full scale from fit {a.fs_peak * 10 ** (-1 / 20) * a.code_offset / fit['amplitude']:.4f} V\n"
              f"codes used {int(codes.min())} .. {int(codes.max())}", loc="upper right")
     ax = axs[1, 0]
     tc = cap["t_conv"][:n] * 1e9
@@ -126,7 +126,7 @@ def sheet_top(corner: str, out: Path) -> Path | None:
     for yi, v in zip(y, vals):
         ax.text(v + 0.01, yi, f"{v:.3f} mW", va="center", fontsize=8, color=INK)
     ax.set_yticks(y, ["AVDD 0.9 V\n(comp, clocks, bootstrap)", "DVDD 0.9 V\n(SAR logic)", "AVDD18 1.8 V\n(reference)"])
-    ax.set(xlabel="power (mW, behavioral budget model)", title=f"Power {sum(vals):.3f} mW (limit 1.5 mW)",
+    ax.set(xlabel="power (mW, behavioral model)", title=f"Power {sum(vals):.3f} mW (no project limit)",
            xlim=(0, max(vals) * 1.35))
     ax.grid(axis="y", visible=False)
     ax2 = fig.add_axes([0.62, 0.62, 0.001, 0.001])
@@ -270,21 +270,24 @@ def sheet_frontend(corner: str, out: Path) -> Path | None:
         note(ax, "PHI_S falls first (sampling instant)\nPHI_B 40 ps later, CONV 30 ps after PHI_B",
              loc="upper right")
     ax = axs[1, 1]
-    j = latest("tb_ref_dyn", corner)
+    j = latest("tb_ref_replay", corner)
+    a = Arch.load()
     if j is not None:
-        w = psf.read(psf.find(j / "deck.raw", "*.tran*"))
-        t, v = w["time"], w["VREFP"]
-        sel = t > t[-1] - 40e-9
-        ax.plot((t[sel] - t[sel][0]) * 1e9, (v[sel] - 0.9) * 1e3, color=C1, lw=0.9)
-        vs = read_samples(j / "vstart.txt")
-        ts = vs[:, 1][(vs[:, 1] > t[sel][0])]
-        ax.plot((ts - t[sel][0]) * 1e9, (np.interp(ts, t, v) - 0.9) * 1e3, "o", ms=4, color=C2,
-                label="conversion start")
-        ax.set(xlabel="time (ns), last 4 conversions", ylabel="VREFP - 0.9 V (mV)",
-               title="Reference under the CDAC conversion load", ylim=(-1.2, 0.3))
-        ax.legend(loc="lower right")
-        note(ax, f"20 ps ESR spikes clipped (min {(v[sel].min() - 0.9) * 1e3:.1f} mV)\n"
-                 "ripple at decision instants 0.34 mV (limit 1)", loc="lower left")
+        vs = read_samples(j / "vdec.txt")[:, 2]
+        n = len(vs) // 15
+        v = vs[: 15 * n].reshape(n, 15)[32:]
+        w = v[:, 1:] - v[:, 14:15]                       # VREFP at each decision minus decision 14
+        k = np.arange(1, 15)
+        for row in w[:: max(len(w) // 60, 1)]:
+            ax.semilogy(k, np.maximum(np.abs(row) * 1e3, 1e-4), color=C1, lw=0.5, alpha=0.35)
+        ax.semilogy(k, np.abs(w).max(0) * 1e3, "o-", color=C1, ms=3, label="max over conversions")
+        tol = np.maximum(np.concatenate([a.redundancy(), [0.0]]), 0.25) * a.lsb * a.vref / a.fs_peak * 1e3
+        ax.step(k, tol, where="mid", color=INK, lw=1.5, label="redundancy tolerance")
+        ax.set(xlabel="decision k", ylabel="|VREFP(k) - VREFP(14)| (mV)", ylim=(1e-3, 300),
+               title="VREFP at the decision instants (charge replay)")
+        ax.legend(loc="upper right")
+        note(ax, f"droop max {np.abs(v[:, 1:] - v[:, 0].mean()).max() * 1e3:.1f} mV\n"
+                 f"decisions 12..14: {np.abs(w[:, 11:]).max() * 1e6:.0f} uV (limit 200)", loc="lower left")
     fig.tight_layout()
     path = out / f"4_frontend_clock_ref_{corner}.png"
     fig.savefig(path, dpi=140)

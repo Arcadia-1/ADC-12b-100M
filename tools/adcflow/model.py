@@ -40,10 +40,11 @@ class RefNet:
     r2: float = 0.0
 
     @classmethod
-    def behav(cls, cdec: float = 2e-9, esr: float = 0.5, rout: float = 1.0, fbw: float = 50e6) -> "RefNet":
-        """The behavioral adc_ref (design/behav/adc_ref.scs): a transconductance driver
-        (DC resistance rout, error filtered at fbw, i.e. rout + s*rout/(2 pi fbw)) with
-        cdec + esr; the limit of the one-pole loop for a large r_o."""
+    def decap_2n(cls, cdec: float = 2e-9, esr: float = 0.5, rout: float = 1.0, fbw: float = 50e6) -> "RefNet":
+        """The arch-v0.1 behavioral adc_ref: a transconductance driver (DC resistance
+        rout, error filtered at fbw, i.e. rout + s*rout/(2 pi fbw)) with a 2 nF decap
+        (an off-chip size, kept for comparison); the limit of the one-pole loop for a
+        large r_o."""
         big = 1e6
         return cls(r_o=rout * big, a0=big, f_u=fbw * big, c1=cdec, esr1=esr)
 
@@ -86,9 +87,9 @@ class Follower:
     follower and its bias source). VREFP is taken as recovered between
     conversions, so (c_node + c2) / g_s must stay well below the clock period.
     """
-    i_bias: float = 300e-6
+    i_bias: float = 2e-3
     ic: float = 1.0
-    c_node: float = 2e-12
+    c_node: float = 2.1e-12      # behavioral adc_ref: 1.5 pF decap + ~0.6 pF of CDAC bottom plates
     c2: float = 0.0
     r2: float = 0.0
     gamma: float = 2.0
@@ -126,8 +127,9 @@ class NonIdeal:
     n_fast: int = 6                  # steps 1..n_fast use t_dac_fast (redundancy covers them)
     tau_start: float = 20e-12        # conversion-start (VIN -> neutral) settling
     # reference
-    ref_net: RefNet | None = field(default_factory=RefNet.behav)   # VREFP network (behavioral adc_ref)
-    ref_follower: Follower | None = None   # large-signal follower driving VREFP; overrides ref_net
+    ref_follower: Follower | None = field(default_factory=Follower)  # behavioral adc_ref (on-chip follower)
+    ref_net: RefNet | None = None    # linear VREFP network, used when ref_follower is None
+    ref_trace: np.ndarray | None = None  # (N, 14) VREFP deviation per decision (V), e.g. measured; overrides both
     c_dec: float = 2e-9              # single-pole VREFP model when ref_net is None: decap (F) ...
     tau_ref: float = 50e-9           # ... and recovery time constant (s)
     ref_periodic: bool = True        # VREFP still recovering from the earlier conversions
@@ -195,6 +197,21 @@ class _ModalRef:
     def draw(self, t, q):
         self.own = self.own * np.exp(np.outer(t - self.t_prev, self.p)) - np.outer(q, self.r)
         self.t_prev = t
+
+
+class _TraceRef:
+    """Replays a given VREFP deviation at each decision (decision order)."""
+
+    def __init__(self, trace):
+        self.trace, self.k = np.asarray(trace, dtype=float), 0
+
+    def value(self, t):
+        v = self.trace[:, self.k]
+        self.k += 1
+        return v
+
+    def draw(self, t, q):
+        pass
 
 
 class _FollowerRef:
@@ -273,7 +290,7 @@ def convert(vin: np.ndarray, arch: Arch | None = None, ni: NonIdeal | None = Non
     p, r = _ref_modes(ni)
     x0 = np.zeros((np.size(vin), p.size), complex)
     res, own, t_last = _convert(vin, arch, ni, dvdt, p, r, x0)
-    if not ni.ref_periodic or ni.ref_follower is not None:
+    if not ni.ref_periodic or ni.ref_follower is not None or ni.ref_trace is not None:
         return res
     # conversion m-1 seen from the reference time of conversion m, then the geometric
     # tail of the older ones as a circular convolution over the samples
@@ -322,7 +339,9 @@ def _convert(vin, arch: Arch, ni: NonIdeal, dvdt, p, r, x0):
     # charges (deterministic sequence + optional coupling) and, for the linear
     # network, the state x0 that the earlier conversions leave
     t_ref = ni.t_start - 0.1e-9 if ni.ref_start_charge else ni.t_start
-    if ni.ref_follower is not None:
+    if ni.ref_trace is not None:
+        ref = _TraceRef(ni.ref_trace)
+    elif ni.ref_follower is not None:
         ref = _FollowerRef(ni.ref_follower, t_ref, n, ni.temp_c, ni.seed)
     else:
         ref = _ModalRef(p, r, x0, t_ref, n)
@@ -416,5 +435,6 @@ def spectrum_metrics(codes: np.ndarray, fs: float, n_codes: int | None = None) -
 def ideal(**over) -> NonIdeal:
     """A NonIdeal with every impairment off (quantization only)."""
     base = NonIdeal(ktc=False, sigma_cmp_top=0.0, jitter_rms=0.0, sigma_cu=0.0,
-                    tau_dac=1e-15, tau_start=1e-15, ref_net=None, c_dec=1.0, ref_signal_coupling=False)
+                    tau_dac=1e-15, tau_start=1e-15, ref_follower=None, ref_net=None, c_dec=1.0,
+                    ref_signal_coupling=False)
     return replace(base, **over)

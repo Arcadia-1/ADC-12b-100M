@@ -2,8 +2,8 @@
 
     python analysis/ref_redundancy.py            # tables to stdout, figure to build/plots/
 
-Compares the arch-v0.1 redundancy placement (A) with a geometric re-allocation
-over the same 14 decisions and the same level count (G55), for a range of VREFP
+Compares the arch-v0.1 redundancy placement (A) with the geometric re-allocation
+over the same 14 decisions and level count (G55, adopted in arch v0.2), for a range of VREFP
 networks: a driver loop (output-stage resistance r_o, loop unity-gain f_u) with
 an on-chip MOM capacitor and an optional decap in series with a resistor.
 
@@ -41,8 +41,8 @@ def weights_from_delta(delta) -> list[int]:
     return [r[k] - r[k + 1] for k in range(1, 14)]
 
 
-def make_arch(w, fs_peak: float = BASE.fs_peak, c_s: float = BASE.c_s) -> Arch:
-    """Arch with weights w, the same full scale and sampling capacitance as the base;
+def make_arch(w, fs_peak: float = 0.9987, c_s: float = 1.0235e-12) -> Arch:
+    """Arch with weights w and the v0.1 full scale and sampling capacitance;
     the non-sampled caps are a subset of w (not the MSB) that sets the full scale."""
     w = [int(x) for x in w]
     target = sum(w) - int(round(BASE.vref * (sum(w) + 0.5) / fs_peak))
@@ -63,10 +63,10 @@ def make_arch(w, fs_peak: float = BASE.fs_peak, c_s: float = BASE.c_s) -> Arch:
 
 
 PROFILES = {
-    "A (arch v0.1)": BASE.w.astype(int).tolist(),
+    "A (arch v0.1)": [1024, 512, 256, 192, 128, 64, 32, 32, 16, 8, 4, 2, 1],
     "G55 (geometric)": weights_from_delta([310, 170, 94, 52, 28, 16, 9, 5, 3, 1, 1, 0]),
 }
-N0 = m.NonIdeal()
+N0 = m.NonIdeal(ref_follower=None, ref_net=m.RefNet.decap_2n())   # linear networks in this study
 
 
 def enob(a: Arch, ni: m.NonIdeal, n_fft: int = 4096, fin: float = 49.7e6, full: bool = False):
@@ -81,7 +81,7 @@ def drv(r_o, f_u, c2=0.0, r2=0.0, c1=100e-12, a0=100.0):
 
 
 NETWORKS = {
-    "behavioral adc_ref: 2 nF + 0.5 ohm, 1 ohm / 50 MHz": N0,
+    "v0.1 adc_ref: 2 nF + 0.5 ohm, 1 ohm / 50 MHz": N0,
     "100 pF MOM only, driver 10 ohm / 1 GHz": drv(10, 1e9),
     "100 pF MOM only, driver 5 ohm / 2 GHz": drv(5, 2e9),
     "100 pF + 300 pF (R2 = 0), driver 10 ohm / 1 GHz": drv(10, 1e9, 300e-12, 0.0),
@@ -137,7 +137,7 @@ def figure(archs: dict, path: Path) -> None:
     nets = {"100 pF MOM only": m.RefNet(r_o=10, f_u=1e9, c1=100e-12),
             "+300 pF, R2 = 0": m.RefNet(r_o=10, f_u=1e9, c1=100e-12, c2=300e-12),
             "+300 pF, R2 = 2 ohm": m.RefNet(r_o=10, f_u=1e9, c1=100e-12, c2=300e-12, r2=2.0),
-            "behavioral adc_ref (2 nF)": m.RefNet.behav()}
+            "v0.1 adc_ref (2 nF)": m.RefNet.decap_2n()}
     colors = ["#c0392b", "#e08e0b", "#1f77b4", "#7f7f7f"]
     styles = {"A (arch v0.1)": ("k", "-"), "G55 (geometric)": ("#2ca02c", "--")}
     fig, ax = plt.subplots(2, 2, figsize=(13, 9))
@@ -171,7 +171,7 @@ def figure(archs: dict, path: Path) -> None:
     ax[1, 0].set(xlabel="R2 in series with C2 = 300 pF (ohm)", ylabel="ENOB @ 49.7 MHz", ylim=(10, 11.5),
                  title="series-R decap: 100 pF MOM + 300 pF + R2, driver 10 ohm / 1 GHz")
     fins = np.array([1, 3.7, 7.3, 12, 20, 30, 40, 46.3, 49.7]) * 1e6
-    weak = {"behavioral adc_ref (2 nF, 1 ohm)": N0,
+    weak = {"v0.1 adc_ref (2 nF, 1 ohm)": N0,
             "driver 1 kohm / 100 MHz + 300 pF (R2 = 1 ohm)": drv(1000, 100e6, 200e-12, 1.0, a0=300),
             "driver 10 ohm / 1 GHz + 100 pF + 300 pF / 2 ohm": drv(10, 1e9, 300e-12, 2.0)}
     for (nn, ni), c in zip(weak.items(), ("#7f7f7f", "#c0392b", "#1f77b4")):

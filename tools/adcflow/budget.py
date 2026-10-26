@@ -27,13 +27,13 @@ def noise_table(arch: Arch) -> str:
     sig = a.fs_peak * 10 ** (-1 / 20) / np.sqrt(2)
     base = m.ideal()
     rows = [
-        ("Quantization (4544 levels)", a.lsb / np.sqrt(12), base),
+        (f"Quantization ({a.n_codes} levels)", a.lsb / np.sqrt(12), base),
         ("Sampled kT/C, 125 C", a.ktc_noise(125), replace(base, ktc=True, temp_c=125)),
         ("Comparator, 80 uV at top plate", 80e-6 / a.gain_top, replace(base, sigma_cmp_top=80e-6)),
         ("Aperture jitter 100 fs @ 49.9 MHz", sig * 2 * np.pi * 49.9e6 * 100e-15, replace(base, jitter_rms=100e-15)),
         ("DAC settling tau 15 ps, 40/75 ps waits", None, replace(base, tau_dac=15e-12, tau_start=20e-12)),
-        ("VREFP, behavioral adc_ref (2 nF, 1 ohm, 50 MHz)", None,
-         replace(base, ref_net=m.RefNet.behav(), ref_signal_coupling=True)),
+        ("VREFP: on-chip follower 2 mA, 2.1 pF, with its noise", None,
+         replace(base, ref_follower=m.Follower(), ref_signal_coupling=True)),
     ]
     out = ["| Contributor | Input-referred rms (uV) | SNDR alone (dB) | ENOB alone |",
            "|---|---|---|---|"]

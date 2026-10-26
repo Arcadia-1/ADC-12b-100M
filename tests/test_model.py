@@ -45,7 +45,7 @@ def test_refnet_single_rc_matches_pole():
     assert p[0].real == pytest.approx(-1 / (3.0 * 100e-12), rel=1e-9)
     assert r[0].real == pytest.approx(1 / 100e-12, rel=1e-9)
     # the behavioral adc_ref (rout + s L into cdec + esr) is a damped pair near 63 MHz
-    p, _ = m.RefNet.behav().modes()
+    p, _ = m.RefNet.decap_2n().modes()
     assert p.size == 2 and np.all(p.real < 0)
     assert abs(p[0]) / (2 * np.pi) == pytest.approx(1 / (2 * np.pi * np.sqrt(1 / (2 * np.pi * 50e6) * 2e-9)), rel=0.02)
 
@@ -64,7 +64,8 @@ def test_coupling_charge_is_signed_square_law():
 def test_follower_matches_linear_for_small_droop_and_noise_level():
     a = Arch.load()
     f = m.Follower(i_bias=4e-3, ic=1.0, c_node=50e-12, gamma=0.0)
-    lin = m.NonIdeal(ref_net=m.RefNet(r_o=1 / f.g_s(), f_u=None, c1=50e-12), ref_periodic=False)
+    lin = m.NonIdeal(ref_follower=None, ref_net=m.RefNet(r_o=1 / f.g_s(), f_u=None, c1=50e-12),
+                     ref_periodic=False)
     vin = np.linspace(-0.8, 0.8, 64) * a.fs_peak
     dv_f = m.convert(vin, a, m.NonIdeal(ref_follower=f)).info["dvref"]
     dv_l = m.convert(vin, a, lin).info["dvref"]

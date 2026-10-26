@@ -6,6 +6,7 @@ instance's terminal list is produced in the port order of specs/blocks.
 
 from __future__ import annotations
 
+from .arch import Arch
 from .gen import GEN_HEADER, block_symbol_record, block_symbols, io_rows
 from .rnldraw import Sheet, turn
 from .specs import blocks
@@ -215,8 +216,9 @@ def _draw(s: Sheet, syms: dict) -> None:
     s.emit("/* --- annotations --- */")
     s.text(X_L, 52, "adc_top: 100 MS/s asynchronous SAR, bottom-plate sampling, split-capacitor redundant CDAC",
            style="title_style", halign="start")
-    s.text(X_L, 50.3, "14 decisions, raw bits D<13:0> with weights 2048 1024 512 384 256 128 64 64 32 16 8 4 2 1;"
-                      " code = sum(W*D)", style="note_style", halign="start")
+    w = " ".join(str(int(x)) for x in Arch.load().out_weights)
+    s.text(X_L, 50.3, f"14 decisions, raw bits D<13:0> with weights {w}; code = sum(W*D)",
+           style="note_style", halign="start")
     s.text(X_L, 49, "P CDAC drawn mirrored (MX): its control buses on top. P side: RL<j> = UP<j>, DH<j> = DN<j>;"
                     " N side: DH<j> = UP<j>, RL<j> = DN<j>. Phases connect by net name.",
            style="note_style", halign="start")

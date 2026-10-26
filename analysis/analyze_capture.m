@@ -1,11 +1,14 @@
-function rep = analyze_capture(capture_file, fs, fin)
+function rep = analyze_capture(capture_file, fs, fin, W)
 %ANALYZE_CAPTURE  Spectrum and weight calibration of a tb_top_sine capture.
 %   rep = analyze_capture('build/runs/<run>/jobs/<corner>/capture.txt', 100e6, fin)
+%   W (optional) = output weights; the default is conversion.out_weights of specs/arch.yaml v0.2.
 %   capture.txt is written by tb_capture_va: "<index> <t_rdy> <t_conv> <D13..D0>".
 %   Needs ADCToolbox (matlab/src on the path: addpath(genpath('<ADCToolbox>/matlab/src'))).
 
 if nargin < 2, fs = 100e6; end
-W = [2048 1024 512 384 256 128 64 64 32 16 8 4 2 1];   % output weights (specs/arch.yaml)
+if nargin < 4 || isempty(W)
+    W = [1960 1120 636 360 204 114 64 36 20 12 6 4 2 1];   % specs/arch.yaml v0.2
+end
 
 fid = fopen(capture_file, 'r');
 c = textscan(fid, '%f %f %f %s', 'CommentStyle', '#');
