@@ -47,6 +47,7 @@ tests:
   tb_top_sine:
     netlist: tb/top/tb_top_sine.scs
     measure: adcflow.measure.top:sine
+    prepare: adcflow.measure.top:prepare
     tran_noise: true
     params: {fin_target: 49.9e6, amp_dbfs: -1.0, npts: 1024}
     desc: >
@@ -58,11 +59,13 @@ tests:
   tb_top_sine_lf:
     netlist: tb/top/tb_top_sine.scs
     measure: adcflow.measure.top:sine
+    prepare: adcflow.measure.top:prepare
     tran_noise: true
     params: {fin_target: 1.0e6, amp_dbfs: -1.0, npts: 1024}
   tb_top_duty:
     netlist: tb/top/tb_top_sine.scs
     measure: adcflow.measure.top:sine
+    prepare: adcflow.measure.top:prepare
     tran_noise: true
     params: {fin_target: 49.9e6, amp_dbfs: -1.0, npts: 1024, duty: 0.45}
     variants: [{duty: 0.45}, {duty: 0.55}]
