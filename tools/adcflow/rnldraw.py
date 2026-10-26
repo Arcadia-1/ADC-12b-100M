@@ -95,20 +95,44 @@ class Sheet:
     lines: list[str] = field(default_factory=list)
     insts: dict[str, Inst] = field(default_factory=dict)
     wired: set = field(default_factory=set)
+    buses: dict = field(default_factory=dict)     # (inst, pin) -> nets given so far to a bus pin
 
     def label_stub(self, inst: str, term: str, net: str, side: str, length: float = 2.0) -> None:
-        """Short wire out of an unwired pin with the net name at its end (connect-by-name)."""
+        """Short wire out of an unwired pin with the net name at its end (connect-by-name).
+        Terminals that share one pin (a bus pin) get one bus stub labelled NAME<msb:lsb>, drawn
+        once all of them are given (or at record())."""
+        pins = self.insts[inst].pins
+        members = [t for t, p in pins.items() if p == pins[term]]
+        if len(members) > 1:
+            got = self.buses.setdefault((inst, pins[term]), {"side": side, "length": length, "nets": {}})
+            got["nets"][term] = net
+            if len(got["nets"]) == len(members):
+                self._bus_stub(inst, pins[term])
+            return
+        self._stub(inst, term, net, net, side, length)
+
+    def _bus_stub(self, inst: str, at) -> None:
+        got = self.buses.pop((inst, at))
+        terms = [t for t in self.insts[inst].pins if t in got["nets"]]
+        nets = [got["nets"][t] for t in terms]
+        self._stub(inst, terms[0], nets, bus_label(nets), got["side"], got["length"])
+        self.wired.update(f"#{inst}:{t}" for t in terms)
+
+    def _stub(self, inst: str, term, net, label: str, side: str, length: float) -> None:
         x, y = self.insts[inst].pin(term)
         dx, dy = {"left": (-length, 0), "right": (length, 0), "top": (0, length), "bottom": (0, -length)}[side]
-        self.wire(net, f"#{inst}:{term}", (x + dx, y + dy))
-        if side == "left":
-            self.emit(f'({_fmt(x + dx - 0.3)}, {_fmt(y - 0.25)}) @TEXT("{net}", size=0.6, halign="end");')
-        elif side == "right":
-            self.emit(f'({_fmt(x + dx + 0.3)}, {_fmt(y - 0.25)}) @TEXT("{net}", size=0.6, halign="start");')
-        elif side == "bottom":
-            self.emit(f'({_fmt(x + 0.25)}, {_fmt(y + dy - 0.3)}) @TEXT("{net}", size=0.6, rotate=90, halign="end");')
+        if isinstance(net, list):
+            self.emit(f"{self.netset(net)} @WIRE {{{self._items([f'#{inst}:{term}', (x + dx, y + dy)])}}};")
         else:
-            self.emit(f'({_fmt(x + 0.25)}, {_fmt(y + dy + 0.3)}) @TEXT("{net}", size=0.6, rotate=90, halign="start");')
+            self.wire(net, f"#{inst}:{term}", (x + dx, y + dy))
+        if side == "left":
+            self.emit(f'({_fmt(x + dx - 0.3)}, {_fmt(y - 0.25)}) @TEXT("{label}", size=0.6, halign="end");')
+        elif side == "right":
+            self.emit(f'({_fmt(x + dx + 0.3)}, {_fmt(y - 0.25)}) @TEXT("{label}", size=0.6, halign="start");')
+        elif side == "bottom":
+            self.emit(f'({_fmt(x + 0.25)}, {_fmt(y + dy - 0.3)}) @TEXT("{label}", size=0.6, rotate=90, halign="end");')
+        else:
+            self.emit(f'({_fmt(x + 0.25)}, {_fmt(y + dy + 0.3)}) @TEXT("{label}", size=0.6, rotate=90, halign="start");')
 
     def emit(self, text: str) -> None:
         self.lines.append(text)
@@ -179,6 +203,8 @@ class Sheet:
         self.emit(f'({_fmt(x)}, {_fmt(y)}) @TEXT("{s}"{extra}){st};')
 
     def record(self, comment: str = "//") -> list[str]:
+        for inst, at in list(self.buses):
+            self._bus_stub(inst, at)
         body = list(self.lines)
         if body:
             body[-1] = body[-1].rstrip(";")

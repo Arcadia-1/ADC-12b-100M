@@ -22,7 +22,7 @@ save CLK PHI_S PHI_SB PHI_B PHI_BB CONV
 // @RNL {
 //   /* --- semantics --- */
 //   &0 @ADD-TO $GROUND_NET_SET;
-//   #XDUT @PLACE(7, 0);
+//   #XDUT @PLACE(6, 0);
 //   #VCLK @PLACE(-16, 7);
 //   #CLPHI_S @PLACE(0, -17);
 //   #CLPHI_SB @PLACE(8, -17);
@@ -30,22 +30,22 @@ save CLK PHI_S PHI_SB PHI_B PHI_BB CONV
 //   #CLPHI_BB @PLACE(24, -17);
 //   #CLCONV @PLACE(32, -17);
 //   #VAVDD @PLACE(0, 19);
-//   #IMAVDD @PLACE(12, 21);
+//   #IMAVDD @PLACE(12, 20);
 //   &CLK @WIRE {#XDUT:CLK (-2, 0)};
 //   (-2.3, -0.25) @TEXT("CLK", size=0.6, halign="end");
-//   &PHI_S @WIRE {#XDUT:PHI_S (16, 4)};
-//   (16.3, 3.75) @TEXT("PHI_S", size=0.6, halign="start");
-//   &PHI_SB @WIRE {#XDUT:PHI_SB (16, 2)};
-//   (16.3, 1.75) @TEXT("PHI_SB", size=0.6, halign="start");
-//   &PHI_B @WIRE {#XDUT:PHI_B (16, 0)};
-//   (16.3, -0.25) @TEXT("PHI_B", size=0.6, halign="start");
-//   &PHI_BB @WIRE {#XDUT:PHI_BB (16, -2)};
-//   (16.3, -2.25) @TEXT("PHI_BB", size=0.6, halign="start");
-//   &CONV @WIRE {#XDUT:CONV (16, -4)};
-//   (16.3, -4.25) @TEXT("CONV", size=0.6, halign="start");
-//   &AVDD @WIRE {#XDUT:AVDD (7, 9)};
-//   (7.25, 9.3) @TEXT("AVDD", size=0.6, rotate=90, halign="start");
-//   %g1 = $GROUND @ATTACH &0 => @PLACE(7, -8.5);
+//   &PHI_S @WIRE {#XDUT:PHI_S (14, 4)};
+//   (14.3, 3.75) @TEXT("PHI_S", size=0.6, halign="start");
+//   &PHI_SB @WIRE {#XDUT:PHI_SB (14, 2)};
+//   (14.3, 1.75) @TEXT("PHI_SB", size=0.6, halign="start");
+//   &PHI_B @WIRE {#XDUT:PHI_B (14, 0)};
+//   (14.3, -0.25) @TEXT("PHI_B", size=0.6, halign="start");
+//   &PHI_BB @WIRE {#XDUT:PHI_BB (14, -2)};
+//   (14.3, -2.25) @TEXT("PHI_BB", size=0.6, halign="start");
+//   &CONV @WIRE {#XDUT:CONV (14, -4)};
+//   (14.3, -4.25) @TEXT("CONV", size=0.6, halign="start");
+//   &AVDD @WIRE {#XDUT:AVDD (6, 9)};
+//   (6.25, 9.3) @TEXT("AVDD", size=0.6, rotate=90, halign="start");
+//   %g1 = $GROUND @ATTACH &0 => @PLACE(6, -8.5);
 //   &0 @WIRE {#XDUT:VSS %g1:p};
 //   &CLK @WIRE {#VCLK:1 (-16, 11)};
 //   (-15.75, 11.3) @TEXT("CLK", size=0.6, rotate=90, halign="start");
@@ -75,8 +75,8 @@ save CLK PHI_S PHI_SB PHI_B PHI_BB CONV
 //   (0.25, 23.3) @TEXT("AVDD_S", size=0.6, rotate=90, halign="start");
 //   %g8 = $GROUND @ATTACH &0 => @PLACE(0, 15.5);
 //   &0 @WIRE {#VAVDD:2 %g8:p};
-//   &AVDD_S @WIRE {#IMAVDD:P (12, 27)};
-//   (12.25, 27.3) @TEXT("AVDD_S", size=0.6, rotate=90, halign="start");
+//   &AVDD_S @WIRE {#IMAVDD:P (12, 25)};
+//   (12.25, 25.3) @TEXT("AVDD_S", size=0.6, rotate=90, halign="start");
 //   &AVDD @WIRE {#IMAVDD:N (12, 15)};
 //   (12.25, 14.7) @TEXT("AVDD", size=0.6, rotate=90, halign="end");
 //   (-30, 33) @TEXT("tb_clkgen_timing: phase order, delays, skews and edge rates", halign="start") => @SET-STYLE $title_style
