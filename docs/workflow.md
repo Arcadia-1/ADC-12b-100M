@@ -58,6 +58,8 @@ python -m adcflow clean-remote --older-than-h 12   # 清理服务器上本项目
   beh_speed vref_in` 由 deck 提供，测试台中不要声明。
 * 监视器写小文本文件（`tb/common/veriloga/`）；只在度量需要时保存波形（`save` 列出信号）。
 * 度量函数放在 `tools/adcflow/measure/<block>.py`，签名 `fn(job_dir, ctx) -> dict`，键名即规格中的 `metric`。
+* 规格中的 `prepare: module:fn` 在建 job 时改写参数（例如把 `fin_target` 换成相干频点）；返回的
+  `_files: {文件名: 文本}` 会写进 job 目录，测试台用相对路径读取（`tb_ref_replay` 的 `iload.pwl` / `trig.pwl`）。
 
 ## 5. 晶体管级设计的签核
 

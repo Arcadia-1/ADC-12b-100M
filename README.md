@@ -7,9 +7,9 @@ Verilog-A behavioral models, Python tooling and Spectre.
 | | |
 |---|---|
 | Architecture | bottom-plate sampling, split-capacitor redundant CDAC (13 weights), 14 async decisions |
-| Resolution | 14 raw bits, 4544 levels (12.15 bit), weights `2048 1024 512 384 256 128 64 64 32 16 8 4 2 1` |
-| Full scale | 0.999 V differential peak (VREF = 0.9 V; inputs 0..0.9 V single-ended, 50 Ω source) |
-| Target | ENOB > 10.5 at ~50 MHz, −1 dBFS in all 45 corners; power ≤ 1.5 mW |
+| Resolution | 14 raw bits, 4540 levels (12.15 bit), weights `1960 1120 636 360 204 114 64 36 20 12 6 4 2 1` |
+| Full scale | 0.993 V differential peak (VREF = 0.9 V; inputs 0..0.9 V single-ended, 50 Ω source) |
+| Target | ENOB > 10.5 at ~50 MHz, −1 dBFS in all 45 corners; power as low as practical (no hard limit) |
 | Output | parallel raw bits D13..D0 + RDY; reconstruction `code = Σ W·D` in software |
 
 ## Repository
@@ -17,6 +17,7 @@ Verilog-A behavioral models, Python tooling and Spectre.
 | Path | Content |
 |---|---|
 | `docs/architecture.md` | architecture, budgets, timing, conventions |
+| `docs/reference.md` | VREFP study: CDAC load, redundancy vs reference, on-chip follower, specs |
 | `docs/specs.md` | block specifications and acceptance tests (generated from `specs/blocks/`) |
 | `docs/verification.md`, `docs/workflow.md` | verification plan; environment and commands |
 | `specs/` | single source of truth: `arch.yaml`, `corners.yaml`, `blocks/*.yaml`, `va_modules.yaml` |
