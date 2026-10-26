@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "adcflow"
+version = "0.1.0"
+description = "Design / verification / sign-off flow of the ADC-12b-100M project"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "scipy>=1.10", "pyyaml>=6"]
+
+[project.optional-dependencies]
+analysis = ["adctoolbox>=0.6", "matplotlib>=3.7"]
+dev = ["pytest>=7"]
+
+[project.scripts]
+adcflow = "adcflow.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "tools"}
+
+[tool.setuptools.packages.find]
+where = ["tools"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tools"]
+markers = [
+  "slow: long model runs (deselect with -m 'not slow')",
+  "needs_toolbox: requires adctoolbox",
+]
