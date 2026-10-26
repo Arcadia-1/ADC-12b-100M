@@ -1,0 +1,63 @@
+block: adc_comp
+title: Dynamic latched comparator
+version: 0.1.0
+owner: TBD
+status: behavioral            # behavioral | xtor-wip | xtor-review | signoff
+views:
+  behav: design/behav/adc_comp.scs
+  xtor: design/xtor/adc_comp/adc_comp.scs
+summary: >
+  Single fully-dynamic comparator of the asynchronous SAR loop. CLKC low resets
+  (OUTP = OUTN = 0); CLKC rising evaluates; exactly one of OUTP / OUTN rises.
+  OUTP = 1 means V(INP) > V(INN). At the top level INP is driven by the top
+  plate of the CDAC that samples VINN (bottom-plate sampling inverts), so
+  OUTP = 1 means "input above the DAC level".
+ports:
+  - {name: INP,  dir: in,     type: analog,  side: left,   desc: "positive input (top plate TOPN)"}
+  - {name: INN,  dir: in,     type: analog,  side: left,   desc: "negative input (top plate TOPP)"}
+  - {name: CLKC, dir: in,     type: clock,   side: bottom, desc: "comparator clock from SAR logic; 0 = reset, 1 = evaluate"}
+  - {name: OUTP, dir: out,    type: digital, side: right,  desc: "1 when INP > INN (return-to-zero)"}
+  - {name: OUTN, dir: out,    type: digital, side: right,  desc: "1 when INP < INN (return-to-zero)"}
+  - {name: AVDD, dir: supply, type: supply,  side: top,    desc: "0.9 V analog supply"}
+  - {name: VSS,  dir: ground, type: supply,  side: bottom, desc: "ground"}
+operating:
+  input_cm: [0.40, 0.56]      # V; the top-plate CM is ~0.49 V
+  input_diff_max: 0.8         # V; the first comparison can see ~0.75 V
+  load_per_output: 10.0e-15   # F; SAR logic input + wire
+specs:
+  - {id: CMP-01, name: "input-referred noise (diff rms)",            metric: noise_uV,       unit: uV,    max: 80,  corners: all, test: tb_comp_noise}
+  - {id: CMP-02, name: "systematic offset",                          metric: offset_abs_mV,  unit: mV,    max: 2,   corners: all, test: tb_comp_noise}
+  - {id: CMP-03, name: "offset sigma (Monte Carlo, 50 runs)",        metric: offset_sigma_mV, unit: mV,   max: 5,   corners: typ, test: tb_comp_noise, mc: 50}
+  - {id: CMP-04, name: "delay CLKC->OUT at 1 mV",                    metric: tdelay_1mV_ps,  unit: ps,    max: 60,  corners: typ, test: tb_comp_delay}
+  - {id: CMP-05, name: "delay CLKC->OUT at 1 mV (all corners)",      metric: tdelay_1mV_ps,  unit: ps,    max: 95,  corners: all, test: tb_comp_delay}
+  - {id: CMP-06, name: "delay CLKC->OUT at 30 mV",                   metric: tdelay_30mV_ps, unit: ps,    max: 45,  corners: typ, test: tb_comp_delay}
+  - {id: CMP-07, name: "regeneration time constant",                 metric: tau_reg_ps,     unit: ps,    max: 15,  corners: all, test: tb_comp_delay}
+  - {id: CMP-08, name: "reset time CLKC fall -> both outputs < 10 %", metric: treset_ps,      unit: ps,    max: 35,  corners: all, test: tb_comp_delay}
+  - {id: CMP-09, name: "wrong decisions for |vd| >= 100 uV (noise off)", metric: wrong_decisions, unit: count, max: 0, corners: all, test: tb_comp_delay}
+  - {id: CMP-10, name: "energy per comparison at 1 mV",              metric: energy_fJ,      unit: fJ,    max: 150, corners: typ, test: tb_comp_delay}
+  - {id: CMP-11, name: "differential kickback per cycle on 1.25 pF", metric: kickback_uV,    unit: uV,    max: 40,  corners: all, test: tb_comp_kickback}
+  - {id: CMP-12, name: "input capacitance per input",                metric: cin_fF,         unit: fF,    max: 15,  corners: typ, test: tb_comp_kickback}
+tests:
+  tb_comp_delay:
+    netlist: tb/comp/tb_comp_delay.scs
+    measure: adcflow.measure.comp:delay
+    desc: >
+      Ideal differential steps around VCM = 0.49 V: vd = +/-{100m, 30m, 10m, 3m,
+      1m, 300u, 100u, 30u, 10u} V, one decision per 400 ps CLKC period, 10 fF
+      loads. Transient noise off. Extracts delay vs |vd|, tau_reg (fit of delay
+      vs ln|vd|), reset time, decision errors and supply energy per cycle.
+  tb_comp_noise:
+    netlist: tb/comp/tb_comp_noise.scs
+    measure: adcflow.measure.comp:noise
+    tran_noise: true
+    desc: >
+      Transient noise on (behavioral: internal Gaussian). vd swept over
+      -300..+300 uV in 13 levels, 64 decisions per level. P(OUTP) vs vd is
+      fitted with a Gaussian CDF: sigma = noise, mean = offset.
+  tb_comp_kickback:
+    netlist: tb/comp/tb_comp_kickback.scs
+    measure: adcflow.measure.comp:kickback
+    desc: >
+      Inputs floating on 1.25 pF capacitors (the CDAC top plates), preset to
+      VCM +/- 0.5 mV. Measures the change of the differential input after one
+      evaluate + reset cycle, and the input capacitance from a small CM step.

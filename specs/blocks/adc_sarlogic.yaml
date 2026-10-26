@@ -1,0 +1,102 @@
+block: adc_sarlogic
+title: Asynchronous SAR controller, bit registers and output register
+version: 0.1.0
+owner: TBD
+status: behavioral
+views:
+  behav: design/behav/adc_sarlogic.scs
+  xtor: design/xtor/adc_sarlogic/adc_sarlogic.scs
+summary: >
+  Self-timed SAR loop. CONV low = reset (CLKC = 0, all UP/DN = 0; D and RDY
+  hold). CONV rising starts a conversion: after t_start the first CLKC rises;
+  each comparator decision (OUTP or OUTN rising) is stored, drives the CDAC
+  control of that step (UP<j> or DN<j>, one-hot, j = 13 - k for decision
+  k = 1..13), resets the comparator (CLKC low) and, after the DAC settle wait,
+  clocks the comparator again. Decision 14 has no DAC step. After decision 14
+  (EOC) D<13:0> is loaded and RDY rises. RDY falls at the next CONV rising.
+  A decision that is not made within t_timeout is forced to 1. If CONV falls
+  before EOC, the output register is loaded with the bits decided so far
+  (undecided = 0) and RDY rises.
+ports:
+  - {name: CONV, dir: in,  type: clock,   side: left,  desc: "conversion window from adc_clkgen (high = convert)"}
+  - {name: OUTP, dir: in,  type: digital, side: left,  desc: "comparator output, 1 = input above DAC level"}
+  - {name: OUTN, dir: in,  type: digital, side: left,  desc: "comparator output, 1 = input below DAC level"}
+  - {name: CLKC, dir: out, type: clock,   side: left,  desc: "comparator clock"}
+  - {name: UP12, dir: out, type: digital, side: right, bus: UP, desc: "decision 1 was 1 (raise cap j=12)"}
+  - {name: UP11, dir: out, type: digital, side: right, bus: UP}
+  - {name: UP10, dir: out, type: digital, side: right, bus: UP}
+  - {name: UP9,  dir: out, type: digital, side: right, bus: UP}
+  - {name: UP8,  dir: out, type: digital, side: right, bus: UP}
+  - {name: UP7,  dir: out, type: digital, side: right, bus: UP}
+  - {name: UP6,  dir: out, type: digital, side: right, bus: UP}
+  - {name: UP5,  dir: out, type: digital, side: right, bus: UP}
+  - {name: UP4,  dir: out, type: digital, side: right, bus: UP}
+  - {name: UP3,  dir: out, type: digital, side: right, bus: UP}
+  - {name: UP2,  dir: out, type: digital, side: right, bus: UP}
+  - {name: UP1,  dir: out, type: digital, side: right, bus: UP}
+  - {name: UP0,  dir: out, type: digital, side: right, bus: UP, desc: "decision 13 was 1 (raise cap j=0)"}
+  - {name: DN12, dir: out, type: digital, side: right, bus: DN, desc: "decision 1 was 0"}
+  - {name: DN11, dir: out, type: digital, side: right, bus: DN}
+  - {name: DN10, dir: out, type: digital, side: right, bus: DN}
+  - {name: DN9,  dir: out, type: digital, side: right, bus: DN}
+  - {name: DN8,  dir: out, type: digital, side: right, bus: DN}
+  - {name: DN7,  dir: out, type: digital, side: right, bus: DN}
+  - {name: DN6,  dir: out, type: digital, side: right, bus: DN}
+  - {name: DN5,  dir: out, type: digital, side: right, bus: DN}
+  - {name: DN4,  dir: out, type: digital, side: right, bus: DN}
+  - {name: DN3,  dir: out, type: digital, side: right, bus: DN}
+  - {name: DN2,  dir: out, type: digital, side: right, bus: DN}
+  - {name: DN1,  dir: out, type: digital, side: right, bus: DN}
+  - {name: DN0,  dir: out, type: digital, side: right, bus: DN}
+  - {name: D13,  dir: out, type: digital, side: bottom, bus: D, desc: "raw bit of decision 1, weight 2048"}
+  - {name: D12,  dir: out, type: digital, side: bottom, bus: D}
+  - {name: D11,  dir: out, type: digital, side: bottom, bus: D}
+  - {name: D10,  dir: out, type: digital, side: bottom, bus: D}
+  - {name: D9,   dir: out, type: digital, side: bottom, bus: D}
+  - {name: D8,   dir: out, type: digital, side: bottom, bus: D}
+  - {name: D7,   dir: out, type: digital, side: bottom, bus: D}
+  - {name: D6,   dir: out, type: digital, side: bottom, bus: D}
+  - {name: D5,   dir: out, type: digital, side: bottom, bus: D}
+  - {name: D4,   dir: out, type: digital, side: bottom, bus: D}
+  - {name: D3,   dir: out, type: digital, side: bottom, bus: D}
+  - {name: D2,   dir: out, type: digital, side: bottom, bus: D}
+  - {name: D1,   dir: out, type: digital, side: bottom, bus: D}
+  - {name: D0,   dir: out, type: digital, side: bottom, bus: D, desc: "raw bit of decision 14, weight 1"}
+  - {name: RDY,  dir: out, type: digital, side: bottom, desc: "data valid: rises >= 100 ps after D settles, falls at CONV rising"}
+  - {name: DVDD, dir: supply, type: supply, side: top,    desc: "0.9 V digital supply"}
+  - {name: VSS,  dir: ground, type: supply, side: top,    desc: "ground"}
+operating:
+  load_updn: 12.0e-15       # F per UP/DN output (two CDAC control inputs + wire)
+  load_clkc: 20.0e-15       # F, comparator clock input
+  load_dout: 50.0e-15       # F per D output and RDY (output port)
+specs:
+  - {id: LOG-01, name: "functional errors (1000 conversions vs ideal emulator)", metric: func_errors, unit: count, max: 0, corners: all, test: tb_sarlogic_func}
+  - {id: LOG-02, name: "OUTP/OUTN rise -> UP/DN 50 %",            metric: t_bit_ps,    unit: ps, max: 35,  corners: typ, test: tb_sarlogic_func}
+  - {id: LOG-03, name: "OUTP/OUTN rise -> CLKC fall 50 %",         metric: t_rst_ps,    unit: ps, max: 40,  corners: typ, test: tb_sarlogic_func}
+  - {id: LOG-04, name: "DAC wait UP/DN -> CLKC rise, steps 1-6",   metric: t_dac_fast_ps, unit: ps, min: 35, max: 60, corners: typ, test: tb_sarlogic_func}
+  - {id: LOG-05, name: "DAC wait UP/DN -> CLKC rise, steps 7-13",  metric: t_dac_slow_ps, unit: ps, min: 70, max: 100, corners: typ, test: tb_sarlogic_func}
+  - {id: LOG-06, name: "DAC wait steps 7-13 (all corners)",       metric: t_dac_slow_ps, unit: ps, min: 70, corners: all, test: tb_sarlogic_func}
+  - {id: LOG-07, name: "CONV rise -> first CLKC rise",            metric: t_start_ps,  unit: ps, min: 80, max: 160, corners: all, test: tb_sarlogic_func}
+  - {id: LOG-08, name: "conversion time CONV rise -> RDY rise (emulated comparator 45 ps)", metric: t_conv_ns, unit: ns, max: 2.6, corners: typ, test: tb_sarlogic_func}
+  - {id: LOG-09, name: "conversion time (all corners, comparator 70 ps)", metric: t_conv_ns, unit: ns, max: 4.1, corners: all, test: tb_sarlogic_func}
+  - {id: LOG-10, name: "D setup to RDY rise",                     metric: t_setup_ps,  unit: ps, min: 100, corners: all, test: tb_sarlogic_func}
+  - {id: LOG-11, name: "forced-decision recovery (stuck comparator) errors", metric: timeout_errors, unit: count, max: 0, corners: all, test: tb_sarlogic_timeout}
+  - {id: LOG-12, name: "timeout value",                           metric: t_timeout_ps, unit: ps, min: 200, max: 350, corners: all, test: tb_sarlogic_timeout}
+  - {id: LOG-13, name: "average DVDD power at 100 MS/s",         metric: power_uW,    unit: uW, max: 300, corners: typ, test: tb_sarlogic_func}
+tests:
+  tb_sarlogic_func:
+    netlist: tb/sarlogic/tb_sarlogic_func.scs
+    measure: adcflow.measure.sarlogic:func
+    desc: >
+      CONV from an ideal 100 MHz clock. A Verilog-A comparator emulator holds a
+      pseudo-random input per conversion, follows the DAC level from UP/DN and
+      answers each CLKC with a delay t0 + tau*ln(vsat/|residue|); it logs the
+      ideal decisions. The capture monitor logs D at RDY. Checks bits, timing
+      of every loop edge, conversion time and DVDD energy.
+  tb_sarlogic_timeout:
+    netlist: tb/sarlogic/tb_sarlogic_timeout.scs
+    measure: adcflow.measure.sarlogic:timeout
+    desc: >
+      Same as func but the emulator never answers decision 5 of every other
+      conversion. Checks that the decision is forced to 1 after t_timeout and
+      that the conversion completes with correct remaining decisions.

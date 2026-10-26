@@ -1,0 +1,52 @@
+# Architecture parameters: the single source of truth.
+# Python (tools/adcflow/arch.py), the Verilog-A behavioral models (generated
+# parameter include), the block specs and the docs all read these numbers.
+# Changing anything here is an architecture change: open a PR labelled `arch`.
+
+version: 0.1.0
+
+process:
+  name: TSMC 28nm HPC+ (CRN28HPC+ULL models)
+  vdd_core: 0.9          # V, thin-oxide core supply (AVDD, DVDD)
+  vdd_io: 1.8            # V, thick-oxide supply (AVDD18, reference driver only)
+  supply_tolerance: 0.10 # +/-10 % in the corner set
+
+timing:
+  fs: 100.0e6            # S/s
+  clk_duty_min: 0.45     # CLK high fraction; high = track, low = hold + convert
+  clk_duty_max: 0.55
+  t_conv_max: 4.3e-9     # CLK falling -> EOC, worst corner (45 % duty leaves 4.5 ns)
+  t_start: 0.25e-9       # CLK falling -> first comparator clock (phases + DAC neutral settle)
+  t_cycle_max: 0.28e-9   # per comparison cycle, worst corner
+  t_cycle_typ: 0.17e-9   # per comparison cycle, TT/0.9V/27C target
+  t_out_margin: 0.2e-9   # EOC -> CLK rising minimum margin
+
+reference:
+  vref: 0.90             # V, VREFP - VREFN applied to the CDAC
+  vrefn: 0.0             # VREFN is the reference ground (tied to VSS at top level)
+  vcm_top: 0.45          # V, top-plate reset (sampling) common mode
+  vin_cm: 0.45           # V, input common mode (single-ended 0..0.9 V)
+
+cdac:
+  # Bottom-plate sampling, split-capacitor (each weight = two equal halves,
+  # "H" starting at VREFP and "L" starting at VREFN), complementary P/N
+  # switching => constant top-plate common mode, one transition per decision.
+  # Index j: 12 .. 0 in decision order (j = 12 is switched after decision 1).
+  cap_weights:    [1024, 512, 256, 192, 128, 64, 32, 32, 16, 8, 4, 2, 1]
+  # 1 = the cap samples the input on its bottom plate; 0 = it stays in the
+  # neutral state during tracking (range extension => FS > VREF).
+  cap_sampled:    [1,    1,   1,   0,   1,   1,  1,  0,  1,  1, 1, 1, 1]
+  cu: 0.5e-15            # F, cap of weight 1 (each half = cu/2)
+  cp_top_ratio: 0.10     # max top-plate parasitic / C_DAC (incl. comparator input)
+
+conversion:
+  n_decisions: 14
+  # Raw output bit weights D<13:0> (MSB first). code = sum(W * D), 0 .. 4543.
+  out_weights: [2048, 1024, 512, 384, 256, 128, 64, 64, 32, 16, 8, 4, 2, 1]
+
+targets:
+  enob_min: 10.5         # at fin ~ 50 MHz, -1 dBFS, all 45 corners
+  enob_design: 11.0      # TT design target
+  fs_peak_min: 0.95      # V, differential full-scale peak
+  power_target: 1.5e-3   # W, total at TT, 100 MS/s (lower is better)
+  source_impedance: 50.0 # ohm per input pin, no input driver
