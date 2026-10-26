@@ -30,7 +30,7 @@ VDDA (VDDA 0) vsource dc=vdd
 VREFP (VREFP 0) vsource dc=vref_in
 VVCM (VCM 0) vsource dc=vref_in/2
 tran1 tran stop=tstop outputstart=tstop
-tbopts options save=none
+tbopts options save=none reltol=1e-5 vabstol=1e-8
 // @RNL {
 //   /* --- semantics --- */
 //   &0 @ADD-TO $GROUND_NET_SET;

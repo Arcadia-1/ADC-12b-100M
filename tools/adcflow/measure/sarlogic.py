@@ -67,7 +67,10 @@ def func(job_dir: Path, ctx: dict) -> dict:
     if len(cap["t_conv"]):
         m["t_conv_ns"] = float(cap["t_conv"].max() * 1e9)
         m["t_conv_mean_ns"] = float(cap["t_conv"].mean() * 1e9)
-    w = tran(job_dir)
+    try:
+        w = tran(job_dir)
+    except FileNotFoundError:
+        return m                                  # nowave run: functional metrics only
     t = w["time"]
     x = {n: psf.crossings(t, w[n], vdd / 2, +1) for n in ("CONV", "CLKC", "OUTP", "OUTN", "UP12", "DN12",
                                                           "UP6", "DN6", "UP0", "DN0", "RDY")}

@@ -21,7 +21,7 @@ module tb_capture_va(CLK, RDY, D, VSS);
   genvar g;
 
   analog begin
-    @(initial_step) begin
+    @(initial_step("tran")) begin
       fh = $fopen(fname, "w");
       n_clk = 0; n_rdy = 0; t_clk = 0;
       $fwrite(fh, "# index t_rdy t_conv D13..D0\n");
@@ -50,7 +50,7 @@ module tb_capture_va(CLK, RDY, D, VSS);
         $fwrite(fh, "\n");
       end
     end
-    @(final_step) begin
+    @(final_step("tran")) begin
       $fwrite(fh, "# clk_falls %d rdy_rises %d\n", n_clk, n_rdy);
       $fclose(fh);
     end

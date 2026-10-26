@@ -1,0 +1,68 @@
+{
+ "block": "adc_bootstrap",
+ "test": "tb_bootstrap_track",
+ "view": "behav",
+ "corner": "tt_nom_27",
+ "params": {
+  "npts": 256,
+  "fin": "4.882812500e+07"
+ },
+ "globals": {
+  "vdd": 0.9,
+  "vdd18": 1.8,
+  "tempc": 27.0,
+  "noise_en": 0,
+  "devnoise": 1,
+  "beh_speed": 1.0,
+  "vref_in": 0.9
+ },
+ "metrics": {
+  "sfdr_dBc": 90.63157311269214,
+  "sndr_dB": 76.73715267507872,
+  "thd_dBc": -86.86817977731955
+ },
+ "specs": {
+  "BST-05": {
+   "metric": "sfdr_dBc",
+   "value": 90.63157311269214,
+   "limit": ">= 82",
+   "pass": true
+  },
+  "BST-06": {
+   "metric": "sndr_dB",
+   "value": 76.73715267507872,
+   "limit": ">= 78",
+   "pass": false
+  }
+ },
+ "meta": {
+  "date": "2026-10-26T22:40:14",
+  "git": "5fc4eb6",
+  "mode": "aps",
+  "pdk": true,
+  "mc": null,
+  "wall_s": 61.3,
+  "rc": "0",
+  "sim_s": "54",
+  "files": {
+   "design/behav/adc_bootstrap.scs": "26fbce9bb84c29b7",
+   "design/behav/adc_cdac.scs": "67b731e22726f3a9",
+   "design/behav/adc_clkgen.scs": "7f106af5f27b5b27",
+   "design/behav/adc_comp.scs": "25d8ce19a12c4233",
+   "design/behav/adc_ref.scs": "5f2ba0ad8f9366a3",
+   "design/behav/adc_sarlogic.scs": "025d3b37b5911939",
+   "design/top/adc_top.scs": "65a5e9ca6189ff7d",
+   "design/behav/veriloga/adc_bootstrap_va.va": "a6afdb6e2e03593b",
+   "design/behav/veriloga/adc_cdac_sw_va.va": "cb43ced3f53d636b",
+   "design/behav/veriloga/adc_clkgen_va.va": "727f8a54cde10a53",
+   "design/behav/veriloga/adc_comp_va.va": "ab8a6bf210351e31",
+   "design/behav/veriloga/adc_ktc_va.va": "a1cf98faf5bf9b33",
+   "design/behav/veriloga/adc_ref_va.va": "1f0fb3058cf9ef9e",
+   "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
+   "tb/common/veriloga/tb_sampler_va.va": "90b38a2f1bd04f1b",
+   "tb/bootstrap/tb_bootstrap_track.scs": "8bccbc0c9241ecc4",
+   "specs/arch.yaml": "1b6d99db0c79903d",
+   "specs/blocks/adc_bootstrap.yaml": "61121f173e9c5d69"
+  }
+ }
+}

@@ -70,7 +70,7 @@ operating:
   load_clkc: 20.0e-15       # F, comparator clock input
   load_dout: 50.0e-15       # F per D output and RDY (output port)
 specs:
-  - {id: LOG-01, name: "functional errors (1000 conversions vs ideal emulator)", metric: func_errors, unit: count, max: 0, corners: all, test: tb_sarlogic_func}
+  - {id: LOG-01, name: "functional errors (1000 conversions vs ideal emulator)", metric: func_errors, unit: count, max: 0, corners: all, test: tb_sarlogic_rand}
   - {id: LOG-02, name: "OUTP/OUTN rise -> UP/DN 50 %",            metric: t_bit_ps,    unit: ps, max: 35,  corners: typ, test: tb_sarlogic_func}
   - {id: LOG-03, name: "OUTP/OUTN rise -> CLKC fall 50 %",         metric: t_rst_ps,    unit: ps, max: 40,  corners: typ, test: tb_sarlogic_func}
   - {id: LOG-04, name: "DAC wait UP/DN -> CLKC rise, steps 1-6",   metric: t_dac_fast_ps, unit: ps, min: 35, max: 60, corners: typ, test: tb_sarlogic_func}
@@ -88,15 +88,23 @@ tests:
     netlist: tb/sarlogic/tb_sarlogic_func.scs
     measure: adcflow.measure.sarlogic:func
     desc: >
-      CONV from an ideal 100 MHz clock. A Verilog-A comparator emulator holds a
+      60 conversions with waveforms for the loop timing. CONV from an ideal
+      100 MHz clock. A Verilog-A comparator emulator holds a
       pseudo-random input per conversion, follows the DAC level from UP/DN and
       answers each CLKC with a delay t0 + tau*ln(vsat/|residue|); it logs the
       ideal decisions. The capture monitor logs D at RDY. Checks bits, timing
       of every loop edge, conversion time and DVDD energy.
+  tb_sarlogic_rand:
+    netlist: tb/sarlogic/tb_sarlogic_func.scs
+    measure: adcflow.measure.sarlogic:func
+    params: {nconv: 1000, nowave: 1}
+    desc: >
+      1000 random conversions without waveforms: bit-exact comparison with the
+      emulator (and of the DAC level the emulator reads before each decision).
   tb_sarlogic_func_slow:
     netlist: tb/sarlogic/tb_sarlogic_func.scs
     measure: adcflow.measure.sarlogic:func
-    params: {t0cmp: 70.0e-12, nconv: 100}
+    params: {t0cmp: 70.0e-12, nconv: 100, nowave: 1}
     desc: >
       Same as func with a slow-corner comparator (70 ps large-signal delay)
       for the all-corner conversion-time limit.

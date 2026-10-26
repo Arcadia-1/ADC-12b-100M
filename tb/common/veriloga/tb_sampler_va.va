@@ -18,7 +18,7 @@ module tb_sampler_va(P, N, TRIG, VSS);
   real t_s;
 
   analog begin
-    @(initial_step) begin fh = $fopen(fname, "w"); n = 0; t_s = 1e9; end
+    @(initial_step("tran")) begin fh = $fopen(fname, "w"); n = 0; t_s = 1e9; end
     @(cross(V(TRIG, VSS) - vth, dir, ttol)) begin
       if ($abstime >= tstart) begin
         if (delay > 0) t_s = $abstime + delay;
@@ -33,6 +33,6 @@ module tb_sampler_va(P, N, TRIG, VSS);
       $fwrite(fh, "%d %.9e %.12e\n", n, $abstime, V(P, N));
       t_s = 1e9;
     end
-    @(final_step) $fclose(fh);
+    @(final_step("tran")) $fclose(fh);
   end
 endmodule

@@ -291,12 +291,13 @@ def tb_sarlogic() -> list[TBDef]:
     els += _sup("DVDD", "vdd", True, t0="tper", t1="tstop")
     return [TBDef(
         "tb/sarlogic/tb_sarlogic_func.scs", "tb_sarlogic_func: SAR controller against a comparator emulator",
-        ["parameters nconv=400 t0cmp=45p stuck=0 tper=10n tconv=4.8n tdel=0.12n cupdn=12f cclk=20f cload=50f",
+        ["parameters nconv=60 t0cmp=45p stuck=0 nowave=0 tper=10n tconv=4.8n tdel=0.12n cupdn=12f cclk=20f cload=50f",
          "parameters tstop=nconv*tper+tdel+1n"],
-        els, ["tran1 tran stop=tstop",
+        els, ["tran1 tran stop=tstop outputstart=nowave*tstop",
               "save CONV CLKC OUTP OUTN RDY UP12 DN12 UP6 DN6 UP0 DN0 D0"],
         notes=["UP/DN loaded by cupdn and CLKC by cclk inside the emulator, D/RDY by cload inside the capture",
-               "stuck=k: the emulator never answers decision k of every odd conversion (timeout test)"])]
+               "stuck=k: the emulator never answers decision k of every odd conversion (timeout test);"
+               " nowave=1 writes no waveforms (long functional runs)"])]
 
 
 def _cdac_ports(vin: str, vg: str, top: str, dh: list[str], rl: list[str]) -> list[str]:
@@ -374,7 +375,7 @@ def tb_cdac() -> list[TBDef]:
         "tb/cdac/tb_cdac_track.scs", "tb_cdac_track: sampling-network linearity of the two CDACs from 50 ohm",
         ["parameters fin=49.8046875e6 amp_dbfs=-1 npts=256 nskip=4 tper=10n fs_peak=0.9987 vcm_in=0.45 rsrc=50 ctop=15f",
          "parameters amp=fs_peak*pow(10, amp_dbfs/20) tstart=nskip*tper tstop=(nskip+npts+0.5)*tper"],
-        els, ["tran1 tran stop=tstop outputstart=tstop", "tbopts options save=none"],
+        els, ["tran1 tran stop=tstop outputstart=tstop", "tbopts options save=none reltol=1e-5 vabstol=1e-8"],
         notes=["V(TOPP) - V(TOPN) 300 ps after CONV rises (neutral DAC, no decisions) is the sampled input"]))
     return out
 
@@ -416,7 +417,7 @@ def tb_bootstrap() -> list[TBDef]:
         "tb/bootstrap/tb_bootstrap_track.scs", "tb_bootstrap_track: differential tracking linearity with the reference switch",
         ["parameters fin=49.8046875e6 amp_dbfs=-1 npts=256 nskip=4 tper=10n fs_peak=0.9987 vcm_in=0.45 rsrc=50 wsw=48u cs=1.0235p",
          "parameters amp=fs_peak*pow(10, amp_dbfs/20) tstart=nskip*tper tstop=(nskip+npts+0.5)*tper"],
-        els, ["tran1 tran stop=tstop outputstart=tstop", "tbopts options save=none"]))
+        els, ["tran1 tran stop=tstop outputstart=tstop", "tbopts options save=none reltol=1e-5 vabstol=1e-8"]))
     return out
 
 

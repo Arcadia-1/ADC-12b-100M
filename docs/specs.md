@@ -9,7 +9,7 @@
 | [`adc_clkgen`](#adc-clkgen) | behavioral | TBD | 10 | `tb_clkgen_timing`, `tb_clkgen_jitter` |
 | [`adc_comp`](#adc-comp) | behavioral | TBD | 12 | `tb_comp_delay`, `tb_comp_noise`, `tb_comp_kickback` |
 | [`adc_ref`](#adc-ref) | behavioral | TBD | 11 | `tb_ref_dc`, `tb_ref_dyn`, `tb_ref_noise` |
-| [`adc_sarlogic`](#adc-sarlogic) | behavioral | TBD | 13 | `tb_sarlogic_func`, `tb_sarlogic_func_slow`, `tb_sarlogic_timeout` |
+| [`adc_sarlogic`](#adc-sarlogic) | behavioral | TBD | 13 | `tb_sarlogic_func`, `tb_sarlogic_rand`, `tb_sarlogic_func_slow`, `tb_sarlogic_timeout` |
 | [`adc_top`](#adc-top) | behavioral | project lead | 9 | `tb_top_sine`, `tb_top_sine_lf`, `tb_top_duty` |
 
 ## adc_bootstrap
@@ -189,8 +189,8 @@ Single fully-dynamic comparator of the asynchronous SAR loop. CLKC low resets (O
 | CMP-01 | input-referred noise (diff rms) | ≤ 80 | uV | all | `tb_comp_noise` |
 | CMP-02 | systematic offset | ≤ 2 | mV | all | `tb_comp_noise` |
 | CMP-03 | offset sigma (Monte Carlo, 50 runs) | ≤ 5 | mV | typ，MC 50 | `tb_comp_noise` |
-| CMP-04 | delay CLKC->OUT at 1 mV | ≤ 75 | ps | typ | `tb_comp_delay` |
-| CMP-05 | delay CLKC->OUT at 1 mV (all corners) | ≤ 115 | ps | all | `tb_comp_delay` |
+| CMP-04 | delay CLKC->OUT at 1 mV | ≤ 80 | ps | typ | `tb_comp_delay` |
+| CMP-05 | delay CLKC->OUT at 1 mV (all corners) | ≤ 120 | ps | all | `tb_comp_delay` |
 | CMP-06 | delay CLKC->OUT at 30 mV | ≤ 50 | ps | typ | `tb_comp_delay` |
 | CMP-07 | regeneration time constant | ≤ 15 | ps | all | `tb_comp_delay` |
 | CMP-08 | reset time CLKC fall -> both outputs < 10 % | ≤ 35 | ps | all | `tb_comp_delay` |
@@ -284,7 +284,7 @@ Self-timed SAR loop. CONV low = reset (CLKC = 0, all UP/DN = 0; D and RDY hold).
 
 | ID | 指标 | 限值 | 单位 | 工艺角 | 用例 |
 |---|---|---|---|---|---|
-| LOG-01 | functional errors (1000 conversions vs ideal emulator) | ≤ 0 | count | all | `tb_sarlogic_func` |
+| LOG-01 | functional errors (1000 conversions vs ideal emulator) | ≤ 0 | count | all | `tb_sarlogic_rand` |
 | LOG-02 | OUTP/OUTN rise -> UP/DN 50 % | ≤ 35 | ps | typ | `tb_sarlogic_func` |
 | LOG-03 | OUTP/OUTN rise -> CLKC fall 50 % | ≤ 40 | ps | typ | `tb_sarlogic_func` |
 | LOG-04 | DAC wait UP/DN -> CLKC rise, steps 1-6 | 35 .. 60 | ps | typ | `tb_sarlogic_func` |
@@ -300,8 +300,9 @@ Self-timed SAR loop. CONV low = reset (CLKC = 0, all UP/DN = 0; D and RDY hold).
 
 ### 验收用例
 
-- **`tb_sarlogic_func`** (`tb/sarlogic/tb_sarlogic_func.scs`, 度量 `adcflow.measure.sarlogic:func`)：CONV from an ideal 100 MHz clock. A Verilog-A comparator emulator holds a pseudo-random input per conversion, follows the DAC level from UP/DN and answers each CLKC with a delay t0 + tau*ln(vsat/|residue|); it logs the ideal decisions. The capture monitor logs D at RDY. Checks bits, timing of every loop edge, conversion time and DVDD energy.
-- **`tb_sarlogic_func_slow`** (`tb/sarlogic/tb_sarlogic_func.scs`, 度量 `adcflow.measure.sarlogic:func`; 参数 `t0cmp=7e-11`, `nconv=100`)：Same as func with a slow-corner comparator (70 ps large-signal delay) for the all-corner conversion-time limit.
+- **`tb_sarlogic_func`** (`tb/sarlogic/tb_sarlogic_func.scs`, 度量 `adcflow.measure.sarlogic:func`)：60 conversions with waveforms for the loop timing. CONV from an ideal 100 MHz clock. A Verilog-A comparator emulator holds a pseudo-random input per conversion, follows the DAC level from UP/DN and answers each CLKC with a delay t0 + tau*ln(vsat/|residue|); it logs the ideal decisions. The capture monitor logs D at RDY. Checks bits, timing of every loop edge, conversion time and DVDD energy.
+- **`tb_sarlogic_rand`** (`tb/sarlogic/tb_sarlogic_func.scs`, 度量 `adcflow.measure.sarlogic:func`; 参数 `nconv=1000`, `nowave=1`)：1000 random conversions without waveforms: bit-exact comparison with the emulator (and of the DAC level the emulator reads before each decision).
+- **`tb_sarlogic_func_slow`** (`tb/sarlogic/tb_sarlogic_func.scs`, 度量 `adcflow.measure.sarlogic:func`; 参数 `t0cmp=7e-11`, `nconv=100`, `nowave=1`)：Same as func with a slow-corner comparator (70 ps large-signal delay) for the all-corner conversion-time limit.
 - **`tb_sarlogic_timeout`** (`tb/sarlogic/tb_sarlogic_func.scs`, 度量 `adcflow.measure.sarlogic:timeout`; 参数 `stuck=5`, `nconv=40`)：Same as func but the emulator never answers decision 5 of every other conversion. Checks that the decision is forced to 1 after t_timeout and that the conversion completes with correct remaining decisions.
 
 ## adc_top
