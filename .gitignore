@@ -54,3 +54,7 @@ Thumbs.db
 
 # --- Generated drawings (reproducible with `python -m adcflow render`) ---
 build/svg/
+
+# --- Site configuration: servers, server paths, PDK locations (never commit) ---
+site.local.yaml
+.adcflow/

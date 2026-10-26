@@ -26,16 +26,17 @@ SIM_YAML = REPO_ROOT / "specs" / "sim.yaml"
 
 @lru_cache
 def cfg() -> dict:
+    """specs/sim.yaml (site independent) merged with the `sim` section of the site config."""
+    from .site import site
+
     with open(SIM_YAML, encoding="utf-8") as f:
         c = yaml.safe_load(f)
-    user_cfg = Path.home() / ".adcflow.yaml"
-    if user_cfg.exists():
-        with open(user_cfg, encoding="utf-8") as f:
-            c.update(yaml.safe_load(f) or {})
-    for key, env in (("host", "ADCFLOW_HOST"), ("remote_root", "ADCFLOW_REMOTE_ROOT"),
-                     ("cshrc", "ADCFLOW_CSHRC")):
-        if os.environ.get(env):
-            c[key] = os.environ[env]
+    c.update(site().get("sim") or {})
+    if os.environ.get("ADCFLOW_HOST"):
+        c["host"] = os.environ["ADCFLOW_HOST"]
+    for key in ("host", "remote_root", "env_setup"):
+        if not c.get(key):
+            raise RuntimeError(f"site config {site()['_path']}: sim.{key} is required")
     return c
 
 
@@ -130,6 +131,7 @@ def run_jobs(remote_dir: str, jobs: list[str], mode_args: list[str], parallel: i
     shared compiled Verilog-A library is built once."""
     c = cfg()
     spectre = c.get("spectre", "spectre")
+    setup = "; ".join(f"{cmd} >& /dev/null" for cmd in c["env_setup"])
     args = " ".join(shlex.quote(a) for a in mode_args)
     rd = shlex.quote(remote_dir)
     joblist = "\n".join(jobs)
@@ -145,7 +147,7 @@ cat > $R/run_one.sh <<'EOS'
 R="$1"; J="$2"; D="$R/jobs/$J"
 cd "$D" || exit 1
 start=$(date +%s)
-csh -c "source {c['cshrc']} >& /dev/null; cd $D; {spectre} -64 deck.scs +escchars +log spectre.log -format psfascii -raw deck.raw -ahdllibdir $R/ahdl_lib {args} +lqtimeout 900 -maxw 5 -maxn 5 >& spectre.stdout.log"
+csh -c "{setup}; cd $D; {spectre} -64 deck.scs +escchars +log spectre.log -format psfascii -raw deck.raw -ahdllibdir $R/ahdl_lib {args} +lqtimeout 900 -maxw 5 -maxn 5 >& spectre.stdout.log"
 rc=$?
 echo "$rc $(( $(date +%s) - start ))" > rc.txt
 EOS

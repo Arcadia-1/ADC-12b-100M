@@ -61,15 +61,17 @@ def corner_set(spec: str) -> list[Corner]:
 
 
 def model_includes(corner: Corner, mc: str | None = None) -> str:
-    """Spectre include lines for the corner (server paths; nothing is copied)."""
+    """Spectre include lines for the corner (server paths from the site config; nothing is copied)."""
+    from .site import get
+
     pdk = _cfg()["pdk"]
-    d = pdk["model_dir"]
+    d = get("pdk", "model_dir")
     if mc:
         secs = pdk["mc_sections"][mc]
     else:
         secs = pdk["sections"][corner.process]
-    core = f"{d}/{pdk['core_file']}"
-    hv = f"{d}/{pdk['hv_file']}"
+    core = f"{d}/{get('pdk', 'core_file')}"
+    hv = f"{d}/{get('pdk', 'hv_file')}"
     lines = [f'include "{core}" section={secs["mos"]}',
              f'include "{core}" section={secs["res"]}',
              f'include "{core}" section={secs["mom"]}']
