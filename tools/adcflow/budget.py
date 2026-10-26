@@ -32,7 +32,8 @@ def noise_table(arch: Arch) -> str:
         ("Comparator, 80 uV at top plate", 80e-6 / a.gain_top, replace(base, sigma_cmp_top=80e-6)),
         ("Aperture jitter 100 fs @ 49.9 MHz", sig * 2 * np.pi * 49.9e6 * 100e-15, replace(base, jitter_rms=100e-15)),
         ("DAC settling tau 15 ps, 40/75 ps waits", None, replace(base, tau_dac=15e-12, tau_start=20e-12)),
-        ("VREFP droop, 2 nF decap", None, replace(base, c_dec=2e-9, ref_signal_coupling=True)),
+        ("VREFP, behavioral adc_ref (2 nF, 1 ohm, 50 MHz)", None,
+         replace(base, ref_net=m.RefNet.behav(), ref_signal_coupling=True)),
     ]
     out = ["| Contributor | Input-referred rms (uV) | SNDR alone (dB) | ENOB alone |",
            "|---|---|---|---|"]

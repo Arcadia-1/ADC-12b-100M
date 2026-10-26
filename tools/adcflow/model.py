@@ -21,6 +21,66 @@ from .arch import Arch, K_BOLTZMANN
 
 
 @dataclass
+class RefNet:
+    """Small-signal VREFP network seen by the CDAC: driver plus on-chip capacitors.
+
+    The driver is a one-pole loop (DC gain ``a0``, unity-gain frequency ``f_u``)
+    around an output stage of resistance ``r_o``: its output impedance rises from
+    r_o / a0 to r_o and is inductive in between (L = r_o / (2 pi f_u)); ``f_u=None``
+    makes it a plain ``r_o``. ``c1`` / ``esr1`` is the low-ESR on-chip capacitor
+    (MOM); ``c2`` in series with ``r2`` is an optional damping branch (a decap with
+    a series resistor, zero at 1 / (r2 c2)).
+    """
+    r_o: float = 20.0
+    f_u: float | None = 500e6
+    a0: float = 100.0
+    c1: float = 100e-12
+    esr1: float = 0.0
+    c2: float = 0.0
+    r2: float = 0.0
+
+    @classmethod
+    def behav(cls, cdec: float = 2e-9, esr: float = 0.5, rout: float = 1.0, fbw: float = 50e6) -> "RefNet":
+        """The behavioral adc_ref (design/behav/adc_ref.scs): a transconductance driver
+        (DC resistance rout, error filtered at fbw, i.e. rout + s*rout/(2 pi fbw)) with
+        cdec + esr; the limit of the one-pole loop for a large r_o."""
+        big = 1e6
+        return cls(r_o=rout * big, a0=big, f_u=fbw * big, c1=cdec, esr1=esr)
+
+    def modes(self) -> tuple[np.ndarray, np.ndarray]:
+        """Poles p (1/s) and residues r (V/C/s): a charge Q drawn at t = 0 moves VREFP
+        by -Q * sum(r * exp(p t)). The instantaneous (ESR) term belongs to the CDAC
+        settling and is left out."""
+        P = np.polynomial.polynomial
+        ts = 1e-9                     # s in 1/ns and C in nF keep the coefficients near 1
+        if self.f_u is None:
+            branches = [([1.0], [self.r_o])]
+        else:
+            wu = 2 * np.pi * self.f_u * ts
+            branches = [([wu, 1.0], [self.r_o * wu / self.a0, self.r_o])]
+        for c, r in ((self.c1, self.esr1), (self.c2, self.r2)):
+            if c > 0:
+                branches.append(([0.0, c / ts], [1.0, r * c / ts]))
+        num, den = np.array([0.0]), np.array([1.0])        # admittance num / den, low order first
+        for bn, bd in branches:
+            num = P.polyadd(P.polymul(num, bd), P.polymul(bn, den))
+            den = P.polymul(den, bd)
+        num, den = np.trim_zeros(num, "b"), np.trim_zeros(den, "b")
+        poles = P.polyroots(num)
+        res = P.polyval(poles, den) / P.polyval(poles, P.polyder(num))
+        return poles.astype(complex) / ts, res.astype(complex) / ts
+
+
+def _ref_modes(ni: "NonIdeal") -> tuple[np.ndarray, np.ndarray]:
+    if ni.ref_net is None:
+        return np.array([-1.0 / ni.tau_ref], complex), np.array([1.0 / ni.c_dec], complex)
+    p, r = ni.ref_net.modes()
+    if np.any(p.real >= 0):
+        raise ValueError(f"VREFP network is not stable: poles {p}")
+    return p, r
+
+
+@dataclass
 class NonIdeal:
     temp_c: float = 27.0
     ktc: bool = True                 # sampled kT/C noise
@@ -36,8 +96,10 @@ class NonIdeal:
     n_fast: int = 6                  # steps 1..n_fast use t_dac_fast (redundancy covers them)
     tau_start: float = 20e-12        # conversion-start (VIN -> neutral) settling
     # reference
-    c_dec: float = 2e-9              # VREFP decoupling (F)
-    tau_ref: float = 50e-9           # recovery time constant of VREFP (driver output R x C_dec, or loop)
+    ref_net: RefNet | None = field(default_factory=RefNet.behav)   # VREFP network (behavioral adc_ref)
+    c_dec: float = 2e-9              # single-pole VREFP model when ref_net is None: decap (F) ...
+    tau_ref: float = 50e-9           # ... and recovery time constant (s)
+    ref_periodic: bool = True        # VREFP still recovering from the earlier conversions
     ref_start_charge: bool = True    # H halves VIN -> VREFP at CONV rise (C_S*(VREF - Vcm_in), ~0.46 pC)
     ref_signal_coupling: bool = True # second-order top-plate coupling charge
     # comparator / loop timing
@@ -91,10 +153,35 @@ def convert(vin: np.ndarray, arch: Arch | None = None, ni: NonIdeal | None = Non
             t_sample: np.ndarray | None = None, dvdt: np.ndarray | None = None) -> Result:
     """Convert differential input samples ``vin`` (V).
 
-    ``dvdt`` (V/s) is used for aperture-jitter noise when given.
+    ``dvdt`` (V/s) is used for aperture-jitter noise when given. With
+    ``ni.ref_periodic`` the samples are taken as consecutive conversions: a first
+    pass gives each conversion's reference charge, a second converts with VREFP
+    still recovering from all the earlier conversions (wrapping around, as for a
+    coherent test).
     """
     arch = arch or Arch.load()
     ni = ni or NonIdeal()
+    p, r = _ref_modes(ni)
+    x0 = np.zeros((np.size(vin), p.size), complex)
+    res, own, t_last = _convert(vin, arch, ni, dvdt, p, r, x0)
+    if not ni.ref_periodic:
+        return res
+    # conversion m-1 seen from the reference time of conversion m, then the geometric
+    # tail of the older ones as a circular convolution over the samples
+    tper = 1.0 / arch.fs
+    u = own * np.exp(np.outer(res.info["t_ref"] + tper - t_last, p))
+    n = u.shape[0]
+    g = np.exp(np.outer(np.arange(n), p * tper)) / (1 - np.exp(p * tper * n))
+    g = np.roll(g, 1, axis=0)                     # g[l] multiplies u[m - l], l >= 1
+    x0 = np.fft.ifft(np.fft.fft(u, axis=0) * np.fft.fft(g, axis=0), axis=0)
+    res, _, _ = _convert(vin, arch, ni, dvdt, p, r, x0)
+    return res
+
+
+def _convert(vin, arch: Arch, ni: NonIdeal, dvdt, p, r, x0):
+    """One pass of :func:`convert`; ``x0`` is the VREFP modal state that the earlier
+    conversions leave at this conversion's reference time. Returns the result, the
+    conversion's own modal state at its last DAC switch, and that time."""
     rng = np.random.default_rng(ni.seed)
     n = vin.size
     lsb = arch.lsb
@@ -122,15 +209,20 @@ def convert(vin: np.ndarray, arch: Arch | None = None, ni: NonIdeal | None = Non
     active = np.ones(n, dtype=bool)
     forced = np.zeros(n, dtype=int)
     last_step = np.zeros(n)
-    # reference droop bookkeeping (V), deterministic sequence + optional coupling
-    dvref = np.zeros(n)
-    t_prev = np.full(n, ni.t_start)
+    # reference droop bookkeeping: modal state of the VREFP response (V) at t_prev,
+    # own = this conversion's charges only (deterministic sequence + optional coupling)
+    t_ref = ni.t_start - 0.1e-9 if ni.ref_start_charge else ni.t_start
+    own = np.zeros((n, p.size), complex)
+    t_prev = np.full(n, t_ref)
     if ni.ref_start_charge:
         # conversion start (CONV rise, ~100 ps before the first comparison): the H halves
         # of the sampled caps go from VIN to VREFP; the P+N sum is signal independent
         vin_cm = float(arch.raw["reference"]["vin_cm"])
-        dvref = dvref - arch.c_s * (arch.vref - vin_cm) / ni.c_dec
-        t_prev = np.full(n, ni.t_start - 0.1e-9)
+        own = own - arch.c_s * (arch.vref - vin_cm) * r
+    dv_dec = np.zeros((n, arch.n_dec))           # VREFP deviation seen by each decision (V)
+    t_dec = np.zeros((n, arch.n_dec))            # comparator clock of each decision (s)
+    q_sw = np.zeros((n, arch.n_dec - 1))         # VREFP charge of each DAC switch (C)
+    t_swk = np.zeros((n, arch.n_dec - 1))        # ... and its time (s)
     sig_cmp_lsb = ni.sigma_cmp_top / gain_top / lsb
     vos_lsb = ni.vos_cmp_top / gain_top / lsb
 
@@ -139,7 +231,10 @@ def convert(vin: np.ndarray, arch: Arch | None = None, ni: NonIdeal | None = Non
         # the part of the previous DAC step that has not settled yet, plus the
         # reference droop acting on the applied DAC level.
         settle = np.exp(-_t_dac(ni, k - 1) / ni.tau_dac) if k > 0 else 0.0
-        dv_ref_now = dvref * np.exp(-(t - t_prev) / ni.tau_ref)
+        dv_ref_now = ((own * np.exp(np.outer(t - t_prev, p))).sum(1)
+                      + (x0 * np.exp(np.outer(t - t_ref, p))).sum(1)).real
+        dv_dec[:, k] = dv_ref_now
+        t_dec[:, k] = t
         seen = (res - level) + last_step * settle - level * dv_ref_now / arch.vref
         if k == 0:
             seen = seen * (1 - np.exp(-(ni.t_start - 0.1e-9) / ni.tau_start))
@@ -161,19 +256,27 @@ def convert(vin: np.ndarray, arch: Arch | None = None, ni: NonIdeal | None = Non
             # reference droop: one half-cap of weight w rises to VREFP per decision
             q = arch.w[j] * arch.cu / 2 * arch.vref
             if ni.ref_signal_coupling:
-                # top-plate movement couples charge through the caps at VREFP
-                q = q + np.abs(step) * lsb * gain_top * arch.cu * np.abs(level) * 0.5
-            dvref = dv_ref_now - q / ni.c_dec
-            t_prev = t + t_cmp
+                # the P top plate moves by step*lsb*gain_top/2 (N the opposite way); the caps
+                # at VREFP differ by cu*level between P and N, so that movement returns
+                # cu*level*dV to VREFP (level at mid-step). Summed over a conversion this is
+                # -cu*lsb*gain_top*L^2/4, about 0.23 pC at full scale
+                q = q - 0.5 * step * lsb * gain_top * arch.cu * (level - 0.5 * step)
+            t_sw = t + t_cmp
+            q_sw[:, k], t_swk[:, k] = q, t_sw
+            own = own * np.exp(np.outer(t_sw - t_prev, p)) - np.outer(q * np.ones(n), r)
+            t_prev = t_sw
             t = t + t_cmp + ni.t_loop + _t_dac(ni, k)
         else:
             t = t + t_cmp + ni.t_loop
         active = done_in_time
     codes = bits.astype(float) @ arch.out_weights
     w_eff = np.concatenate([up + dn, [1.0]])
-    return Result(bits=bits, codes=codes, t_conv=t, incomplete=~active,
-                  forced=forced, weights_eff=w_eff,
-                  info={"gain_top": gain_top, "lsb": lsb, "cs_scale": cs_scale})
+    return (Result(bits=bits, codes=codes, t_conv=t, incomplete=~active,
+                   forced=forced, weights_eff=w_eff,
+                   info={"gain_top": gain_top, "lsb": lsb, "cs_scale": cs_scale,
+                         "t_ref": t_ref, "dvref": dv_dec, "t_dec": t_dec,
+                         "q_sw": q_sw, "t_sw": t_swk}),
+            own, t_prev)
 
 
 def sine_test(arch: Arch | None = None, ni: NonIdeal | None = None, n_fft: int = 4096,
@@ -203,5 +306,5 @@ def spectrum_metrics(codes: np.ndarray, fs: float, n_codes: int | None = None) -
 def ideal(**over) -> NonIdeal:
     """A NonIdeal with every impairment off (quantization only)."""
     base = NonIdeal(ktc=False, sigma_cmp_top=0.0, jitter_rms=0.0, sigma_cu=0.0,
-                    tau_dac=1e-15, tau_start=1e-15, c_dec=1.0, ref_signal_coupling=False)
+                    tau_dac=1e-15, tau_start=1e-15, ref_net=None, c_dec=1.0, ref_signal_coupling=False)
     return replace(base, **over)
