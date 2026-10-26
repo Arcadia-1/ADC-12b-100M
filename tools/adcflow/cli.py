@@ -17,7 +17,7 @@ def main(argv: list[str] | None = None) -> int:
     c.add_argument("set", nargs="?", default="all")
 
     g = sub.add_parser("gen", help="regenerate files derived from specs/")
-    g.add_argument("what", choices=["rnl", "va-params", "docs", "all"], nargs="?", default="all")
+    g.add_argument("what", choices=["rnl", "va-params", "top", "tb", "docs", "all"], nargs="?", default="all")
     g.add_argument("--check", action="store_true", help="fail if a generated file is out of date")
 
     k = sub.add_parser("check", help="CI checks")
@@ -31,7 +31,8 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("--view", action="append", default=[],
                    help="block=view override, e.g. adc_comp=xtor (default: behav)")
     s.add_argument("--param", action="append", default=[], help="tb parameter override name=value")
-    s.add_argument("--mode", default="ax", help="spectre preset: spectre aps cx ax mx")
+    s.add_argument("--mode", default="aps",
+                   help="spectre mode: spectre aps cx ax mx (default aps; ax/mx lose accuracy with the Verilog-A views)")
     s.add_argument("--jobs", type=int, default=6)
     s.add_argument("--keep", action="store_true", help="keep the remote run directory")
     s.add_argument("--no-record", action="store_true", help="do not write results/")

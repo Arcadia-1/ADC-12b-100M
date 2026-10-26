@@ -1,0 +1,158 @@
+// adc_sarlogic, behavioral view: asynchronous SAR controller
+// @RNL(type="header") {
+//   @VERSION("0.3");
+//   @USE-PACKAGE(name="adc28", version="0.1", path="../rnl/adc28.rnl")
+// }
+simulator lang=spectre
+
+subckt adc_sarlogic (CONV OUTP OUTN CLKC UP12 UP11 UP10 UP9 UP8 UP7 UP6 UP5 UP4 UP3 UP2 \
+        UP1 UP0 DN12 DN11 DN10 DN9 DN8 DN7 DN6 DN5 DN4 DN3 DN2 DN1 DN0 D13 D12 D11 D10 D9 \
+        D8 D7 D6 D5 D4 D3 D2 D1 D0 RDY DVDD VSS)
+// Behavioral view. Uses the deck global beh_speed.
+parameters t_start=100p t_bitd=30p t_rst=35p t_dac_fast=40p t_dac_slow=75p t_timeout=250p \
+        t_rdy=140p e_dec=150f
+I0 (CONV OUTP OUTN CLKC UP12 UP11 UP10 UP9 UP8 UP7 UP6 UP5 UP4 UP3 UP2 UP1 UP0 DN12 DN11 \
+        DN10 DN9 DN8 DN7 DN6 DN5 DN4 DN3 DN2 DN1 DN0 D13 D12 D11 D10 D9 D8 D7 D6 D5 D4 D3 \
+        D2 D1 D0 RDY DVDD VSS) adc_sarlogic_va \
+        speed=beh_speed t_start=t_start t_bitd=t_bitd t_rst=t_rst t_dac_fast=t_dac_fast \
+        t_dac_slow=t_dac_slow t_timeout=t_timeout t_rdy=t_rdy e_dec=e_dec
+// @RNL {
+//   /* --- semantics --- */
+//   &DVDD @ADD-TO $SUPPLY_NET_SET;
+//   &VSS @ADD-TO $GROUND_NET_SET;
+//   /* --- placement and wires: the buses UP, DN and D leave as one bus port each --- */
+//   #I0 @PLACE(0, 0);
+//   %p_conv = $IO_PORT @ATTACH &CONV => @PLACE(-11, 5) => @ORIENT("R0");
+//   &CONV @WIRE {%p_conv:p #I0:CONV};
+//   %p_outp = $IO_PORT @ATTACH &OUTP => @PLACE(-11, 1) => @ORIENT("R0");
+//   &OUTP @WIRE {%p_outp:p #I0:OUTP};
+//   %p_outn = $IO_PORT @ATTACH &OUTN => @PLACE(-11, -1) => @ORIENT("R0");
+//   &OUTN @WIRE {%p_outn:p #I0:OUTN};
+//   %p_clkc = $IO_PORT @ATTACH &CLKC => @PLACE(-11, -5) => @ORIENT("R0");
+//   &CLKC @WIRE {%p_clkc:p #I0:CLKC};
+//   %p_up = (13, 3)(p) {&UP12 &UP11 &UP10 &UP9 &UP8 &UP7 &UP6 &UP5 &UP4 &UP3 &UP2 &UP1 &UP0}(nets) @AS $BUS_PORT => @ORIENT("MY");
+//   %p_up @TEXT("UP<12:0>", key="name");
+//   %bus_up = {&UP12 &UP11 &UP10 &UP9 &UP8 &UP7 &UP6 &UP5 &UP4 &UP3 &UP2 &UP1 &UP0} @WIRE {#I0:UP12 %p_up:p};
+//   %p_dn = (13, -3)(p) {&DN12 &DN11 &DN10 &DN9 &DN8 &DN7 &DN6 &DN5 &DN4 &DN3 &DN2 &DN1 &DN0}(nets) @AS $BUS_PORT => @ORIENT("MY");
+//   %p_dn @TEXT("DN<12:0>", key="name");
+//   %bus_dn = {&DN12 &DN11 &DN10 &DN9 &DN8 &DN7 &DN6 &DN5 &DN4 &DN3 &DN2 &DN1 &DN0} @WIRE {#I0:DN12 %p_dn:p};
+//   %p_d = (-2, -13)(p) {&D13 &D12 &D11 &D10 &D9 &D8 &D7 &D6 &D5 &D4 &D3 &D2 &D1 &D0}(nets) @AS $BUS_PORT => @ORIENT("R90");
+//   %p_d @TEXT("D<13:0>", key="name");
+//   %bus_d = {&D13 &D12 &D11 &D10 &D9 &D8 &D7 &D6 &D5 &D4 &D3 &D2 &D1 &D0} @WIRE {#I0:D13 %p_d:p};
+//   %p_rdy = $IO_PORT @ATTACH &RDY => @PLACE(2, -12) => @ORIENT("R90");
+//   &RDY @WIRE {#I0:RDY %p_rdy:p};
+//   %g1 = $GROUND @ATTACH &VSS => @PLACE(5, -10);
+//   &VSS @WIRE {#I0:VSS %g1:p};
+//   %s1 = $SUPPLY @ATTACH &DVDD => @PLACE(0, 10);
+//   &DVDD @WIRE {#I0:DVDD %s1:p};
+//   /* --- annotations --- */
+//   (-12, 16) @TEXT("adc_sarlogic (behavioral): asynchronous SAR controller, bit and output registers", halign="start") => @SET-STYLE $title_style;
+//   (-12, 14.5) @TEXT("decision k -> UP/DN<13-k>, D<14-k>; DAC wait 40 ps (steps 1-6) / 75 ps; timeout 250 ps forces 1; all delays scaled by beh_speed", halign="start") => @SET-STYLE $note_style;
+//   (20, 12.5) @TEXT("adc_sarlogic ports", halign="start", bold=true) => @SET-STYLE $note_style;
+//   @RECTANGLE {(20, 12) (52.391, -0.705)} => @SET-STYLE $table_style;
+//   @LINE {(20, 10.845) (52.391, 10.845)} => @SET-STYLE $table_style;
+//   @LINE {(23.552, 12) (23.552, -0.705)} => @SET-STYLE $table_style;
+//   @LINE {(27.423, 12) (27.423, -0.705)} => @SET-STYLE $table_style;
+//   @LINE {(30.656, 12) (30.656, -0.705)} => @SET-STYLE $table_style;
+//   (20.5, 11.4225) @TEXT("pin", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (24.052, 11.4225) @TEXT("direction", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (27.923, 11.4225) @TEXT("type", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (31.156, 11.4225) @TEXT("description", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (20.5, 10.2675) @TEXT("CONV", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 10.2675) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 10.2675) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 10.2675) @TEXT("conversion window from adc_clkgen (high = convert)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 9.1125) @TEXT("OUTP", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 9.1125) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 9.1125) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 9.1125) @TEXT("comparator output, 1 = input above DAC level", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 7.9575) @TEXT("OUTN", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 7.9575) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 7.9575) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 7.9575) @TEXT("comparator output, 1 = input below DAC level", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 6.8025) @TEXT("CLKC", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 6.8025) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 6.8025) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 6.8025) @TEXT("comparator clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 5.6475) @TEXT("UP<12:0>", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 5.6475) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 5.6475) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 5.6475) @TEXT("decision 1 was 1 (raise cap j=12)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 4.4925) @TEXT("DN<12:0>", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 4.4925) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 4.4925) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 4.4925) @TEXT("decision 1 was 0", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 3.3375) @TEXT("D<13:0>", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 3.3375) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 3.3375) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 3.3375) @TEXT("raw bit of decision 1, weight 2048", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 2.1825) @TEXT("RDY", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 2.1825) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 2.1825) @TEXT("digital", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 2.1825) @TEXT("data valid: rises >= 100 ps after D settles, falls at CONV rising", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, 1.0275) @TEXT("DVDD", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, 1.0275) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, 1.0275) @TEXT("supply", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, 1.0275) @TEXT("0.9 V digital supply", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (20.5, -0.1275) @TEXT("VSS", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (24.052, -0.1275) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (27.923, -0.1275) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (31.156, -0.1275) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style
+// }
+// @RNL(author="adcflow gen") {
+//   /* block symbol of adc_sarlogic, generated from tools/adcflow/symbols.py by `python -m adcflow gen` -- do not edit this record */
+//   %adc_sarlogic = @DEFINE-SYMBOL(box=[-7, -9, 8, 8]) {
+//     @LINE(linewidth=0.24) {(-6, -7) (6, -7) (6, 7) (-6, 7) (-6, -7)};
+//     (-7, 5) @PIN(terminal=1, direction="left");
+//     @LINE {(-7, 5) (-6, 5)};
+//     (-5.65, 5) @TEXT("CONV", size=0.55, halign="start", valign="middle");
+//     (-7, 1) @PIN(terminal=2, direction="left");
+//     @LINE {(-7, 1) (-6, 1)};
+//     (-5.65, 1) @TEXT("OUTP", size=0.55, halign="start", valign="middle");
+//     (-7, -1) @PIN(terminal=3, direction="left");
+//     @LINE {(-7, -1) (-6, -1)};
+//     (-5.65, -1) @TEXT("OUTN", size=0.55, halign="start", valign="middle");
+//     (-7, -5) @PIN(terminal=4, direction="left");
+//     @LINE {(-7, -5) (-6, -5)};
+//     (-5.65, -5) @TEXT("CLKC", size=0.55, halign="start", valign="middle");
+//     (8, 3) @PIN(terminal=[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], direction="right");
+//     @LINE(linewidth=0.32) {(8, 3) (6, 3)};
+//     @LINE {(6.75, 2.65) (7.25, 3.35)};
+//     (7, 3.45) @TEXT("13", size=0.45, halign="middle");
+//     (5.65, 3) @TEXT("UP<12:0>", size=0.55, halign="end", valign="middle");
+//     (8, -3) @PIN(terminal=[18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], direction="right");
+//     @LINE(linewidth=0.32) {(8, -3) (6, -3)};
+//     @LINE {(6.75, -3.35) (7.25, -2.65)};
+//     (7, -2.55) @TEXT("13", size=0.45, halign="middle");
+//     (5.65, -3) @TEXT("DN<12:0>", size=0.55, halign="end", valign="middle");
+//     (-2, -9) @PIN(terminal=[31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44], direction="down");
+//     @LINE(linewidth=0.32) {(-2, -9) (-2, -7)};
+//     @LINE {(-2.35, -8.25) (-1.65, -7.75)};
+//     (-1.5, -8) @TEXT("14", size=0.45, valign="middle");
+//     (-2.3, -6.6) @TEXT("D<13:0>", size=0.55, halign="end", valign="bottom");
+//     (2, -8) @PIN(terminal=45, direction="down");
+//     @LINE {(2, -8) (2, -7)};
+//     (2, -6.6) @TEXT("RDY", size=0.55, halign="middle", valign="bottom");
+//     (5, -8) @PIN(terminal=47, direction="down");
+//     @LINE {(5, -8) (5, -7)};
+//     (0, 8) @PIN(terminal=46, direction="up");
+//     @LINE {(0, 8) (0, 7)};
+//     (0, 3.9) @TEXT("SAR", size=1.2, bold=true, halign="middle", valign="middle");
+//     ? @TEXT("${model}", key="model", size=0.5, halign="middle", valign="middle") => @PLACE(0, 2.75);
+//     @LINE {(-3.3, -1) (-2.1, -1) (-2.1, 0.4) (-3.3, 0.4) (-3.3, -1)};
+//     (-2.7, -0.3) @TEXT("1", size=0.45, halign="middle", valign="middle");
+//     @LINE(arrow="end", arrowsize=0.35) {(-2.1, -0.3) (-1.5, -0.3)};
+//     @LINE {(-1.5, -1) (-0.3, -1) (-0.3, 0.4) (-1.5, 0.4) (-1.5, -1)};
+//     (-0.9, -0.3) @TEXT("2", size=0.45, halign="middle", valign="middle");
+//     @LINE(arrow="end", arrowsize=0.35) {(-0.3, -0.3) (0.3, -0.3)};
+//     @LINE {(0.3, -1) (1.5, -1) (1.5, 0.4) (0.3, 0.4) (0.3, -1)};
+//     (0.9, -0.3) @TEXT("\cdot\cdot\cdot", size=0.45, halign="middle", valign="middle");
+//     @LINE(arrow="end", arrowsize=0.35) {(1.5, -0.3) (2.1, -0.3)};
+//     @LINE {(2.1, -1) (3.3, -1) (3.3, 0.4) (2.1, 0.4) (2.1, -1)};
+//     (2.7, -0.3) @TEXT("14", size=0.45, halign="middle", valign="middle");
+//     (0, -1.6) @TEXT("decisions", size=0.45, halign="middle", valign="top");
+//     ? @TEXT("${name}", key="name", size=0.8, valign="bottom") => @PLACE(-6, 7.5)
+//   };
+//   # @SET-SYMBOL %adc_sarlogic
+// }
+ends adc_sarlogic

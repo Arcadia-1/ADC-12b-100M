@@ -1,0 +1,16 @@
+# Template of the site configuration. Copy to site.local.yaml (git-ignored) or
+# ~/.adcflow/site.yaml and fill in. NEVER commit the filled-in file: server
+# names, server paths, shell-setup files and PDK locations stay out of git.
+
+sim:
+  host: <ssh-alias>                       # key-based ssh alias of the simulation server
+  remote_root: <local-disk>/{user}/adc12b100m_runs   # scratch on a local disk of the server; {user} = remote login
+  env_setup:                              # csh commands that make `spectre` available
+    - source <cadence-cshrc>
+  spectre: spectre                        # command (or absolute path)
+  max_parallel: 6                         # optional, overrides specs/sim.yaml
+
+pdk:
+  model_dir: <directory of the Spectre model files on the server>
+  core_file: <core-device model file with the library sections of specs/corners.yaml>
+  hv_file: <high-voltage-device model file>

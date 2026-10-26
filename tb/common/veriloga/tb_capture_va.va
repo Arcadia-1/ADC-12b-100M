@@ -1,0 +1,61 @@
+// Output capture monitor: at every RDY rising edge writes one line
+//   <index> <t_rdy> <t_conv> <D13..D0>
+// to `fname`, where t_conv = RDY rise - last CLK falling edge. At the end it
+// writes "# clk_falls <n> rdy_rises <m>" so missing conversions are visible.
+`include "disciplines.vams"
+`include "constants.vams"
+
+module tb_capture_va(CLK, RDY, D, VSS);
+  input CLK, RDY, VSS;
+  input [13:0] D;
+  electrical CLK, RDY, VSS;
+  electrical [13:0] D;
+
+  parameter real vth = 0.45;
+  parameter real tstart = 0;            // ignore edges before tstart
+  parameter real cload = 0 from [0:inf);   // load capacitance on every D and RDY input
+  parameter string fname = "capture.txt";
+
+  integer fh, n_clk, n_rdy;
+  real t_clk;
+  genvar g;
+
+  analog begin
+    @(initial_step("tran")) begin
+      fh = $fopen(fname, "w");
+      n_clk = 0; n_rdy = 0; t_clk = 0;
+      $fwrite(fh, "# index t_rdy t_conv D13..D0\n");
+    end
+    @(cross(V(CLK, VSS) - vth, -1)) begin
+      if ($abstime >= tstart) begin n_clk = n_clk + 1; t_clk = $abstime; end
+    end
+    @(cross(V(RDY, VSS) - vth, +1)) begin
+      if ($abstime >= tstart && n_clk > 0) begin
+        n_rdy = n_rdy + 1;
+        $fwrite(fh, "%d %.6e %.6e ", n_rdy, $abstime, $abstime - t_clk);
+        if (V(D[13], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        if (V(D[12], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        if (V(D[11], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        if (V(D[10], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        if (V(D[9], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        if (V(D[8], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        if (V(D[7], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        if (V(D[6], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        if (V(D[5], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        if (V(D[4], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        if (V(D[3], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        if (V(D[2], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        if (V(D[1], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        if (V(D[0], VSS) > vth) $fwrite(fh, "1"); else $fwrite(fh, "0");
+        $fwrite(fh, "\n");
+      end
+    end
+    @(final_step("tran")) begin
+      $fwrite(fh, "# clk_falls %d rdy_rises %d\n", n_clk, n_rdy);
+      $fclose(fh);
+    end
+    for (g = 0; g <= 13; g = g + 1)
+      I(D[g], VSS) <+ cload * ddt(V(D[g], VSS));
+    I(RDY, VSS) <+ cload * ddt(V(RDY, VSS));
+  end
+endmodule

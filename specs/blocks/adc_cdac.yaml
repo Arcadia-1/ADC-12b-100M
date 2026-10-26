@@ -1,16 +1,16 @@
 block: adc_cdac
 title: Split-capacitor redundant CDAC, one side (instantiated twice)
-version: 0.1.0
+version: 0.2.0
 owner: TBD
 status: behavioral
 views:
   behav: design/behav/adc_cdac.scs
   xtor: design/xtor/adc_cdac/adc_cdac.scs
 summary: >
-  13 weights w_j (j = 12..0) = 1024 512 256 192 128 64 32 32 16 8 4 2 1 x cu,
+  13 weights w_j (j = 12..0) = 980 560 318 180 102 57 32 18 10 6 3 2 1 x cu,
   cu = 0.5 fF. Each weight is two equal halves: H (neutral state VREFP) and
   L (neutral state VREFN). Bottom-plate sampling: while CONV = 0 the bottom
-  plates of the sampled weights (all but j = 9 and j = 5) track VIN through
+  plates of the sampled weights (all but j = 9 and j = 6) track VIN through
   NMOS switches whose gate is VG (bootstrapped, from adc_bootstrap) and the
   top plate is held at VCM by a switch on PHI_S/PHI_SB. Non-sampled weights
   stay in the neutral state. With CONV = 1 every half is driven by an inverter
@@ -24,7 +24,7 @@ ports:
   - {name: TOP,   dir: out, type: analog, side: right,  desc: "top plate, to the comparator"}
   - {name: VCM,   dir: in,  type: analog, side: top,    desc: "0.45 V top-plate reset level"}
   - {name: VREFP, dir: in,  type: analog, side: top,    desc: "0.9 V reference"}
-  - {name: VREFN, dir: in,  type: analog, side: bottom, desc: "reference ground"}
+  - {name: VREFN, dir: in,  type: analog, side: top,    desc: "reference ground"}
   - {name: PHI_S, dir: in,  type: clock,  side: left,   desc: "top-plate switch, high = track (opens first: sampling instant)"}
   - {name: PHI_SB, dir: in, type: clock,  side: left,   desc: "complement of PHI_S"}
   - {name: CONV,  dir: in,  type: clock,  side: left,   desc: "high = drivers enabled (convert); low = sampled halves tri-stated"}
@@ -54,8 +54,8 @@ ports:
   - {name: RL2,  dir: in, type: digital, side: bottom, bus: RL}
   - {name: RL1,  dir: in, type: digital, side: bottom, bus: RL}
   - {name: RL0,  dir: in, type: digital, side: bottom, bus: RL}
-  - {name: DVDD, dir: supply, type: supply, side: top,    desc: "0.9 V supply of the driver pre-logic"}
-  - {name: VSS,  dir: ground, type: supply, side: bottom, desc: "ground"}
+  - {name: DVDD, dir: supply, type: supply, side: right,  desc: "0.9 V supply of the driver pre-logic"}
+  - {name: VSS,  dir: ground, type: supply, side: right,  desc: "ground"}
 operating:
   vin_range: [0.0, 0.9]
   top_load: 15.0e-15          # F, comparator input
@@ -65,9 +65,9 @@ specs:
   - {id: DAC-02, name: "full scale VREF*(sum w + 1/2)*cu/C_S (diff peak)", metric: fs_peak_V,  unit: V,  min: 0.97, corners: all, test: tb_cdac_weights}
   - {id: DAC-03, name: "max relative weight error (systematic)",         metric: weight_err_max_pct, unit: '%', max: 0.5, corners: typ, test: tb_cdac_weights}
   - {id: DAC-04, name: "top-plate gain C_S/C_tot",                      metric: top_gain,      unit: '',  min: 0.78, corners: typ, test: tb_cdac_weights}
-  - {id: DAC-05, name: "DAC step settling, w=32 step to 0.25 LSB",     metric: t_settle32_ps, unit: ps, max: 75, corners: all, test: tb_cdac_settle}
-  - {id: DAC-06, name: "DAC step settling, w=1024 step to 5 %",        metric: t_settle1024_ps, unit: ps, max: 40, corners: all, test: tb_cdac_settle}
-  - {id: DAC-07, name: "settling time constant (top plate)",            metric: tau_ps,        unit: ps, max: 15, corners: all, test: tb_cdac_settle}
+  - {id: DAC-05, name: "DAC step settling, RL5 (w=18) to 0.25 LSB",    metric: t_settle_rl5_ps, unit: ps, max: 75, corners: all, test: tb_cdac_settle}
+  - {id: DAC-06, name: "DAC step settling, RL12 (w=980) to 5 %",       metric: t_settle_rl12_ps, unit: ps, max: 40, corners: all, test: tb_cdac_settle}
+  - {id: DAC-07, name: "settling time constant (top plate, RL12, 10 % -> 1 %)", metric: tau_ps, unit: ps, max: 15, corners: all, test: tb_cdac_settle}
   - {id: DAC-08, name: "conversion start CONV rise -> TOP within 1 %", metric: t_start_settle_ps, unit: ps, max: 100, corners: all, test: tb_cdac_settle}
   - {id: DAC-09, name: "tracking SFDR (ideal VG, 50 ohm, 49.9 MHz, -1 dBFS, diff)", metric: sfdr_dBc, unit: dBc, min: 85, corners: all, test: tb_cdac_track}
   - {id: DAC-10, name: "tracking SNDR excl. kT/C (same)",               metric: sndr_dB,       unit: dB, min: 80, corners: all, test: tb_cdac_track}
@@ -87,12 +87,17 @@ tests:
     netlist: tb/cdac/tb_cdac_settle.scs
     measure: adcflow.measure.cdac:settle
     desc: >
-      Steps of RL12 (w=1024), RL5 (w=32) and RL0 (w=1) driven by 10 ps edges;
-      top-plate settling time, single-pole fit, conversion-start settling,
-      5 ns hold droop and VREFP charge per conversion.
+      VIN = 0.65 V (0.2 V above VCM, so that the conversion start moves the
+      top plate). Steps of RL12 (w=980), RL5 (w=18) and RL0 (w=1) driven by
+      10 ps edges 1 ns after CONV rises; settling times within 1.5 ns of the
+      edge, single-pole equivalent from the 10 % -> 1 % part of the RL12 step,
+      conversion-start settling before the first edge, 5 ns hold droop and
+      VREFP charge per conversion.
   tb_cdac_track:
     netlist: tb/cdac/tb_cdac_track.scs
     measure: adcflow.measure.cdac:track
+    prepare: adcflow.measure.top:prepare
+    params: {fin_target: 49.9e6, npts: 256}
     desc: >
       Two CDACs (P and N) with ideal bootstrapped gates, sine from 50 ohm per
       side at 49.9 MHz, -1 dBFS, 100 MS/s ideal phases, no decisions. The

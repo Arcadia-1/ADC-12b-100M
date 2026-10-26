@@ -1,0 +1,33 @@
+// Zero-volt current meter: I(P -> N) flows through, V(P) = V(N).
+// Writes "<label> <average current> <window>" over [tstart, tstop] to fname
+// (appending), so several meters can share one file.
+`include "disciplines.vams"
+`include "constants.vams"
+
+module tb_imeter_va(P, N);
+  inout P, N;
+  electrical P, N;
+  branch (P, N) br;
+
+  parameter real tstart = 0;
+  parameter real tstop = 1;
+  parameter string label = "I";
+  parameter string fname = "imeter.txt";
+
+  real q, q0, q1, t0, t1;
+  integer fh, got0, got1;
+
+  analog begin
+    @(initial_step("tran")) begin got0 = 0; got1 = 0; q0 = 0; q1 = 0; t0 = 0; t1 = 0; end
+    V(br) <+ 0;
+    q = idt(I(br), 0);
+    @(timer(tstart)) begin q0 = q; t0 = $abstime; got0 = 1; end
+    @(timer(tstop)) begin q1 = q; t1 = $abstime; got1 = 1; end
+    @(final_step("tran")) begin
+      if (!got1) begin q1 = q; t1 = $abstime; end
+      fh = $fopen(fname, "a");
+      if (t1 > t0) $fwrite(fh, "%s %.9e %.6e\n", label, (q1 - q0) / (t1 - t0), t1 - t0);
+      $fclose(fh);
+    end
+  end
+endmodule

@@ -1,0 +1,48 @@
+// Behavioral reference driver for adc_ref (behav view).
+// VREFP is the source of an open-loop NMOS follower from AVDD18 (EKV, bulk at
+// VSS), biased by a current sink ibias at inversion coefficient ic; its gate
+// sits one bias-point Vgs above VREF_IN (an ideal replica), so VREFP = VREF_IN
+// at no load and the output conductance at bias is
+// g_s = ibias * (1 - exp(-sqrt(ic))) / (sqrt(ic) * Vt), 24.5 mS/mA at ic = 1, 27 C.
+// The follower and its sink add a white noise current 4 kT gamma g_s.
+// VCM = vcm_ratio * VREFP through rcm (sourced from AVDD). The decoupling
+// capacitors are separate elements of adc_ref.
+`include "disciplines.vams"
+`include "constants.vams"
+
+module adc_ref_va(VREF_IN, VREFP, VCM, AVDD18, AVDD, VSS);
+  input VREF_IN;
+  output VREFP, VCM;
+  inout AVDD18, AVDD, VSS;
+  electrical VREF_IN, VREFP, VCM, AVDD18, AVDD, VSS;
+
+  parameter real ibias = 2e-3 from (0:inf);    // follower bias current (from AVDD18)
+  parameter real ic = 1.0 from (0:inf);        // inversion coefficient at bias
+  parameter real gamma = 2.0 from [0:inf);     // noise: follower + bias sink
+  parameter real vcm_ratio = 0.5;
+  parameter real rcm = 500 from (0:inf);
+  parameter real iq09 = 5e-6 from [0:inf);     // quiescent AVDD current
+  parameter real vos = 0.0;                    // output offset
+
+  real vt, s, v0, ispec, gs0, v, e, l1, ifol, icm;
+
+  analog begin
+    vt = $vt;
+    s = sqrt(ic);
+    v0 = 2 * ln(exp(s) - 1);
+    ispec = ibias / ic;
+    gs0 = ibias * (1 - exp(-s)) / (s * vt);
+    // source-referred overdrive in units of Vt; a droop of VREFP raises it
+    v = v0 + (V(VREF_IN, VSS) + vos - V(VREFP, VSS)) / vt;
+    e = exp(min(v / 2, 60));
+    l1 = ln(1 + e);
+    ifol = ispec * l1 * l1;
+    icm = (vcm_ratio * V(VREFP, VSS) - V(VCM, VSS)) / rcm;
+    I(AVDD18, VREFP) <+ ifol;
+    I(VREFP, VSS) <+ ibias;
+    I(VREFP, VSS) <+ white_noise(4 * `P_K * $temperature * gamma * gs0, "follower");
+    I(AVDD, VCM) <+ max(icm, 0);
+    I(VCM, VSS) <+ max(-icm, 0);
+    I(AVDD, VSS) <+ iq09;
+  end
+endmodule

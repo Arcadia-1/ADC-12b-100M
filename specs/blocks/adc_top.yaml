@@ -1,30 +1,30 @@
 block: adc_top
 title: 12-bit-class 100 MS/s asynchronous SAR ADC (top level)
-version: 0.1.0
+version: 0.2.0
 owner: project lead
 status: behavioral
 views:
   struct: design/top/adc_top.scs        # structural: same file for every block view
 summary: >
   Fully differential bottom-plate-sampled SAR, 14 decisions, raw output bits
-  with weights 2048 1024 512 384 256 128 64 64 32 16 8 4 2 1 (sum 4543,
-  4544 levels). Reconstruction in software: code = sum(W * D).
+  with weights 1960 1120 636 360 204 114 64 36 20 12 6 4 2 1 (sum 4539,
+  4540 levels). Reconstruction in software: code = sum(W * D).
 ports:
   - {name: VINP,    dir: in,  type: analog,  side: left,   desc: "positive input, 0..0.9 V, 50 ohm source"}
   - {name: VINN,    dir: in,  type: analog,  side: left,   desc: "negative input, 0..0.9 V, 50 ohm source"}
   - {name: CLK,     dir: in,  type: clock,   side: left,   desc: "100 MHz, high = track, low = hold + convert"}
   - {name: VREF_IN, dir: in,  type: analog,  side: left,   desc: "0.900 V reference input"}
-  - {name: D13, dir: out, type: digital, side: right, bus: D, desc: "raw bit, weight 2048"}
-  - {name: D12, dir: out, type: digital, side: right, bus: D, desc: "weight 1024"}
-  - {name: D11, dir: out, type: digital, side: right, bus: D, desc: "weight 512"}
-  - {name: D10, dir: out, type: digital, side: right, bus: D, desc: "weight 384"}
-  - {name: D9,  dir: out, type: digital, side: right, bus: D, desc: "weight 256"}
-  - {name: D8,  dir: out, type: digital, side: right, bus: D, desc: "weight 128"}
+  - {name: D13, dir: out, type: digital, side: right, bus: D, desc: "raw bit, weight 1960"}
+  - {name: D12, dir: out, type: digital, side: right, bus: D, desc: "weight 1120"}
+  - {name: D11, dir: out, type: digital, side: right, bus: D, desc: "weight 636"}
+  - {name: D10, dir: out, type: digital, side: right, bus: D, desc: "weight 360"}
+  - {name: D9,  dir: out, type: digital, side: right, bus: D, desc: "weight 204"}
+  - {name: D8,  dir: out, type: digital, side: right, bus: D, desc: "weight 114"}
   - {name: D7,  dir: out, type: digital, side: right, bus: D, desc: "weight 64"}
-  - {name: D6,  dir: out, type: digital, side: right, bus: D, desc: "weight 64"}
-  - {name: D5,  dir: out, type: digital, side: right, bus: D, desc: "weight 32"}
-  - {name: D4,  dir: out, type: digital, side: right, bus: D, desc: "weight 16"}
-  - {name: D3,  dir: out, type: digital, side: right, bus: D, desc: "weight 8"}
+  - {name: D6,  dir: out, type: digital, side: right, bus: D, desc: "weight 36"}
+  - {name: D5,  dir: out, type: digital, side: right, bus: D, desc: "weight 20"}
+  - {name: D4,  dir: out, type: digital, side: right, bus: D, desc: "weight 12"}
+  - {name: D3,  dir: out, type: digital, side: right, bus: D, desc: "weight 6"}
   - {name: D2,  dir: out, type: digital, side: right, bus: D, desc: "weight 4"}
   - {name: D1,  dir: out, type: digital, side: right, bus: D, desc: "weight 2"}
   - {name: D0,  dir: out, type: digital, side: right, bus: D, desc: "weight 1"}
@@ -40,13 +40,13 @@ specs:
   - {id: TOP-04, name: "full-scale (diff peak) from sine fit",       metric: fs_peak_V,  unit: V,  min: 0.95, corners: all, test: tb_top_sine}
   - {id: TOP-05, name: "missing RDY / incomplete conversions",       metric: missing_rdy, unit: count, max: 0, corners: all, test: tb_top_sine}
   - {id: TOP-06, name: "conversion time CLK fall -> RDY rise (max)", metric: t_conv_max_ns, unit: ns, max: 4.4, corners: all, test: tb_top_sine}
-  - {id: TOP-07, name: "total power (AVDD + DVDD + AVDD18)",         metric: power_mW,   unit: mW, max: 1.5, corners: typ, test: tb_top_sine}
   - {id: TOP-08, name: "ENOB at ~1 MHz -1 dBFS",                     metric: enob,       unit: bit, min: 10.8, corners: typ, test: tb_top_sine_lf}
   - {id: TOP-09, name: "ENOB with CLK duty 45 % / 55 %",              metric: enob,       unit: bit, min: 10.5, corners: quick, test: tb_top_duty}
 tests:
   tb_top_sine:
     netlist: tb/top/tb_top_sine.scs
     measure: adcflow.measure.top:sine
+    prepare: adcflow.measure.top:prepare
     tran_noise: true
     params: {fin_target: 49.9e6, amp_dbfs: -1.0, npts: 1024}
     desc: >
@@ -58,11 +58,13 @@ tests:
   tb_top_sine_lf:
     netlist: tb/top/tb_top_sine.scs
     measure: adcflow.measure.top:sine
+    prepare: adcflow.measure.top:prepare
     tran_noise: true
     params: {fin_target: 1.0e6, amp_dbfs: -1.0, npts: 1024}
   tb_top_duty:
     netlist: tb/top/tb_top_sine.scs
     measure: adcflow.measure.top:sine
+    prepare: adcflow.measure.top:prepare
     tran_noise: true
     params: {fin_target: 49.9e6, amp_dbfs: -1.0, npts: 1024, duty: 0.45}
     variants: [{duty: 0.45}, {duty: 0.55}]

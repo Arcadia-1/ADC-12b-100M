@@ -1,0 +1,121 @@
+// adc_ref, behavioral view: reference driver and VCM
+// @RNL(type="header") {
+//   @VERSION("0.3");
+//   @USE-PACKAGE(name="adc28", version="0.1", path="../rnl/adc28.rnl")
+// }
+simulator lang=spectre
+
+subckt adc_ref (VREF_IN VREFP VCM AVDD18 AVDD VSS)
+// Behavioral view.
+parameters cdec=1.5p esr=0.1 ccm=100p ibias=2m ic=1 gamma=2 iq09=5u
+I0 (VREF_IN VREFP VCM AVDD18 AVDD VSS) adc_ref_va \
+        ibias=ibias ic=ic gamma=gamma iq09=iq09
+CDEC (VREFP NDEC) capacitor c=cdec
+RESR (NDEC VSS) resistor r=esr
+CCM (VCM VSS) capacitor c=ccm
+// @RNL {
+//   /* --- semantics --- */
+//   {&AVDD &AVDD18} @ADD-TO $SUPPLY_NET_SET;
+//   &VSS @ADD-TO $GROUND_NET_SET;
+//   /* the decoupling of VREFP: capacitor and its ESR in one branch */
+//   {#CDEC #RESR} @AS $BRANCH;
+//   /* --- placement --- */
+//   #I0 @PLACE(0, 0);
+//   #CDEC @PLACE(19, -3);
+//   #RESR @PLACE(19, -8);
+//   #CCM @PLACE(15, -6);
+//   /* --- reference in, VREFP out with its decoupling --- */
+//   %p_vref_in = $IO_PORT @ATTACH &VREF_IN => @PLACE(-10, 0) => @ORIENT("R0");
+//   &VREF_IN @WIRE {%p_vref_in:p #I0:VREF_IN};
+//   %jref = (19, 0);
+//   $JUNCTION @ATTACH %jref;
+//   %p_vrefp = $IO_PORT @ATTACH &VREFP => @PLACE(23, 0) => @ORIENT("MY");
+//   &VREFP @WIRE {#I0:VREFP %jref %p_vrefp:p};
+//   &VREFP @WIRE {%jref #CDEC:1};
+//   &NDEC @WIRE {#CDEC:2 #RESR:1};
+//   %g1 = $GROUND @ATTACH &VSS => @PLACE(19, -12);
+//   &VSS @WIRE {#RESR:2 %g1:p};
+//   /* --- VCM with its capacitor; the port below --- */
+//   %jcm = (12, -4);
+//   $JUNCTION @ATTACH %jcm;
+//   %p_vcm = $IO_PORT @ATTACH &VCM => @PLACE(12, -8) => @ORIENT("R90");
+//   &VCM @WIRE {#I0:VCM %jcm %p_vcm:p};
+//   &VCM @WIRE {%jcm (15, -4) #CCM:1};
+//   %g2 = $GROUND @ATTACH &VSS => @PLACE(15, -10);
+//   &VSS @WIRE {#CCM:2 %g2:p};
+//   /* --- supplies --- */
+//   %s1 = $SUPPLY @ATTACH &AVDD18 => @PLACE(-3, 7);
+//   &AVDD18 @WIRE {#I0:AVDD18 %s1:p};
+//   %s2 = $SUPPLY @ATTACH &AVDD => @PLACE(1, 7);
+//   &AVDD @WIRE {#I0:AVDD %s2:p};
+//   %g3 = $GROUND @ATTACH &VSS => @PLACE(0, -7);
+//   &VSS @WIRE {#I0:VSS %g3:p};
+//   /* --- annotations --- */
+//   (-12, 13.5) @TEXT("adc_ref (behavioral): open-loop NMOS follower from AVDD18 (EKV, ibias at ic), gate = VREF_IN + Vgs (ideal replica)", halign="start") => @SET-STYLE $title_style;
+//   (-12, 12) @TEXT("small on-chip decoupling CDEC (1.5 pF) with ESR; VCM = VREFP / 2 through rcm with CCM", halign="start") => @SET-STYLE $note_style;
+//   (29, 8.5) @TEXT("adc_ref ports", halign="start", bold=true) => @SET-STYLE $note_style;
+//   @RECTANGLE {(29, 8) (55.33, -0.085)} => @SET-STYLE $table_style;
+//   @LINE {(29, 6.845) (55.33, 6.845)} => @SET-STYLE $table_style;
+//   @LINE {(32.233, 8) (32.233, -0.085)} => @SET-STYLE $table_style;
+//   @LINE {(36.104, 8) (36.104, -0.085)} => @SET-STYLE $table_style;
+//   @LINE {(39.018, 8) (39.018, -0.085)} => @SET-STYLE $table_style;
+//   (29.5, 7.4225) @TEXT("pin", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (32.733, 7.4225) @TEXT("direction", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (36.604, 7.4225) @TEXT("type", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (39.518, 7.4225) @TEXT("description", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (29.5, 6.2675) @TEXT("VREF_IN", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (32.733, 6.2675) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (36.604, 6.2675) @TEXT("analog", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (39.518, 6.2675) @TEXT("0.900 V reference input, high impedance (< 1 uA)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (29.5, 5.1125) @TEXT("VREFP", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (32.733, 5.1125) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (36.604, 5.1125) @TEXT("analog", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (39.518, 5.1125) @TEXT("buffered 0.9 V reference for the CDAC", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (29.5, 3.9575) @TEXT("VCM", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (32.733, 3.9575) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (36.604, 3.9575) @TEXT("analog", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (39.518, 3.9575) @TEXT("0.45 V top-plate reset level", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (29.5, 2.8025) @TEXT("AVDD18", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (32.733, 2.8025) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (36.604, 2.8025) @TEXT("supply", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (39.518, 2.8025) @TEXT("1.8 V supply (thick-oxide devices allowed)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (29.5, 1.6475) @TEXT("AVDD", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (32.733, 1.6475) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (36.604, 1.6475) @TEXT("supply", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (39.518, 1.6475) @TEXT("0.9 V supply (bias / VCM if used)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (29.5, 0.4925) @TEXT("VSS", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (32.733, 0.4925) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (36.604, 0.4925) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (39.518, 0.4925) @TEXT("ground (also VREFN)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style
+// }
+// @RNL(author="adcflow gen") {
+//   /* block symbol of adc_ref, generated from tools/adcflow/symbols.py by `python -m adcflow gen` -- do not edit this record */
+//   %adc_ref = @DEFINE-SYMBOL(box=[-6, -5, 9, 5]) {
+//     @LINE(linewidth=0.24) {(-4, 4) (-4, -4) (4, 0) (-4, 4)};
+//     (-6, 0) @PIN(terminal=1, direction="left");
+//     @LINE {(-6, 0) (-4, 0)};
+//     (-3.7, 0.3) @TEXT("VREF_IN", size=0.55, halign="start", valign="bottom");
+//     (-1.5, -0.35) @TEXT("\times{}1", size=0.9, bold=true, halign="middle", valign="middle");
+//     (9, 0) @PIN(terminal=2, direction="right");
+//     @LINE {(9, 0) (4, 0)};
+//     (8.8, 0.25) @TEXT("VREFP", size=0.55, halign="end", valign="bottom");
+//     (7.5, 0) @CIRCLE(radius=0.18, fill="linecolor", linestyle="none");
+//     @LINE {(7.5, 0) (7.5, -2.1)};
+//     @LINE {(6.85, -2.1) (8.15, -2.1) (8.15, -3.3) (6.85, -3.3) (6.85, -2.1)};
+//     (7.5, -2.7) @TEXT("1/2", size=0.5, halign="middle", valign="middle");
+//     @LINE {(7.5, -3.3) (7.5, -4)};
+//     (9, -4) @PIN(terminal=3, direction="right");
+//     @LINE {(9, -4) (7.5, -4)};
+//     (8.8, -4.25) @TEXT("VCM", size=0.55, halign="end", valign="top");
+//     (-3, 5) @PIN(terminal=4, direction="up");
+//     @LINE {(-3, 5) (-3, 3.5)};
+//     (1, 5) @PIN(terminal=5, direction="up");
+//     @LINE {(1, 5) (1, 1.5)};
+//     (0, -5) @PIN(terminal=6, direction="down");
+//     @LINE {(0, -5) (0, -2)};
+//     ? @TEXT("${name}", key="name", size=0.8, valign="top") => @PLACE(-4, -4.45);
+//     ? @TEXT("${model}", key="model", size=0.5, halign="middle", valign="top") => @PLACE(-1.5, -1.35)
+//   };
+//   # @SET-SYMBOL %adc_ref
+// }
+ends adc_ref

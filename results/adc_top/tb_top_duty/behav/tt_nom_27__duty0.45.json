@@ -1,0 +1,96 @@
+{
+ "block": "adc_top",
+ "test": "tb_top_duty",
+ "view": "behav",
+ "corner": "tt_nom_27",
+ "params": {
+  "amp_dbfs": -1.0,
+  "npts": 1024,
+  "duty": 0.45,
+  "fin": "4.970703125e+07"
+ },
+ "globals": {
+  "vdd": 0.9,
+  "vdd18": 1.8,
+  "tempc": 27.0,
+  "noise_en": 1,
+  "devnoise": 0,
+  "beh_speed": 1.0,
+  "vref_in": 0.9
+ },
+ "metrics": {
+  "n_samples": 1024,
+  "missing_rdy": 0,
+  "t_conv_max_ns": 2.674368,
+  "t_conv_mean_ns": 2.612651616210938,
+  "enob": 11.309811142209856,
+  "sndr_dBc": 69.84506307610333,
+  "sfdr_dBc": 85.93828004271163,
+  "snr_dBc": 70.07938878149533,
+  "thd_dBc": -83.17608463741448,
+  "amp_codes": 2021.8923368559656,
+  "fs_peak_V": 0.9933689148606901,
+  "code_min": 248,
+  "code_max": 4292,
+  "enob_cal": 11.328353095484823,
+  "sfdr_cal_dBc": 86.03129475765732,
+  "weights_cal": [
+   1959.764,
+   1119.86,
+   635.971,
+   360.032,
+   204.035,
+   114.121,
+   64.07,
+   36.052,
+   20.054,
+   12.067,
+   6.065,
+   3.942,
+   1.988,
+   0.979
+  ],
+  "p_avdd_mW": 0.21257622522,
+  "p_dvdd_mW": 0.19539776313,
+  "p_avdd18_mW": 3.7624097898,
+  "power_mW": 4.17038377815
+ },
+ "specs": {
+  "TOP-09": {
+   "metric": "enob",
+   "value": 11.309811142209856,
+   "limit": ">= 10.5",
+   "pass": true
+  }
+ },
+ "meta": {
+  "date": "2026-10-27T03:06:57",
+  "git": "cb3b8d4",
+  "mode": "aps",
+  "pdk": false,
+  "mc": null,
+  "wall_s": 400.1,
+  "rc": "0",
+  "sim_s": "171",
+  "files": {
+   "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
+   "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",
+   "design/behav/adc_clkgen.scs": "dafb1c3438e33c9e",
+   "design/behav/adc_comp.scs": "96325d9474ae19a4",
+   "design/behav/adc_ref.scs": "ad0159030e3a4f37",
+   "design/behav/adc_sarlogic.scs": "356e911752c1b85e",
+   "design/top/adc_top.scs": "362a964ffe162797",
+   "design/behav/veriloga/adc_bootstrap_va.va": "a6afdb6e2e03593b",
+   "design/behav/veriloga/adc_cdac_sw_va.va": "cb43ced3f53d636b",
+   "design/behav/veriloga/adc_clkgen_va.va": "727f8a54cde10a53",
+   "design/behav/veriloga/adc_comp_va.va": "ab8a6bf210351e31",
+   "design/behav/veriloga/adc_ktc_va.va": "a1cf98faf5bf9b33",
+   "design/behav/veriloga/adc_ref_va.va": "746d2530d4ff6d5c",
+   "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
+   "tb/common/veriloga/tb_capture_va.va": "1a05df990a1ef806",
+   "tb/common/veriloga/tb_imeter_va.va": "d4be49aca417ad61",
+   "tb/top/tb_top_sine.scs": "8eeaf74cd5147b9a",
+   "specs/arch.yaml": "21a91c3d06aa47e9"
+  }
+ }
+}

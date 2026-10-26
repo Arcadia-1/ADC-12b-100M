@@ -1,0 +1,68 @@
+{
+ "block": "adc_cdac",
+ "test": "tb_cdac_track",
+ "view": "behav",
+ "corner": "tt_nom_27",
+ "params": {
+  "npts": 256,
+  "fin": "4.882812500e+07"
+ },
+ "globals": {
+  "vdd": 0.9,
+  "vdd18": 1.8,
+  "tempc": 27.0,
+  "noise_en": 0,
+  "devnoise": 0,
+  "beh_speed": 1.0,
+  "vref_in": 0.9
+ },
+ "metrics": {
+  "sfdr_dBc": 96.47477567277512,
+  "sndr_dB": 89.92176016617826,
+  "thd_dBc": -93.71393173035179,
+  "amp_top_V": 0.72037894273035
+ },
+ "specs": {
+  "DAC-09": {
+   "metric": "sfdr_dBc",
+   "value": 96.47477567277512,
+   "limit": ">= 85",
+   "pass": true
+  },
+  "DAC-10": {
+   "metric": "sndr_dB",
+   "value": 89.92176016617826,
+   "limit": ">= 80",
+   "pass": true
+  }
+ },
+ "meta": {
+  "date": "2026-10-27T02:58:09",
+  "git": "d326851",
+  "mode": "aps",
+  "pdk": false,
+  "mc": null,
+  "wall_s": 153.1,
+  "rc": "0",
+  "sim_s": "47",
+  "files": {
+   "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
+   "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",
+   "design/behav/adc_clkgen.scs": "dafb1c3438e33c9e",
+   "design/behav/adc_comp.scs": "96325d9474ae19a4",
+   "design/behav/adc_ref.scs": "ad0159030e3a4f37",
+   "design/behav/adc_sarlogic.scs": "356e911752c1b85e",
+   "design/top/adc_top.scs": "362a964ffe162797",
+   "design/behav/veriloga/adc_bootstrap_va.va": "a6afdb6e2e03593b",
+   "design/behav/veriloga/adc_cdac_sw_va.va": "cb43ced3f53d636b",
+   "design/behav/veriloga/adc_clkgen_va.va": "727f8a54cde10a53",
+   "design/behav/veriloga/adc_comp_va.va": "ab8a6bf210351e31",
+   "design/behav/veriloga/adc_ktc_va.va": "a1cf98faf5bf9b33",
+   "design/behav/veriloga/adc_ref_va.va": "746d2530d4ff6d5c",
+   "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
+   "tb/common/veriloga/tb_sampler_va.va": "4092bc16170c588d",
+   "tb/cdac/tb_cdac_track.scs": "9d25d1f2da139021",
+   "specs/arch.yaml": "21a91c3d06aa47e9"
+  }
+ }
+}

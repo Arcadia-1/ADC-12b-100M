@@ -19,7 +19,7 @@ scratch/
 # --- PDK / foundry data: NEVER commit model files or extracted device data ---
 pdk_local/
 *.lib.scs
-**/models/spectre/**
+models/
 *_pdk_dump*
 *.pdkcache
 
@@ -54,3 +54,7 @@ Thumbs.db
 
 # --- Generated drawings (reproducible with `python -m adcflow render`) ---
 build/svg/
+
+# --- Site configuration: servers, server paths, PDK locations (never commit) ---
+site.local.yaml
+.adcflow/

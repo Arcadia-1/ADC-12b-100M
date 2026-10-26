@@ -1,0 +1,128 @@
+{
+ "block": "adc_sarlogic",
+ "test": "tb_sarlogic_func",
+ "view": "behav",
+ "corner": "tt_nom_27",
+ "params": {},
+ "globals": {
+  "vdd": 0.9,
+  "vdd18": 1.8,
+  "tempc": 27.0,
+  "noise_en": 0,
+  "devnoise": 0,
+  "beh_speed": 1.0,
+  "vref_in": 0.9
+ },
+ "metrics": {
+  "func_errors": 0,
+  "bit_errors": 0,
+  "level_errors": 0,
+  "n_conversions": 60,
+  "t_conv_ns": 2.549706,
+  "t_conv_mean_ns": 2.488619016666667,
+  "t_start_ps": 105.00500001114845,
+  "t_start_max_ps": 105.00500001128097,
+  "t_start_min_ps": 105.00500001104275,
+  "t_bit_ps": 35.00200000446241,
+  "t_bit_max_ps": 35.002000004573276,
+  "t_bit_min_ps": 35.00200000436152,
+  "t_rst_ps": 40.00200000444829,
+  "t_rst_max_ps": 40.002000004578946,
+  "t_rst_min_ps": 40.002000004340715,
+  "t_dac_fast_ps": 48.000000000012705,
+  "t_dac_fast_max_ps": 48.00000000010737,
+  "t_dac_fast_min_ps": 47.99999999992208,
+  "t_dac_slow_ps": 83.00000000001023,
+  "t_dac_slow_max_ps": 83.00000000012058,
+  "t_dac_slow_min_ps": 82.9999999999353,
+  "t_setup_ps": 109.99999999993945,
+  "power_uW": 212.542911
+ },
+ "specs": {
+  "LOG-02": {
+   "metric": "t_bit_ps",
+   "value": 35.00200000446241,
+   "limit": "<= 40",
+   "pass": true
+  },
+  "LOG-03": {
+   "metric": "t_rst_ps",
+   "value": 40.00200000444829,
+   "limit": "<= 45",
+   "pass": true
+  },
+  "LOG-04": {
+   "metric": "t_dac_fast_ps",
+   "value": 48.000000000012705,
+   "limit": "35 .. 60",
+   "pass": true
+  },
+  "LOG-05": {
+   "metric": "t_dac_slow_ps",
+   "value": 83.00000000001023,
+   "limit": "70 .. 100",
+   "pass": true
+  },
+  "LOG-06": {
+   "metric": "t_dac_slow_ps",
+   "value": 83.00000000001023,
+   "limit": ">= 70",
+   "pass": true
+  },
+  "LOG-07": {
+   "metric": "t_start_ps",
+   "value": 105.00500001114845,
+   "limit": "80 .. 160",
+   "pass": true
+  },
+  "LOG-08": {
+   "metric": "t_conv_ns",
+   "value": 2.549706,
+   "limit": "<= 2.6",
+   "pass": true
+  },
+  "LOG-10": {
+   "metric": "t_setup_ps",
+   "value": 109.99999999993945,
+   "limit": ">= 100",
+   "pass": true
+  },
+  "LOG-13": {
+   "metric": "power_uW",
+   "value": 212.542911,
+   "limit": "<= 300",
+   "pass": true
+  }
+ },
+ "meta": {
+  "date": "2026-10-27T03:00:42",
+  "git": "d326851",
+  "mode": "aps",
+  "pdk": false,
+  "mc": null,
+  "wall_s": 126.7,
+  "rc": "0",
+  "sim_s": "18",
+  "files": {
+   "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
+   "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",
+   "design/behav/adc_clkgen.scs": "dafb1c3438e33c9e",
+   "design/behav/adc_comp.scs": "96325d9474ae19a4",
+   "design/behav/adc_ref.scs": "ad0159030e3a4f37",
+   "design/behav/adc_sarlogic.scs": "356e911752c1b85e",
+   "design/top/adc_top.scs": "362a964ffe162797",
+   "design/behav/veriloga/adc_bootstrap_va.va": "a6afdb6e2e03593b",
+   "design/behav/veriloga/adc_cdac_sw_va.va": "cb43ced3f53d636b",
+   "design/behav/veriloga/adc_clkgen_va.va": "727f8a54cde10a53",
+   "design/behav/veriloga/adc_comp_va.va": "ab8a6bf210351e31",
+   "design/behav/veriloga/adc_ktc_va.va": "a1cf98faf5bf9b33",
+   "design/behav/veriloga/adc_ref_va.va": "746d2530d4ff6d5c",
+   "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
+   "tb/common/veriloga/tb_capture_va.va": "1a05df990a1ef806",
+   "tb/common/veriloga/tb_cmp_emu_va.va": "1173f23365da8b7f",
+   "tb/common/veriloga/tb_imeter_va.va": "d4be49aca417ad61",
+   "tb/sarlogic/tb_sarlogic_func.scs": "ed18d9ea04787b9d",
+   "specs/arch.yaml": "21a91c3d06aa47e9"
+  }
+ }
+}

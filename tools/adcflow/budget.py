@@ -27,12 +27,13 @@ def noise_table(arch: Arch) -> str:
     sig = a.fs_peak * 10 ** (-1 / 20) / np.sqrt(2)
     base = m.ideal()
     rows = [
-        ("Quantization (4544 levels)", a.lsb / np.sqrt(12), base),
+        (f"Quantization ({a.n_codes} levels)", a.lsb / np.sqrt(12), base),
         ("Sampled kT/C, 125 C", a.ktc_noise(125), replace(base, ktc=True, temp_c=125)),
         ("Comparator, 80 uV at top plate", 80e-6 / a.gain_top, replace(base, sigma_cmp_top=80e-6)),
         ("Aperture jitter 100 fs @ 49.9 MHz", sig * 2 * np.pi * 49.9e6 * 100e-15, replace(base, jitter_rms=100e-15)),
         ("DAC settling tau 15 ps, 40/75 ps waits", None, replace(base, tau_dac=15e-12, tau_start=20e-12)),
-        ("VREFP droop, 2 nF decap", None, replace(base, c_dec=2e-9, ref_signal_coupling=True)),
+        ("VREFP: on-chip follower 2 mA, 2.1 pF, with its noise", None,
+         replace(base, ref_follower=m.Follower(), ref_signal_coupling=True)),
     ]
     out = ["| Contributor | Input-referred rms (uV) | SNDR alone (dB) | ENOB alone |",
            "|---|---|---|---|"]
@@ -79,7 +80,7 @@ def mismatch_table(arch: Arch, sigmas=(0.005, 0.01, 0.02), runs: int = 8) -> str
                 met = m.spectrum_metrics(r.codes, arch.fs, arch.n_codes)
                 cal = calibrate_weight_sine(r.bits, freq=fin / arch.fs, nominal_weights=arch.out_weights)
                 w = np.asarray(cal["weight"], dtype=float)
-                metc = m.spectrum_metrics(r.bits @ (w / w[-1]), arch.fs, None)
+                metc = m.spectrum_metrics(r.bits @ (w * arch.out_weights.sum() / w.sum()), arch.fs, None)
             e_nom.append(met["enob"]); sf_nom.append(met["sfdr_dbc"]); e_cal.append(metc["enob"])
         out.append(f"| {s*100:.1f} % | {min(e_nom):.2f} / {np.mean(e_nom):.2f} | {min(sf_nom):.1f} | {np.mean(e_cal):.2f} |")
     return "\n".join(out)

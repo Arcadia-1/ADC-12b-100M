@@ -1,0 +1,43 @@
+# Verilog-A modules used by behavioral views and testbenches. Port order is the
+# Spectre terminal order (vector ports expand MSB first: UP[12] .. UP[0]).
+# `symbol_of: <block>` reuses the block symbol (identical terminal order).
+# Generated into design/rnl/adc28_va.rnl by `python -m adcflow gen rnl`.
+
+modules:
+  adc_comp_va:      {file: design/behav/veriloga/adc_comp_va.va,      symbol_of: adc_comp}
+  adc_sarlogic_va:  {file: design/behav/veriloga/adc_sarlogic_va.va,  symbol_of: adc_sarlogic}
+  adc_clkgen_va:    {file: design/behav/veriloga/adc_clkgen_va.va,    symbol_of: adc_clkgen}
+  adc_bootstrap_va: {file: design/behav/veriloga/adc_bootstrap_va.va, symbol_of: adc_bootstrap}
+  adc_ref_va:       {file: design/behav/veriloga/adc_ref_va.va,       symbol_of: adc_ref}
+  adc_cdac_sw_va:   {file: design/behav/veriloga/adc_cdac_sw_va.va, symbol: generated}   # symbol aligned with the caps (gen.py)
+  adc_ktc_va:
+    file: design/behav/veriloga/adc_ktc_va.va
+    title: "kT/C noise source"
+    ports: [{name: P, side: top}, {name: N, side: bottom}, {name: PHI, side: left}, {name: VSS, side: right}]
+  tb_capture_va:
+    file: tb/common/veriloga/tb_capture_va.va
+    title: "output capture"
+    ports: [{name: CLK, side: left}, {name: RDY, side: left}, {bus: D, msb: 13, lsb: 0, side: left}, {name: VSS, side: bottom}]
+  tb_imeter_va:
+    file: tb/common/veriloga/tb_imeter_va.va
+    title: "current meter"
+    ports: [{name: P, side: top}, {name: N, side: bottom}]
+  tb_sampler_va:
+    file: tb/common/veriloga/tb_sampler_va.va
+    title: "sampler"
+    ports: [{name: P, side: left}, {name: N, side: left}, {name: TRIG, side: bottom}, {name: VSS, side: bottom}]
+  tb_cmp_emu_va:
+    file: tb/common/veriloga/tb_cmp_emu_va.va
+    title: "comparator emulator"
+    ports: [{name: CONV, side: left}, {name: CLKC, side: left}, {bus: UP, msb: 12, lsb: 0, side: right},
+            {bus: DN, msb: 12, lsb: 0, side: right}, {name: OUTP, side: left}, {name: OUTN, side: left},
+            {name: VDD, side: top}, {name: VSS, side: bottom}]
+  tb_refload_va:
+    file: tb/common/veriloga/tb_refload_va.va
+    title: "CDAC-like reference load"
+    ports: [{name: CLK, side: left}, {name: P, side: top}, {name: N, side: bottom}]
+  tb_cdac_seq_va:
+    file: tb/common/veriloga/tb_cdac_seq_va.va
+    title: "CDAC control sequencer"
+    ports: [{name: CONV, side: left}, {bus: DH, msb: 12, lsb: 0, side: right}, {bus: RL, msb: 12, lsb: 0, side: right},
+            {name: VDD, side: top}, {name: VSS, side: bottom}]

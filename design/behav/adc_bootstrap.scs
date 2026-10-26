@@ -1,0 +1,112 @@
+// adc_bootstrap, behavioral view: bootstrapped gate generator
+// @RNL(type="header") {
+//   @VERSION("0.3");
+//   @USE-PACKAGE(name="adc28", version="0.1", path="../rnl/adc28.rnl")
+// }
+simulator lang=spectre
+
+subckt adc_bootstrap (VIN PHI_B PHI_BB VG AVDD VSS)
+// Behavioral view. Uses the deck global beh_speed.
+parameters kboost=0.95 t_on=60p t_off=15p iavg=15u
+I0 (VIN PHI_B PHI_BB VG AVDD VSS) adc_bootstrap_va \
+        kboost=kboost t_on=t_on*beh_speed t_off=t_off*beh_speed iavg=iavg
+// @RNL {
+//   /* --- semantics --- */
+//   &AVDD @ADD-TO $SUPPLY_NET_SET;
+//   &VSS @ADD-TO $GROUND_NET_SET;
+//   /* --- placement and wires --- */
+//   #I0 @PLACE(0, 0);
+//   %p_vin = $IO_PORT @ATTACH &VIN => @PLACE(-10, 2) => @ORIENT("R0");
+//   &VIN @WIRE {%p_vin:p #I0:VIN};
+//   %p_phi_b = $IO_PORT @ATTACH &PHI_B => @PLACE(-10, 0) => @ORIENT("R0");
+//   &PHI_B @WIRE {%p_phi_b:p #I0:PHI_B};
+//   %p_phi_bb = $IO_PORT @ATTACH &PHI_BB => @PLACE(-10, -2) => @ORIENT("R0");
+//   &PHI_BB @WIRE {%p_phi_bb:p #I0:PHI_BB};
+//   %p_vg = $IO_PORT @ATTACH &VG => @PLACE(10, 2) => @ORIENT("MY");
+//   &VG @WIRE {#I0:VG %p_vg:p};
+//   %s1 = $SUPPLY @ATTACH &AVDD => @PLACE(0, 7);
+//   &AVDD @WIRE {#I0:AVDD %s1:p};
+//   %g1 = $GROUND @ATTACH &VSS => @PLACE(4, -7);
+//   &VSS @WIRE {#I0:VSS %g1:p};
+//   /* --- annotations --- */
+//   (-12, 13.5) @TEXT("adc_bootstrap (behavioral): VG = VIN + kboost*AVDD while PHI_B, 0 V otherwise", halign="start") => @SET-STYLE $title_style;
+//   (-12, 12) @TEXT("edges t_on / t_off scaled by beh_speed; VG is driven through rout = 50 ohm", halign="start") => @SET-STYLE $note_style;
+//   (15, 8.5) @TEXT("adc_bootstrap ports", halign="start", bold=true) => @SET-STYLE $note_style;
+//   @RECTANGLE {(15, 8) (33.993, -0.085)} => @SET-STYLE $table_style;
+//   @LINE {(15, 6.845) (33.993, 6.845)} => @SET-STYLE $table_style;
+//   @LINE {(17.914, 8) (17.914, -0.085)} => @SET-STYLE $table_style;
+//   @LINE {(21.785, 8) (21.785, -0.085)} => @SET-STYLE $table_style;
+//   @LINE {(24.699, 8) (24.699, -0.085)} => @SET-STYLE $table_style;
+//   (15.5, 7.4225) @TEXT("pin", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (18.414, 7.4225) @TEXT("direction", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (22.285, 7.4225) @TEXT("type", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (25.199, 7.4225) @TEXT("description", halign="start", valign="middle", size=0.55, bold=true) => @SET-STYLE $table_style;
+//   (15.5, 6.2675) @TEXT("VIN", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 6.2675) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 6.2675) @TEXT("analog", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 6.2675) @TEXT("input (switch source side)", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 5.1125) @TEXT("PHI_B", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 5.1125) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 5.1125) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 5.1125) @TEXT("high = track", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 3.9575) @TEXT("PHI_BB", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 3.9575) @TEXT("input", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 3.9575) @TEXT("clock", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 3.9575) @TEXT("complement of PHI_B", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 2.8025) @TEXT("VG", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 2.8025) @TEXT("output", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 2.8025) @TEXT("analog", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 2.8025) @TEXT("boosted gate", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 1.6475) @TEXT("AVDD", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 1.6475) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 1.6475) @TEXT("supply", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 1.6475) @TEXT("0.9 V", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (15.5, 0.4925) @TEXT("VSS", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (18.414, 0.4925) @TEXT("inout", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (22.285, 0.4925) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style;
+//   (25.199, 0.4925) @TEXT("ground", halign="start", valign="middle", size=0.55) => @SET-STYLE $table_style
+// }
+// @RNL(author="adcflow gen") {
+//   /* block symbol of adc_bootstrap, generated from tools/adcflow/symbols.py by `python -m adcflow gen` -- do not edit this record */
+//   %adc_bootstrap = @DEFINE-SYMBOL(box=[-6, -5, 6, 5]) {
+//     @LINE(linewidth=0.24) {(-5, -4) (5, -4) (5, 4) (-5, 4) (-5, -4)};
+//     (-6, 2) @PIN(terminal=1, direction="left");
+//     @LINE {(-6, 2) (-5, 2)};
+//     (-4.65, 2.25) @TEXT("VIN", size=0.55, halign="start", valign="bottom");
+//     (-6, 0) @PIN(terminal=2, direction="left");
+//     @LINE {(-6, 0) (-5, 0)};
+//     (-4.65, 0.2) @TEXT("PHI_B", size=0.55, halign="start", valign="bottom");
+//     (-6, -2) @PIN(terminal=3, direction="left");
+//     @LINE {(-6, -2) (-5, -2)};
+//     (-4.65, -1.8) @TEXT("PHI_BB", size=0.55, halign="start", valign="bottom");
+//     (6, 2) @PIN(terminal=4, direction="right");
+//     @LINE {(6, 2) (5, 2)};
+//     (4.65, 2.25) @TEXT("VG", size=0.55, halign="end", valign="bottom");
+//     (0, 5) @PIN(terminal=5, direction="up");
+//     @LINE {(0, 5) (0, 4)};
+//     (4, -5) @PIN(terminal=6, direction="down");
+//     @LINE {(4, -5) (4, -4)};
+//     @LINE {(-5, 2) (-1.3, 2)};
+//     @LINE(linewidth=0.24) {(-1.3, 1.5) (-1.3, 2.5)};
+//     @LINE(linewidth=0.24) {(-0.7, 1.1) (-0.7, 2.9)};
+//     (-0.3, 2.75) @TEXT("+", size=0.6);
+//     (-1, 0.85) @TEXT("V_{DD}", size=0.45, halign="middle", valign="top");
+//     @LINE {(-0.7, 2) (0.65, 2)};
+//     (0.85, 2) @CIRCLE(radius=0.2);
+//     @LINE {(1, 2.13) (2.05, 2.8)};
+//     (2.25, 2) @CIRCLE(radius=0.2);
+//     @LINE {(2.45, 2) (5, 2)};
+//     (4, 2) @CIRCLE(radius=0.18, fill="linecolor", linestyle="none");
+//     @LINE {(4, 2) (4, 1)};
+//     (4, 0.8) @CIRCLE(radius=0.2);
+//     @LINE {(3.88, 0.63) (3.2, -0.45)};
+//     (4, -0.75) @CIRCLE(radius=0.2);
+//     @LINE {(4, -0.95) (4, -4)};
+//     @LINE(linestyle="dashed") {(-5, 0) (1.55, 0) (1.55, 2.3)};
+//     @LINE(linestyle="dashed") {(-5, -2) (3.5, -2) (3.5, -0.05)};
+//     ? @TEXT("${name}", key="name", size=0.8, valign="bottom") => @PLACE(-5, 4.5);
+//     ? @TEXT("${model}", key="model", size=0.5, valign="bottom") => @PLACE(-4.65, -3.65)
+//   };
+//   # @SET-SYMBOL %adc_bootstrap
+// }
+ends adc_bootstrap

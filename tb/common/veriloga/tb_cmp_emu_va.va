@@ -1,0 +1,86 @@
+// Comparator emulator closing the loop around adc_sarlogic in its testbench.
+// At CONV rising it draws an input vin (LSB, uniform over +/-vin_max). At each
+// CLKC rising it reads the DAC level from UP/DN (sum of +/- w_j of the lines
+// that are high), decides sign(vin - level) and answers after
+// t0 + tau * ln(vsat / |vin - level|) (LSB-scaled), clipped to [t0, tmax].
+// With stuck_k > 0 decision stuck_k of every odd conversion is never answered.
+// Log lines:  "V <conv> <vin>"  and  "K <conv> <k> <dec> <level> <t_clkc>".
+`include "disciplines.vams"
+`include "constants.vams"
+`include "adc_arch.vams"
+
+module tb_cmp_emu_va(CONV, CLKC, UP, DN, OUTP, OUTN, VDD, VSS);
+  input CONV, CLKC, VDD, VSS;
+  input [12:0] UP, DN;
+  output OUTP, OUTN;
+  electrical CONV, CLKC, OUTP, OUTN, VDD, VSS;
+  electrical [12:0] UP, DN;
+
+  parameter real vin_max = 2200;        // LSB
+  parameter real t0 = 45e-12;
+  parameter real tau = 8e-12;
+  parameter real vsat = 70;             // LSB (~30 mV at the top plate)
+  parameter real tmax = 1e-9;
+  parameter real trst = 25e-12;
+  parameter real tr = 8e-12;
+  parameter integer stuck_k = 0;
+  parameter integer seed0 = 5;
+  parameter real cload = 0 from [0:inf);   // load on every UP/DN input
+  parameter real cclk = 0 from [0:inf);    // load on CLKC
+  parameter string fname = "emu.txt";
+
+  `include "adc_arch_func.vams"
+
+  integer seed, fh, conv, k, dec, outp, outn, pending;
+  real vin, level, lev_now, res, td, t_out, t_rst, vth;
+  genvar g;
+
+  analog begin
+    vth = 0.5 * V(VDD, VSS);
+    lev_now = 0;
+    for (g = 0; g <= 12; g = g + 1)
+      lev_now = lev_now + ((V(UP[g], VSS) > vth) ? capw(g) : 0) - ((V(DN[g], VSS) > vth) ? capw(g) : 0);
+    @(initial_step("tran")) begin
+      seed = seed0; fh = $fopen(fname, "w"); conv = 0; k = 0;
+      outp = 0; outn = 0; pending = 0; t_out = 1e9; t_rst = 1e9; vin = 0;
+    end
+    @(cross(V(CONV, VSS) - vth, +1)) begin
+      conv = conv + 1; k = 0;
+      vin = vin_max * (2 * $rdist_uniform(seed, 0.0, 1.0) - 1);
+      $fwrite(fh, "V %d %.6f\n", conv, vin);
+    end
+    @(cross(V(CLKC, VSS) - vth, +1)) begin
+      k = k + 1;
+      level = lev_now;
+      res = vin - level;
+      dec = (res > 0) ? 1 : 0;
+      if (abs(res) >= vsat) td = t0;
+      else if (abs(res) < 1e-9) td = tmax;
+      else td = t0 + tau * ln(vsat / abs(res));
+      if (td > tmax) td = tmax;
+      $fwrite(fh, "K %d %d %d %.3f %.6e\n", conv, k, dec, level, $abstime);
+      if (stuck_k > 0 && k == stuck_k && (conv % 2) == 1) begin
+        pending = 0; t_out = 1e9;
+      end else begin
+        pending = 1; t_out = $abstime + td;
+      end
+      t_rst = 1e9;
+    end
+    @(timer(t_out)) begin
+      if (pending) begin outp = dec; outn = 1 - dec; pending = 0; end
+      t_out = 1e9;
+    end
+    @(cross(V(CLKC, VSS) - vth, -1)) begin
+      pending = 0; t_out = 1e9; t_rst = $abstime + trst;
+    end
+    @(timer(t_rst)) begin outp = 0; outn = 0; t_rst = 1e9; end
+    @(final_step("tran")) $fclose(fh);
+    V(OUTP, VSS) <+ transition(outp, 0, tr) * V(VDD, VSS);
+    V(OUTN, VSS) <+ transition(outn, 0, tr) * V(VDD, VSS);
+    for (g = 0; g <= 12; g = g + 1) begin
+      I(UP[g], VSS) <+ cload * ddt(V(UP[g], VSS));
+      I(DN[g], VSS) <+ cload * ddt(V(DN[g], VSS));
+    end
+    I(CLKC, VSS) <+ cclk * ddt(V(CLKC, VSS));
+  end
+endmodule
