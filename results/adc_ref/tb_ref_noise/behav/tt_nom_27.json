@@ -36,14 +36,14 @@
   }
  ],
  "meta": {
-  "date": "2026-10-27T13:02:52",
-  "git": "71d1ec7",
+  "date": "2026-10-27T13:21:26",
+  "git": "aa418b2",
   "mode": "aps",
   "pdk": false,
   "mc": null,
-  "wall_s": 114.1,
+  "wall_s": 113.3,
   "rc": "0",
-  "sim_s": "6",
+  "sim_s": "7",
   "files": {
    "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
    "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",
@@ -60,7 +60,7 @@
    "design/behav/veriloga/adc_ref_va.va": "746d2530d4ff6d5c",
    "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
    "tb/ref/tb_ref_noise.scs": "aaf232d101e80048",
-   "specs/arch.yaml": "21a91c3d06aa47e9"
+   "specs/arch.yaml": "2207a1df50779025"
   }
  }
 }
