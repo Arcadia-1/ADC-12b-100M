@@ -1,7 +1,7 @@
 block: adc_comp
 title: Dynamic latched comparator
 version: 0.1.0
-owner: TBD
+owner: many-question
 status: behavioral            # behavioral | xtor-wip | xtor-review | signoff
 views:
   behav: design/behav/adc_comp.scs
