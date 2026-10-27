@@ -43,7 +43,9 @@ python -m adcflow clean-remote --older-than-h 12   # 清理服务器上本项目
 2. 打包上传到服务器本地盘的 `<remote_root>/<run_id>/`，并行运行 Spectre（共享 Verilog-A 编译缓存）；
 3. 只取回小文件（监视器输出、日志、需要的波形，单文件默认 ≤ 50 MB），**随后删除服务器目录**；
 4. 调用度量函数，把指标与判定写入 `results/<block>/<test>/<view>/<corner>.json`，
-   其中 `meta.files` 记录所用网表、Verilog-A、规格文件的哈希。
+   其中 `meta.files` 记录所用网表、Verilog-A、规格文件的哈希；度量函数同时用已读入的数据画证据图，
+   写在 JSON 旁（`<corner>.<tag>.png`），清单记在 JSON 的 `figures`（见 [`verification.md`](verification.md) §4）。
+   重跑同一结果会先删除它旧的图。
 
 视图选择：默认全部行为级；`--view adc_comp=xtor` 使用 `design/xtor/adc_comp/adc_comp.scs`，
 此时自动包含所选工艺角的 PDK 模型段并打开器件噪声（`devnoise=1`）。
@@ -58,6 +60,9 @@ python -m adcflow clean-remote --older-than-h 12   # 清理服务器上本项目
   beh_speed vref_in` 由 deck 提供，测试台中不要声明。
 * 监视器写小文本文件（`tb/common/veriloga/`）；只在度量需要时保存波形（`save` 列出信号）。
 * 度量函数放在 `tools/adcflow/measure/<block>.py`，签名 `fn(job_dir, ctx) -> dict`，键名即规格中的 `metric`。
+  `ctx["figs"]` 是图的接收器（`tools/adcflow/figures.py` 的 `FigureSink`）：新测试的度量函数用
+  `sink_of(ctx)` 取得它，`fg.new(...)` 建图、`fg.save(fig, tag, caption)` 保存；规格线用
+  `limits(ctx, metric)`（来自 `specs/blocks/*.yaml`），每个测试至少要有一张图，否则 `check results --strict` 报错。
 * 规格中的 `prepare: module:fn` 在建 job 时改写参数（例如把 `fin_target` 换成相干频点）；返回的
   `_files: {文件名: 文本}` 会写进 job 目录，测试台用相对路径读取（`tb_ref_replay` 的 `iload.pwl` / `trig.pwl`）。
 

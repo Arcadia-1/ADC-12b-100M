@@ -9,7 +9,10 @@ rnl      `rnl check` on every netlist and package: no errors, no warnings;
 results  recorded results (results/**.json) are re-judged with the current
          limits; results whose files changed since the simulation are stale;
          blocks in status `signoff` need passing, fresh results for every spec
-         in its required corner set.
+         in its required corner set. Evidence figures (`figures` of a result):
+         listed files must exist next to the JSON and stay below 200 kB; with
+         --strict every result needs figures. They are not hashed: a figure is
+         as stale as the JSON it belongs to.
 hygiene  nothing site specific (servers, server paths, shell setup, PDK paths)
          and no model cards or large binaries in tracked files.
 """
@@ -188,6 +191,41 @@ def judge(doc: dict) -> dict:
     return {"specs": verdict, "stale": stale, "error": doc["metrics"].get("error")}
 
 
+FIGURE_MAX_BYTES = 200_000
+
+
+def _check_figures(r: Report, doc: dict, rel: str, strict: bool, failed: bool) -> None:
+    """Evidence figures of a result: `figures: [{file, caption}]`, the PNGs next to the JSON.
+
+    Listed files must exist and be small; PNGs of this result that are not listed are
+    reported. Figures never make a result stale: they come from the same simulation as
+    the JSON, whose file hashes decide. With `strict` every result needs figures (except
+    a failed one, which is already reported)."""
+    path = doc["_path"]
+    figs = doc.get("figures")
+    if not figs:
+        if strict and not failed:
+            r.err(f"{rel}: no evidence figures (re-run the test: python -m adcflow sim <test>)")
+        figs = []
+    listed = set()
+    for i, f in enumerate(figs):
+        name = f.get("file", "") if isinstance(f, dict) else ""
+        if not name or not f.get("caption"):
+            r.err(f"{rel}: figures[{i}] needs a file and a caption")
+            continue
+        listed.add(name)
+        png = path.parent / name
+        if not name.startswith(path.stem + ".") or not name.endswith(".png") or "/" in name:
+            r.err(f"{rel}: figure {name!r} must be named <{path.stem}>.<tag>.png next to the result")
+        elif not png.exists():
+            r.err(f"{rel}: listed figure {name} does not exist")
+        elif png.stat().st_size > FIGURE_MAX_BYTES:
+            r.err(f"{rel}: figure {name} is {png.stat().st_size // 1000} kB (limit {FIGURE_MAX_BYTES // 1000} kB)")
+    for png in sorted(path.parent.glob(f"{path.stem}.*.png")):
+        if png.name not in listed and png.name[len(path.stem) + 1:].count(".") == 1:
+            r.warn(f"{rel}: {png.name} is not listed in figures")
+
+
 def check_results(strict: bool = False) -> Report:
     r = Report("results")
     docs = load_results()
@@ -202,6 +240,7 @@ def check_results(strict: bool = False) -> Report:
                 r.warn(f"{rel}: {sid} = {v['value']} violates {v['limit']}")
         if j["stale"]:
             r.warn(f"{rel}: stale (changed since simulated: {', '.join(j['stale'][:4])})")
+        _check_figures(r, d, rel, strict, bool(j["error"]))
         by.setdefault((d["block"], d["test"], d["view"]), {})[d["corner"]] = (d, j)
     for b in blocks().values():
         need_signoff = b.status == "signoff" or (strict and b.status == "xtor-review")

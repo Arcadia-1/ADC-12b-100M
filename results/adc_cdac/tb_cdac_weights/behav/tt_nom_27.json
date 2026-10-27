@@ -61,15 +61,21 @@
    "pass": true
   }
  },
+ "figures": [
+  {
+   "file": "tt_nom_27.weights.png",
+   "caption": "Measured weight of every DAC bit against nominal, the weight error per bit against its limit, and the asymmetry of the rising and falling steps."
+  }
+ ],
  "meta": {
-  "date": "2026-10-27T02:52:38",
-  "git": "d326851",
+  "date": "2026-10-27T12:58:01",
+  "git": "71d1ec7",
   "mode": "aps",
   "pdk": false,
   "mc": null,
-  "wall_s": 155.3,
+  "wall_s": 154.6,
   "rc": "0",
-  "sim_s": "49",
+  "sim_s": "47",
   "files": {
    "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
    "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",

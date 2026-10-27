@@ -62,15 +62,25 @@
    "pass": true
   }
  },
+ "figures": [
+  {
+   "file": "tt_nom_27.spectrum.png",
+   "caption": "Output spectrum (fin 1.07 MHz, 1024 points, -1 dBFS) with ENOB, SNDR and SFDR against their limits, for the nominal weights and for the sine-calibrated weights."
+  },
+  {
+   "file": "tt_nom_27.codes.png",
+   "caption": "Output codes folded on the phase of the input sine with the fit, the error against the fit for every sample, and the conversion-time histogram against its limit."
+  }
+ ],
  "meta": {
-  "date": "2026-10-27T02:59:49",
-  "git": "d326851",
+  "date": "2026-10-27T12:52:28",
+  "git": "71d1ec7",
   "mode": "aps",
   "pdk": false,
   "mc": null,
-  "wall_s": 279.1,
+  "wall_s": 304.3,
   "rc": "0",
-  "sim_s": "172",
+  "sim_s": "197",
   "files": {
    "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
    "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",

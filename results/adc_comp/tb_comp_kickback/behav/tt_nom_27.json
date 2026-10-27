@@ -41,15 +41,21 @@
    "pass": true
   }
  },
+ "figures": [
+  {
+   "file": "tt_nom_27.kickback.png",
+   "caption": "Differential input of the floating 1.25 pF nodes after each evaluate and reset cycle, and the change per cycle against the kickback limit."
+  }
+ ],
  "meta": {
-  "date": "2026-10-27T02:56:38",
-  "git": "d326851",
+  "date": "2026-10-27T12:57:20",
+  "git": "71d1ec7",
   "mode": "aps",
   "pdk": false,
   "mc": null,
-  "wall_s": 118.3,
+  "wall_s": 118.6,
   "rc": "0",
-  "sim_s": "11",
+  "sim_s": "12",
   "files": {
    "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
    "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",

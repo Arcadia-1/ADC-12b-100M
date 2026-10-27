@@ -34,6 +34,7 @@ import yaml
 from . import REPO_ROOT
 from . import remote
 from .corners import Corner, corner_set, model_includes, vref_in
+from .figures import FigureSink
 from .netlist import content_hash, parse, substitute_parameters
 from .specs import Block, blocks, find_test
 
@@ -195,16 +196,22 @@ def measure(test: dict, job_dir: Path, ctx: dict) -> dict:
     return fn(job_dir, ctx)
 
 
-def record(block: Block, test_id: str, viewsig: str, job: Job, metrics: dict, meta: dict) -> Path:
+def result_dir(block: Block, test_id: str, viewsig: str) -> Path:
+    return REPO_ROOT / "results" / block.name / test_id / viewsig
+
+
+def record(block: Block, test_id: str, viewsig: str, job: Job, metrics: dict, meta: dict,
+           figures: list[dict] | None = None) -> Path:
     specs = [s for s in block.specs if s.test == test_id and (not s.mc or meta.get("mc"))]
     verdict = {}
     for s in specs:
         v = metrics.get(s.metric)
         verdict[s.id] = {"metric": s.metric, "value": v, "limit": s.limit_text(), "pass": s.check(v)}
-    out = REPO_ROOT / "results" / block.name / test_id / viewsig / f"{job.name}.json"
+    out = result_dir(block, test_id, viewsig) / f"{job.name}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     doc = {"block": block.name, "test": test_id, "view": viewsig, "corner": job.corner.name,
-           "params": job.params, "globals": job.globals_, "metrics": metrics, "specs": verdict, "meta": meta}
+           "params": job.params, "globals": job.globals_, "metrics": metrics, "specs": verdict,
+           "figures": figures or [], "meta": meta}
     out.write_text(json.dumps(doc, indent=1, default=float) + "\n", encoding="utf-8", newline="\n")
     return out
 
@@ -261,8 +268,12 @@ def run_test(test_id: str, block_name: str | None = None, corners: str = "typ",
         files = [p for p in used[j.name]] + [REPO_ROOT / test["netlist"], REPO_ROOT / "specs" / "arch.yaml"]
         meta = {**meta_base, "rc": rc[0], "sim_s": rc[1] if len(rc) > 1 else None,
                 "files": {p.relative_to(REPO_ROOT).as_posix(): _sha(p) for p in files}}
+        # evidence figures go next to the result JSON (or into the run directory without --record)
+        figs = FigureSink(result_dir(block, test_id, viewsig) if do_record else run_dir / "figs", j.name,
+                          header=f"{test_id} | {viewsig} | {j.name}")
+        figs.clear()
         ctx = {"corner": j.corner, "params": j.params, "globals": j.globals_, "test": test_id,
-               "block": block.name}
+               "block": block.name, "view": viewsig, "figs": figs}
         try:
             metrics = measure(test, jd, ctx) if rc[0] == "0" else {}
             if rc[0] != "0":
@@ -272,7 +283,7 @@ def run_test(test_id: str, block_name: str | None = None, corners: str = "typ",
         except Exception as e:  # keep going, record the failure
             traceback.print_exc()
             metrics = {"error": f"measure failed: {e}"}
-        out = record(block, test_id, viewsig, j, metrics, meta) if do_record else None
+        out = record(block, test_id, viewsig, j, metrics, meta, figs.entries) if do_record else None
         summary.append({"job": j.name, "rc": rc[0], "metrics": metrics, "out": out})
     _print_summary(block, test_id, summary, mc)
     return summary

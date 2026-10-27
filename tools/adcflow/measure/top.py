@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 
 from ..arch import Arch
+from ..figures import C1, C3, C7, MUTED, limits, note, plot_spectrum, sink_of
 from .common import read_capture, read_meters, spectrum
 
 
@@ -80,4 +81,45 @@ def sine(job_dir: Path, ctx: dict) -> dict:
     if meters:
         m["power_mW"] = sum(m.get(f"p_{k.lower()}_mW", 0.0) for k in pw)
     np.save(Path(job_dir) / "bits.npy", bits)
+    fg = sink_of(ctx)
+    if fg:
+        _figs(fg, ctx, a, fs, fin, codes, bits @ w, fit, tconv, m)
     return m
+
+
+def _figs(fg, ctx, a, fs, fin, codes, codes_cal, fit, tconv, m) -> None:
+    n = len(codes)
+    head = f"fin {fin / 1e6:.2f} MHz, {n} points, {ctx['params'].get('amp_dbfs', -1):g} dBFS"
+    fig, axs = fg.new(1, 2, size=(13.0, 4.4))
+    plot_spectrum(axs[0, 0], codes, fs, a.n_codes / 2, m, sfdr_min=limits(ctx, "sfdr_dBc")[0],
+                  enob_min=limits(ctx, "enob")[0], ylim=(-140, 5), label="Nominal weights")
+    plot_spectrum(axs[0, 1], codes_cal, fs, a.n_codes / 2,
+                  {"enob": m["enob_cal"], "sfdr_dBc": m["sfdr_cal_dBc"]}, ylim=(-140, 5),
+                  label="Weights calibrated on the sine (not the acceptance value)")
+    fg.save(fig, "spectrum", f"Output spectrum ({head}) with ENOB, SNDR and SFDR against their limits, "
+            "for the nominal weights and for the sine-calibrated weights.")
+    fig, axs = fg.new(1, 3, size=(15.0, 4.2))
+    ax = axs[0, 0]
+    # fin is close to fs/2, so consecutive samples alternate: fold them on the sine phase
+    ph = np.mod(2 * np.pi * fit["frequency"] * np.arange(n) + fit["phase"] + np.pi / 2, 2 * np.pi)
+    order = np.argsort(ph)
+    ax.plot(ph[order], np.asarray(fit["fitted_signal"])[order], color=MUTED, lw=1.4, label="sine fit")
+    ax.plot(ph, codes, "o", ms=2.2, color=C1, alpha=0.8, label="output code")
+    ax.set(xlabel="phase of the input sine (rad)", ylabel=f"code (0 .. {a.n_codes - 1})",
+           title="Codes folded on the input phase", xlim=(0, 2 * np.pi))
+    ax.legend(loc="lower left")
+    note(ax, f"codes {int(codes.min())} .. {int(codes.max())}", loc="upper right")
+    ax = axs[0, 1]
+    err = codes - np.asarray(fit["fitted_signal"])
+    ax.plot(np.arange(n), err, ".", color=C3, ms=3)
+    ax.set(xlabel="sample", ylabel="code - sine fit (LSB)", title="Error against the fitted sine")
+    note(ax, f"rms {err.std():.2f} LSB, peak {np.abs(err).max():.1f} LSB", loc="upper right")
+    ax = axs[0, 2]
+    tc = np.asarray(tconv) * 1e9
+    ax.hist(tc, bins=40, color=C7, edgecolor="white", linewidth=0.3)
+    hi = limits(ctx, "t_conv_max_ns")[1]
+    ax.set(xlabel="CLK fall to RDY rise (ns)", ylabel="conversions", title="Conversion time")
+    note(ax, f"mean {tc.mean():.3f} ns, max {tc.max():.3f} ns" + (f"\nlimit on the maximum {hi:g} ns" if hi else ""),
+         loc="upper right")
+    fg.save(fig, "codes", "Output codes folded on the phase of the input sine with the fit, the error against "
+            "the fit for every sample, and the conversion-time histogram against its limit.")
