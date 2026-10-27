@@ -65,15 +65,21 @@
    "pass": true
   }
  },
+ "figures": [
+  {
+   "file": "tt_nom_27.delay.png",
+   "caption": "Comparator delay versus input difference with the log fit and limits, the +1 mV decision with its delay marked, and the reset to 10 % VDD."
+  }
+ ],
  "meta": {
-  "date": "2026-10-27T02:51:56",
-  "git": "d326851",
+  "date": "2026-10-27T13:18:48",
+  "git": "aa418b2",
   "mode": "aps",
   "pdk": false,
   "mc": null,
-  "wall_s": 114.8,
+  "wall_s": 130.5,
   "rc": "0",
-  "sim_s": "7",
+  "sim_s": "23",
   "files": {
    "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
    "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",
@@ -91,7 +97,7 @@
    "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
    "tb/common/veriloga/tb_imeter_va.va": "d4be49aca417ad61",
    "tb/comp/tb_comp_delay.scs": "c9bbdac040c91a1f",
-   "specs/arch.yaml": "21a91c3d06aa47e9"
+   "specs/arch.yaml": "2207a1df50779025"
   }
  }
 }

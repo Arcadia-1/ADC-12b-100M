@@ -41,15 +41,21 @@
    "pass": true
   }
  },
+ "figures": [
+  {
+   "file": "tt_nom_27.kickback.png",
+   "caption": "Differential input of the floating 1.25 pF nodes after each evaluate and reset cycle, and the change per cycle against the kickback limit."
+  }
+ ],
  "meta": {
-  "date": "2026-10-27T02:56:38",
-  "git": "d326851",
+  "date": "2026-10-27T13:21:01",
+  "git": "aa418b2",
   "mode": "aps",
   "pdk": false,
   "mc": null,
-  "wall_s": 118.3,
+  "wall_s": 124.7,
   "rc": "0",
-  "sim_s": "11",
+  "sim_s": "17",
   "files": {
    "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
    "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",
@@ -67,7 +73,7 @@
    "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
    "tb/common/veriloga/tb_sampler_va.va": "4092bc16170c588d",
    "tb/comp/tb_comp_kickback.scs": "2440a3f762370b59",
-   "specs/arch.yaml": "21a91c3d06aa47e9"
+   "specs/arch.yaml": "2207a1df50779025"
   }
  }
 }

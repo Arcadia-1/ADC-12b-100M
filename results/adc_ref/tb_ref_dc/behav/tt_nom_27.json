@@ -48,13 +48,19 @@
    "pass": true
   }
  },
+ "figures": [
+  {
+   "file": "tt_nom_27.dc.png",
+   "caption": "VREFP against load current and against the 1.8 V supply, VCM against load, and the operating-point values against their limits."
+  }
+ ],
  "meta": {
-  "date": "2026-10-27T02:46:16",
-  "git": "f56c10e",
+  "date": "2026-10-27T13:21:15",
+  "git": "aa418b2",
   "mode": "aps",
   "pdk": false,
   "mc": null,
-  "wall_s": 122.3,
+  "wall_s": 118.9,
   "rc": "0",
   "sim_s": "12",
   "files": {
@@ -73,7 +79,7 @@
    "design/behav/veriloga/adc_ref_va.va": "746d2530d4ff6d5c",
    "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
    "tb/ref/tb_ref_dc.scs": "36cad0421a7a9c8e",
-   "specs/arch.yaml": "21a91c3d06aa47e9"
+   "specs/arch.yaml": "2207a1df50779025"
   }
  }
 }

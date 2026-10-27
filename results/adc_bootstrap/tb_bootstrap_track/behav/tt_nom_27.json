@@ -35,15 +35,21 @@
    "pass": true
   }
  },
+ "figures": [
+  {
+   "file": "tt_nom_27.spectrum.png",
+   "caption": "Spectrum of the voltage sampled through the bootstrapped switch for a full-scale tracking input, with SFDR and SNDR against their limits."
+  }
+ ],
  "meta": {
-  "date": "2026-10-27T03:06:30",
-  "git": "cb3b8d4",
+  "date": "2026-10-27T13:16:02",
+  "git": "aa418b2",
   "mode": "aps",
   "pdk": true,
   "mc": null,
-  "wall_s": 131.6,
+  "wall_s": 153.9,
   "rc": "0",
-  "sim_s": "24",
+  "sim_s": "46",
   "files": {
    "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
    "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",
@@ -61,7 +67,7 @@
    "design/behav/veriloga/adc_sarlogic_va.va": "42f06909a81347ef",
    "tb/common/veriloga/tb_sampler_va.va": "4092bc16170c588d",
    "tb/bootstrap/tb_bootstrap_track.scs": "1ab67afcde991d46",
-   "specs/arch.yaml": "21a91c3d06aa47e9"
+   "specs/arch.yaml": "2207a1df50779025"
   }
  }
 }

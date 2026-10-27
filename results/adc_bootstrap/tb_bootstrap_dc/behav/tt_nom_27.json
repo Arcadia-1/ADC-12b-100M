@@ -69,15 +69,21 @@
    "pass": true
   }
  },
+ "figures": [
+  {
+   "file": "tt_nom_27.switch.png",
+   "caption": "Boosted gate voltage over the input range, the worst turn-off and turn-on edge with their delays and limits, the gate stress against the safe-operating limit, and the specification table."
+  }
+ ],
  "meta": {
-  "date": "2026-10-27T03:03:53",
-  "git": "d326851",
+  "date": "2026-10-27T13:16:01",
+  "git": "aa418b2",
   "mode": "aps",
   "pdk": true,
   "mc": null,
-  "wall_s": 127.9,
+  "wall_s": 154.9,
   "rc": "0",
-  "sim_s": "21",
+  "sim_s": "48",
   "files": {
    "design/behav/adc_bootstrap.scs": "066523e6d36e1090",
    "design/behav/adc_cdac.scs": "de8f65e2569cb9bf",
@@ -96,7 +102,7 @@
    "tb/common/veriloga/tb_imeter_va.va": "d4be49aca417ad61",
    "tb/common/veriloga/tb_sampler_va.va": "4092bc16170c588d",
    "tb/bootstrap/tb_bootstrap_dc.scs": "72ce99dbf0e00767",
-   "specs/arch.yaml": "21a91c3d06aa47e9"
+   "specs/arch.yaml": "2207a1df50779025"
   }
  }
 }
