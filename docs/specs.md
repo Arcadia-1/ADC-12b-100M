@@ -7,7 +7,7 @@
 | [`adc_bootstrap`](#adc-bootstrap) | behavioral | TBD | 8 | `tb_bootstrap_dc`, `tb_bootstrap_track` |
 | [`adc_cdac`](#adc-cdac) | behavioral | many-question | 13 | `tb_cdac_weights`, `tb_cdac_settle`, `tb_cdac_track` |
 | [`adc_clkgen`](#adc-clkgen) | behavioral | TBD | 10 | `tb_clkgen_timing`, `tb_clkgen_jitter` |
-| [`adc_comp`](#adc-comp) | behavioral | TBD | 12 | `tb_comp_delay`, `tb_comp_noise`, `tb_comp_kickback` |
+| [`adc_comp`](#adc-comp) | behavioral | many-question | 12 | `tb_comp_delay`, `tb_comp_noise`, `tb_comp_kickback` |
 | [`adc_ref`](#adc-ref) | behavioral | TBD | 8 | `tb_ref_dc`, `tb_ref_replay`, `tb_ref_noise` |
 | [`adc_sarlogic`](#adc-sarlogic) | behavioral | TBD | 13 | `tb_sarlogic_func`, `tb_sarlogic_rand`, `tb_sarlogic_func_slow`, `tb_sarlogic_timeout` |
 | [`adc_top`](#adc-top) | behavioral | many-question | 8 | `tb_top_sine`, `tb_top_sine_lf`, `tb_top_duty` |
