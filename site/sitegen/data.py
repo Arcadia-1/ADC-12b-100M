@@ -125,6 +125,7 @@ class SpecRow:
     stale: list[str]
     mc: int | None = None
     evidence: str | None = None      # repo path of the result file that gave the worst value
+    evidence_doc: dict | None = None  # that result, for its provenance (simulation commit, inputs)
 
 
 @dataclass
@@ -204,9 +205,10 @@ def _spec_rows(b, view: str, docs: list[dict]) -> list[SpecRow]:
         else:
             status = "pass" if all(p for _, p in vals) else "fail"
         worst = _worst(s, nums)
-        ev = next((evidence_path(d) for x, d in pairs if x == worst), None) if worst is not None else None
+        ev_doc = next((d for x, d in pairs if x == worst), None) if worst is not None else None
+        ev = evidence_path(ev_doc) if ev_doc else None
         out.append(SpecRow(s.id, s.name, s.limit_text().replace("<=", "≤").replace(">=", "≥"), s.unit,
-                           s.test, view, s.corners, worst, status, len(vals), need, stale, s.mc, ev))
+                           s.test, view, s.corners, worst, status, len(vals), need, stale, s.mc, ev, ev_doc))
     return out
 
 

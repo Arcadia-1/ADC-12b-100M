@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from pathlib import Path
 from urllib.parse import quote, quote_plus
 
@@ -65,10 +66,35 @@ class Site:
         """Open pull requests of a block: their titles start with [<block>]."""
         return f"https://github.com/{self.repo}/pulls?q=" + quote_plus(f'is:pr is:open in:title "[{block}]"')
 
-    def evidence(self, rel: str, label: str = "JSON ↗") -> str:
-        """Link to a result file on GitHub at the built commit."""
-        return (f'<a class="ev" href="{esc(self.gh(rel))}" target="_blank" rel="noopener" '
+    def evidence(self, rel: str, label: str = "JSON ↗", doc: dict | None = None) -> str:
+        """Link to a result file on GitHub at the built commit, with the result's provenance under it when `doc` is given."""
+        link = (f'<a class="ev" href="{esc(self.gh(rel))}" target="_blank" rel="noopener" '
                 f'title="证据：{esc(rel)}（构建提交 {esc(self.build.short)}）">{label}</a>')
+        return link + (self.provenance(doc) if doc else "")
+
+    def provenance(self, doc: dict) -> str:
+        """One short muted line: the commit the result was simulated on, whether its inputs match this build's files,
+        and (when the result records it) whether the working tree was clean at simulation time.
+
+        The result file is committed after the simulation, so the commit it names is older than the build's by design."""
+        meta = doc.get("meta") or {}
+        sha = str(meta.get("git") or "").strip()
+        parts = []
+        if sha:
+            parts.append(f'仿真于 <a href="https://github.com/{self.repo}/commit/{esc(sha)}" target="_blank" rel="noopener">{esc(sha[:7])}</a>'
+                         if re.fullmatch(r"[0-9a-f]{7,40}", sha) else f"仿真于 {esc(sha)}")
+        stale = (doc.get("_judged") or {}).get("stale")
+        if stale is not None:
+            if stale:
+                shown = "，".join(stale[:2]) + (f" 等 {len(stale)} 个" if len(stale) > 2 else "")
+                parts.append(f'<span class="warn-t" title="自仿真后已变化的输入：{esc("，".join(stale))}">已过期：{esc(shown)}</span>')
+            else:
+                parts.append("输入与本次构建一致")
+        if meta.get("git_clean") is False:
+            dirty = "，".join(str(p) for p in meta.get("git_dirty_paths") or [])
+            title = f' title="未提交的路径：{esc(dirty)}"' if dirty else ""
+            parts.append(f'<span class="warn-t"{title}>仿真时工作区有未提交改动</span>')
+        return f'<small class="prov muted">{" · ".join(parts)}</small>' if parts else ""
 
 
 # ------------------------------------------------------------------ frame
@@ -167,7 +193,7 @@ def spec_table(site: Site, rows: list[SpecRow], with_test: bool = True) -> str:
     for r in rows:
         worst = f"{fmt(r.worst)} <span class='muted'>{esc(r.unit)}</span>" if r.worst is not None else "–"
         test = f'<td><code>{esc(r.test)}</code></td>' if with_test else ""
-        ev = site.evidence(r.evidence) if r.evidence else "<span class='muted'>–</span>"
+        ev = site.evidence(r.evidence, doc=r.evidence_doc) if r.evidence else "<span class='muted'>–</span>"
         body.append(f"<tr class='{r.status}'><td><b>{esc(r.id)}</b></td><td>{esc(r.name)}</td>"
                     f"<td class=num>{esc(r.limit)} <span class='muted'>{esc(r.unit)}</span></td>"
                     f"<td class=num>{worst}</td><td>{verdict_chip(r)}</td><td class=cov-cell>{coverage(r)}</td>"
@@ -211,7 +237,7 @@ def corner_detail(site: Site, bd: BlockData, view: str, root: str = "") -> str:
             m = d.get("meta", {})
             rows.append(f"<tr><th scope=row><code>{esc(d['corner'])}</code> {st}{err}</th>{''.join(cells)}"
                         f"<td class='muted'>{esc((m.get('date') or '')[:10])}<br><small>{esc(m.get('git') or '')}</small></td>"
-                        f"<td class=ev-cell>{site.evidence(evidence_path(d))}</td></tr>")
+                        f"<td class=ev-cell>{site.evidence(evidence_path(d), doc=d)}</td></tr>")
             fs = figure_strip(site, d, root)
             if fs:
                 nfig += 1
@@ -460,7 +486,7 @@ def overview(site: Site, data: dict[str, BlockData]) -> str:
         stat("满量程", f"{s['FS_peak_diff_V']:.3f}<small> Vp</small>", f"差分峰值，VREF = {raw['reference']['vref']:g} V"),
         stat("ENOB 目标", f"&gt; {tg['enob_min']:g}<small> bit</small>", f"@ 50 MHz, −1 dBFS, 45 个角 · TT 设计目标 {tg['enob_design']:g}"),
         stat("行为级 ENOB", (f"{enob:.2f}<small> bit</small>" if enob else "–"),
-             "顶层行为级仿真，TT/0.9 V/27 °C" + (f" · {site.evidence(evidence_path(enob_doc), '证据 ↗')}" if enob_doc else "")),
+             "顶层行为级仿真，TT/0.9 V/27 °C" + (f" · {site.evidence(evidence_path(enob_doc), '证据 ↗', doc=enob_doc)}" if enob_doc else "")),
         stat("LSB", f"{s['LSB_uV']:.1f}<small> µV</small>", f"C_S = {s['C_S_per_side_pF']:.3f} pF / 侧 · kT/C {s['kTC_noise_27C_uV']:.0f} µV"),
         stat("转换时间", f"≤ {t['t_conv_max'] * 1e9:g}<small> ns</small>", f"最坏角，每次比较 ≤ {t['t_cycle_max'] * 1e12:g} ps"),
         stat("工艺 / 电源", "28<small> nm</small>", f"{PROCESS} · {raw['process']['vdd_core']:g} V / {raw['process']['vdd_io']:g} V"),
