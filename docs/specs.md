@@ -5,7 +5,7 @@
 | 模块 | 状态 | 负责人 | 指标数 | 用例 |
 |---|---|---|---|---|
 | [`adc_bootstrap`](#adc-bootstrap) | behavioral | TBD | 8 | `tb_bootstrap_dc`, `tb_bootstrap_track` |
-| [`adc_cdac`](#adc-cdac) | behavioral | TBD | 13 | `tb_cdac_weights`, `tb_cdac_settle`, `tb_cdac_track` |
+| [`adc_cdac`](#adc-cdac) | behavioral | many-question | 13 | `tb_cdac_weights`, `tb_cdac_settle`, `tb_cdac_track` |
 | [`adc_clkgen`](#adc-clkgen) | behavioral | TBD | 10 | `tb_clkgen_timing`, `tb_clkgen_jitter` |
 | [`adc_comp`](#adc-comp) | behavioral | TBD | 12 | `tb_comp_delay`, `tb_comp_noise`, `tb_comp_kickback` |
 | [`adc_ref`](#adc-ref) | behavioral | TBD | 8 | `tb_ref_dc`, `tb_ref_replay`, `tb_ref_noise` |

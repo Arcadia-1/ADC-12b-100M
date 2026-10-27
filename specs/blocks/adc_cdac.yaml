@@ -1,7 +1,7 @@
 block: adc_cdac
 title: Split-capacitor redundant CDAC, one side (instantiated twice)
 version: 0.2.0
-owner: TBD
+owner: many-question
 status: behavioral
 views:
   behav: design/behav/adc_cdac.scs
