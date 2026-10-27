@@ -119,7 +119,7 @@ footer > div { max-width: 1240px; margin: 0 auto; padding: 18px 20px 28px; displ
 .stepper li.done { background: var(--accent); opacity: .55; } .stepper li.now { background: var(--accent); }
 
 /* ---------- headings of pages */
-.eyebrow { margin: 0; color: var(--accent); font-weight: 600; font-size: .86rem; letter-spacing: .04em; text-transform: uppercase; }
+.eyebrow { margin: 0; color: var(--accent); font-weight: 600; font-size: .86rem; letter-spacing: .04em; }
 .eyebrow code { text-transform: none; letter-spacing: 0; font-weight: 500; }
 .page-head { margin-bottom: 8px; }
 .page-head h1 { margin: .1em 0 .2em; }
@@ -223,6 +223,31 @@ table.progress td { vertical-align: middle; }
 .anchor { margin-left: -1em; padding-right: .3em; color: var(--ink-3); opacity: 0; font-weight: 400; }
 h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 1; text-decoration: none; }
 
+
+/* ---------- collaboration entry, design library, owner, evidence, figures */
+nav a.nav-collab { color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+nav a.nav-collab:hover, nav a.nav-collab.on { background: var(--accent); color: var(--accent-ink); }
+.collab, .design { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 22px 18px; box-shadow: var(--shadow); margin: 22px 0; }
+.collab { border-color: var(--accent); }
+.copyline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0 4px; }
+.copyline code { flex: 1 1 280px; min-width: 0; padding: 7px 11px; font-size: .88rem; overflow-wrap: anywhere; }
+.unclaimed { color: var(--warn); font-weight: 600; }
+.ev { font-size: .84rem; white-space: nowrap; }
+.ev-cell { white-space: nowrap; }
+table.specs td code, table.detail th code { white-space: nowrap; overflow-wrap: normal; }
+.figs { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 4px; }
+.figs figure { margin: 0; width: 168px; }
+.figs a { display: block; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; cursor: zoom-in; }
+.figs a:hover { border-color: var(--accent); }
+.figs img { display: block; width: 100%; height: 112px; object-fit: contain; }
+.figs figcaption { font-size: .8rem; color: var(--ink-2); line-height: 1.4; margin-top: 4px; overflow-wrap: anywhere; }
+tr.figrow td { background: var(--surface-2); white-space: normal; }
+tr.figrow td > code { font-size: .82rem; }
+.lightbox { max-width: min(96vw, 1200px); max-height: 94vh; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); }
+.lightbox::backdrop { background: rgb(0 0 0 / 60%); }
+.lightbox img { display: block; max-width: 100%; max-height: 76vh; margin: 0 auto; background: #fff; border-radius: 6px; }
+.lightbox p { margin: .6em 0; text-align: center; color: var(--ink-2); font-size: .92rem; }
+.lightbox .btn { display: flex; margin: 0 auto; }
 @media (max-width: 860px) {
   .split { grid-template-columns: minmax(0, 1fr); }
   .doc-layout { grid-template-columns: 1fr; gap: 0; }
@@ -235,6 +260,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor { opacity: 1; text-decorati
   .bar { padding: 6px 12px; gap: 8px; }
   .brand b { display: none; }
   .hide-sm { display: none; }
+  nav a.nav-collab { order: -1; }                 /* first on a phone: the nav scrolls, this entry must be seen */
   main { padding: 16px 16px 48px; }
   .viewer-frame { height: min(var(--vh, 460px), 62vh); }
   th, td { padding: 7px 9px; }
