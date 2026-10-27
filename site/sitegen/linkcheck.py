@@ -15,11 +15,14 @@ class _Scan(HTMLParser):
         self.ids: set[str] = set()
         self.refs: list[str] = []
         self.netlist_base: str | None = None
+        self.manifest_base: str | None = None
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         if tag == "meta" and a.get("name") == "netlist-base":
             self.netlist_base = a.get("content")
+        if tag == "meta" and a.get("name") == "manifest-base":
+            self.manifest_base = a.get("content")
         if a.get("id"):
             self.ids.add(a["id"])
         if a.get("name") and tag == "a":
@@ -42,6 +45,10 @@ def check(out: Path) -> list[str]:
             probe = posixpath.normpath(posixpath.join(posixpath.dirname(rel), base, "design/top/adc_top.scs"))
             if not (out / probe).is_file():
                 problems.append(f"{rel}: netlist-base {base!r} does not reach the published netlists")
+        mb = sc.manifest_base
+        if mb and not mb.startswith("http"):           # manifests of the site: the page's base must reach the top-level one
+            if not (out / posixpath.normpath(posixpath.join(posixpath.dirname(rel), mb, "design-top-adc_top.json"))).is_file():
+                problems.append(f"{rel}: manifest-base {mb!r} does not reach the manifests")
         for ref in sc.refs:
             u = urlparse(ref)
             if u.scheme or u.netloc or ref.startswith(("data:", "mailto:")):

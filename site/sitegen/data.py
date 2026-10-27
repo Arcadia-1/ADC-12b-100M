@@ -32,8 +32,21 @@ DOCS = [  # (file, slug, title, blurb) in reading order
     ("docs/verification.md", "verification", "验证计划", "验证层次、约定与行为级基线"),
     ("docs/handoff.md", "handoff", "晶体管级设计分工包", "各模块的风险、依赖与要点"),
     ("docs/workflow.md", "workflow", "工作环境与命令", "本地环境、生成文件、运行验收用例"),
-    ("CONTRIBUTING.md", "contributing", "协作流程", "分支、提交、评审与签核"),
+    ("CONTRIBUTING.md", "contributing", "协作流程", "认领模块、分支与 PR、评审与签核"),
 ]
+CONTRIBUTING_RAW = "https://raw.githubusercontent.com/{repo}/main/CONTRIBUTING.md"
+FALLBACK_REPO = "many-question/ADC-12b-100M"
+PROCESS = "28 nm HPC+"          # the only way the site names the process
+LOGIN = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$")
+
+
+def docs() -> list[tuple[str, str, str, str]]:
+    """DOCS whose source file exists (CONTRIBUTING.md may be rewritten or absent on a branch)."""
+    return [d for d in DOCS if (ROOT / d[0]).is_file()]
+
+
+def has_doc(slug_: str) -> bool:
+    return any(d[1] == slug_ for d in docs())
 
 
 def git(*args: str) -> str:
@@ -111,6 +124,37 @@ class SpecRow:
     need: int              # corners the spec requires
     stale: list[str]
     mc: int | None = None
+    evidence: str | None = None      # repo path of the result file that gave the worst value
+
+
+@dataclass
+class Figure:
+    rel: str                        # repo path of the PNG, next to its result JSON
+    caption: str
+
+
+def evidence_path(doc: dict) -> str:
+    """Repo-relative path of a result's JSON, the evidence for everything shown from it."""
+    return doc["_path"].relative_to(ROOT).as_posix()
+
+
+def figures(doc: dict) -> list[Figure]:
+    """The figures a result lists: {"figures": [{"file": "<stem>.<tag>.png", "caption": "..."}]}, PNGs next to the JSON.
+
+    The field is optional (results written before figures existed have none)."""
+    out = []
+    for f in doc.get("figures") or []:
+        name = str(f.get("file", "")) if isinstance(f, dict) else ""
+        if not name or "/" in name or "\\" in name or not name.lower().endswith(".png"):
+            continue
+        out.append(Figure((doc["_path"].parent / name).relative_to(ROOT).as_posix(), str(f.get("caption", "")).strip()))
+    return out
+
+
+def owner_login(raw_owner) -> str | None:
+    """GitHub login of a block's owner, or None while it is unclaimed (TBD) or not a login."""
+    o = str(raw_owner or "TBD").strip().lstrip("@")
+    return o if o.upper() != "TBD" and LOGIN.match(o) else None
 
 
 def _worst(spec, nums: list[float]) -> float | None:
@@ -141,6 +185,7 @@ def _spec_rows(b, view: str, docs: list[dict]) -> list[SpecRow]:
     out = []
     for s in b.specs:
         vals = []
+        pairs: list[tuple[float, dict]] = []
         stale: list[str] = []
         for d in docs:
             if d["view"] != view or d["test"] != s.test:
@@ -149,6 +194,8 @@ def _spec_rows(b, view: str, docs: list[dict]) -> list[SpecRow]:
                 continue
             v = d["_judged"]["specs"].get(s.id, {})
             vals.append((v.get("value"), v.get("pass")))
+            if isinstance(v.get("value"), (int, float)):
+                pairs.append((v["value"], d))
             stale += [f for f in d["_judged"]["stale"] if f not in stale]
         need = len(corner_set(s.corners))
         nums = [x for x, _ in vals if isinstance(x, (int, float))]
@@ -156,8 +203,10 @@ def _spec_rows(b, view: str, docs: list[dict]) -> list[SpecRow]:
             status = "mc" if s.mc else "none"
         else:
             status = "pass" if all(p for _, p in vals) else "fail"
+        worst = _worst(s, nums)
+        ev = next((evidence_path(d) for x, d in pairs if x == worst), None) if worst is not None else None
         out.append(SpecRow(s.id, s.name, s.limit_text().replace("<=", "≤").replace(">=", "≥"), s.unit,
-                           s.test, view, s.corners, _worst(s, nums), status, len(vals), need, stale, s.mc))
+                           s.test, view, s.corners, worst, status, len(vals), need, stale, s.mc, ev))
     return out
 
 

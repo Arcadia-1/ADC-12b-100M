@@ -9,7 +9,7 @@ from urllib.parse import unquote
 
 from markdown_it import MarkdownIt
 
-from .data import DOCS, ROOT
+from .data import ROOT, docs
 
 
 def slug(text: str) -> str:
@@ -27,7 +27,7 @@ class Links:
 
     def __init__(self, repo: str, sha: str, root_prefix: str):
         self.repo, self.sha, self.root = repo, sha, root_prefix
-        self.pages = {f: slug_ for f, slug_, _, _ in DOCS}
+        self.pages = {f: slug_ for f, slug_, _, _ in docs()}
         self.problems: list[str] = []
 
     def github(self, rel: str, is_dir: bool) -> str:

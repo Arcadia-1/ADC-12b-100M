@@ -11,6 +11,11 @@ they are published next to the pages under `repo/` (same `design/` layout, so th
 `@USE-PACKAGE` paths resolve); `--netlist-base raw` points the viewer at commit-pinned
 raw.githubusercontent.com URLs instead.
 
+The standalone viewer opens the design through a manifest (manifests/<netlist>.json, written here with
+the SHA-256 of every file) so that the whole project, with its RNL library, is one library in the viewer.
+Results link to their JSON on GitHub at the built commit and show their figures (PNGs next to the JSON).
+The build fails if the process vendor's name appears anywhere in the output (sitegen/guard.py).
+
 Nothing here needs a simulation server or a PDK; only files of the repository are read.
 """
 
@@ -26,11 +31,9 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from sitegen import linkcheck, render                       # noqa: E402
-from sitegen.data import DOCS, ROOT, build_info, collect_blocks   # noqa: E402
+from sitegen import guard, linkcheck, manifest, render      # noqa: E402
+from sitegen.data import ROOT, build_info, collect_blocks, docs, figures   # noqa: E402
 from sitegen.md import Links, render as md_render, split_title   # noqa: E402
-
-PUBLISH = {"design": {".scs", ".rnl", ".va", ".vams"}, "tb": {".scs", ".va", ".vams"}}
 
 
 def write(out: Path, rel: str, text: str) -> None:
@@ -41,14 +44,31 @@ def write(out: Path, rel: str, text: str) -> None:
 
 def publish_netlists(out: Path) -> int:
     n = 0
-    for top, suffixes in PUBLISH.items():
-        for f in sorted((ROOT / top).rglob("*")):
-            if f.is_file() and f.suffix in suffixes:
-                dst = out / "repo" / f.relative_to(ROOT)
-                dst.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(f, dst)
-                n += 1
+    for rel in manifest.netlist_files():
+        dst = out / "repo" / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / rel, dst)
+        n += 1
     return n
+
+
+def publish_figures(out: Path, data) -> tuple[int, list[str]]:
+    """Copy the PNGs the results list (results/<block>/<test>/<view>/<stem>.<tag>.png) to the same paths in the site."""
+    n, problems, seen = 0, [], set()
+    for bd in data.values():
+        for doc in bd.docs:
+            for fig in figures(doc):
+                if fig.rel in seen:
+                    continue
+                seen.add(fig.rel)
+                src = ROOT / fig.rel
+                if not src.is_file():
+                    problems.append(f"{doc['_path'].relative_to(ROOT).as_posix()}: figure {src.name} is listed but does not exist")
+                    continue
+                (out / fig.rel).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(src, out / fig.rel)
+                n += 1
+    return n, problems
 
 
 def build(out: Path, netlist_base: str, base_url: str) -> list[str]:
@@ -59,7 +79,11 @@ def build(out: Path, netlist_base: str, base_url: str) -> list[str]:
         netlist_base = f"https://raw.githubusercontent.com/{info.repo}/{info.sha}/"
     elif netlist_base == "pages":
         netlist_base = "repo/"
-    site = render.Site(info, netlist_base, base_url.rstrip("/") + "/" if base_url else "")
+    base_url = base_url.rstrip("/") + "/" if base_url else ""
+    # where the viewer fetches the files a manifest lists from: the commit-pinned raw base, or the published repo/ of the
+    # deployed site; with neither (a plain local build) the full-viewer links open the single netlist instead
+    files_base = netlist_base if netlist_base.startswith("http") else (base_url + netlist_base if base_url else "")
+    site = render.Site(info, netlist_base, base_url, manifests=bool(files_base))
     data = collect_blocks()
     problems: list[str] = []
 
@@ -70,7 +94,7 @@ def build(out: Path, netlist_base: str, base_url: str) -> list[str]:
     write(out, ".nojekyll", "")
 
     rendered = {}
-    for f, slug_, title, _ in DOCS:
+    for f, slug_, title, _ in docs():
         if slug_ == "readme":
             continue                                   # the overview replaces it; links to it go to index.html
         text = (ROOT / f).read_text(encoding="utf-8")
@@ -93,9 +117,20 @@ def build(out: Path, netlist_base: str, base_url: str) -> list[str]:
     n = 0
     if not netlist_base.startswith("http"):
         n = publish_netlists(out)
+    nfig, bad = publish_figures(out, data)
+    problems += bad
+    nman = 0
+    if files_base:
+        entries = sorted({f["path"] for bd in data.values() for f in bd.files} | {"design/top/adc_top.scs"})
+        problems += manifest.write_all(out, [(e, None) for e in entries],
+                                       manifest.file_entries(info.sha, from_git=netlist_base.startswith("http")),
+                                       files_base, info.repo, info.sha)
+        nman = len(entries)
     problems += linkcheck.check(out)
+    problems += guard.check(out)
     pages = len(list(out.rglob("*.html")))
-    print(f"built {pages} pages, {n} netlist files -> {out}   (netlists: {netlist_base or 'none'})")
+    print(f"built {pages} pages, {n} netlist files, {nman} manifests, {nfig} figures -> {out}   "
+          f"(netlists: {netlist_base or 'none'})")
     return problems
 
 
