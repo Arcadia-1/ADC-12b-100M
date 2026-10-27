@@ -86,3 +86,34 @@ def test_netlist_parser_reads_views():
     nl = parse(REPO_ROOT / "design" / "behav" / "adc_comp.scs")
     assert nl.subckts["adc_comp"].ports == blocks()["adc_comp"].port_names
     assert {i.master for i in nl.subckts["adc_comp"].instances} >= {"adc_comp_va", "capacitor"}
+
+
+# the forbidden process names are assembled from pieces so this file stays clean
+NAME_EXAMPLES = ["TS" + "MC 28 nm", "CRN28" + "HPC+ULL models", "台" + "积电", "ts" + "mc28"]
+
+
+@pytest.mark.parametrize("text", NAME_EXAMPLES)
+def test_process_names_are_caught(text):
+    assert checks.find_names(text)
+
+
+def test_process_names_allow_plain_process():
+    assert checks.find_names("28 nm HPC+ (0.9 V / 1.8 V), 工艺角") == []
+
+
+@pytest.mark.parametrize("old,new,author,ok", [
+    ("TBD", "alice", "alice", True),            # claim
+    ("TBD", "Alice", "alice", True),            # logins are case-insensitive
+    ("alice", "TBD", "alice", True),            # release
+    ("TBD", "bob", "alice", False),             # claim for someone else
+    ("alice", "bob", "bob", False),             # take over a claimed block
+    ("alice", "TBD", "bob", False),             # release someone else's claim
+    ("alice", "alice", "bob", True),            # unchanged
+    (None, "TBD", "bob", True),                 # new block file, unclaimed
+])
+def test_owner_change_rules(old, new, author, ok):
+    assert checks.owner_change_allowed(old, new, author) is ok
+
+
+def test_owners_in_repo_are_valid():
+    assert checks.check_owners().errors == []

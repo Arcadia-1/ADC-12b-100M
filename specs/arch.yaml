@@ -6,7 +6,7 @@
 version: 0.2.0
 
 process:
-  name: TSMC 28nm HPC+ (CRN28HPC+ULL models)
+  name: 28 nm HPC+
   vdd_core: 0.9          # V, thin-oxide core supply (AVDD, DVDD)
   vdd_io: 1.8            # V, thick-oxide supply (AVDD18, reference driver only)
   supply_tolerance: 0.10 # +/-10 % in the corner set

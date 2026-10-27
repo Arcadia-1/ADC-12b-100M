@@ -10,12 +10,18 @@ results  recorded results (results/**.json) are re-judged with the current
          limits; results whose files changed since the simulation are stale;
          blocks in status `signoff` need passing, fresh results for every spec
          in its required corner set.
-hygiene  nothing site specific (servers, server paths, shell setup, PDK paths)
-         and no model cards or large binaries in tracked files.
+owners   `owner:` of every block spec is `TBD` or a GitHub login. With --base and
+         --author (CI, pull requests) a change of an owner is only allowed from
+         `TBD` to the author's own login or from the author back to `TBD`;
+         changes by the repository owner are exempt.
+hygiene  nothing site specific (servers, server paths, shell setup, PDK paths),
+         no foundry name or PDK product code, and no model cards or large
+         binaries in tracked files.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import shutil
@@ -240,6 +246,41 @@ FORBIDDEN = [
 ]
 HYGIENE_SKIP = {"site.example.yaml"}
 
+# Names that must not appear anywhere in tracked files (the process is only ever
+# called "28 nm HPC+"). Stored as sha256 of the lowercased word, so this file does
+# not contain them either; words are letter runs, letter+digit runs and, for CJK
+# text, windows of 2-3 characters.
+NAME_HASHES = {
+    "17b7a45dc3a95bfd7c0d4c5963b75f2bd2c962eb04b50d50c086c3dc2e260fea": "foundry name",
+    "b8b8592c26c3594b3a48e95893d392f5611f8b0dad7432a200688eae3710bf4c": "PDK product code",
+    "7ad9114a6ee73402a554f6d7b2d8396457ef3344f2d8cb75ad2a5b10879b67c2": "foundry name",
+    "e3f496390767e61726899aca851e7c18e0ef0cdb97dceb6cdcce851550b4921b": "foundry name",
+}
+
+
+def _words(line: str):
+    low = line.lower()
+    for m in re.finditer(r"[a-z]+", low):
+        yield m.group()
+    for m in re.finditer(r"[a-z0-9]+", low):
+        yield m.group()
+    for m in re.finditer(f"[{chr(0x3400)}-{chr(0x9fff)}]+", low):
+        run = m.group()
+        for n in (2, 3):
+            for i in range(len(run) - n + 1):
+                yield run[i:i + n]
+
+
+def find_names(text: str) -> list[tuple[int, str]]:
+    """(line, what) for every forbidden process / foundry name in text."""
+    hits = set()
+    for n, line in enumerate(text.splitlines(), 1):
+        for w in _words(line):
+            what = NAME_HASHES.get(hashlib.sha256(w.encode()).hexdigest())
+            if what:
+                hits.add((n, what))
+    return sorted(hits)
+
 
 def _site_literals() -> list[tuple[str, str]]:
     """Exact strings of the local site config (host, paths, PDK files), if present."""
@@ -276,6 +317,8 @@ def check_hygiene() -> Report:
             text = f.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue
+        for n, what in find_names(text):
+            r.err(f"{rel}:{n}: {what} must not be committed (write \"28 nm HPC+\")")
         for pat, what in patterns:
             for m in re.finditer(pat, text, flags=re.MULTILINE | re.IGNORECASE):
                 if rel == "tools/adcflow/checks.py" and what != "site-specific string from the site config":
@@ -285,7 +328,46 @@ def check_hygiene() -> Report:
     return r
 
 
-def run_checks(what: str = "all", strict: bool = False) -> int:
+# ------------------------------------------------------------------ owners
+REPO_OWNER = "many-question"
+LOGIN = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$")
+
+
+def _owner_of(text: str | None) -> str | None:
+    if text is None:
+        return None
+    return str((yaml.safe_load(text) or {}).get("owner", "TBD")).strip()
+
+
+def owner_change_allowed(old: str | None, new: str | None, author: str) -> bool:
+    """Claim (TBD -> author) or release (author -> TBD); anything else needs the repository owner."""
+    old, new = old or "TBD", new or "TBD"
+    if old == new:
+        return True
+    a = author.lower()
+    return (old == "TBD" and new.lower() == a) or (old.lower() == a and new == "TBD")
+
+
+def check_owners(base: str | None = None, author: str | None = None) -> Report:
+    r = Report("owners")
+    paths = sorted((REPO_ROOT / "specs" / "blocks").glob("*.yaml"))
+    for p in paths:
+        rel = p.relative_to(REPO_ROOT).as_posix()
+        new = _owner_of(p.read_text(encoding="utf-8"))
+        if new != "TBD" and not LOGIN.match(new):
+            r.err(f"{rel}: owner {new!r} must be TBD or a GitHub login")
+        if not base or not author or author.lower() == REPO_OWNER:
+            continue
+        show = subprocess.run(["git", "show", f"{base}:{rel}"], cwd=REPO_ROOT, capture_output=True, text=True)
+        old = _owner_of(show.stdout) if show.returncode == 0 else None
+        if not owner_change_allowed(old, new, author):
+            r.err(f"{rel}: owner changed {old or 'TBD'} -> {new}; a pull request may only set TBD -> its "
+                  f"author ({author}) or the author -> TBD, other changes are made by {REPO_OWNER}")
+    return r
+
+
+def run_checks(what: str = "all", strict: bool = False, base: str | None = None,
+               author: str | None = None) -> int:
     from .gen import generate
 
     reports = []
@@ -297,6 +379,8 @@ def run_checks(what: str = "all", strict: bool = False) -> int:
         reports.append(check_results(strict))
     if what in ("hygiene", "all"):
         reports.append(check_hygiene())
+    if what in ("owners", "all"):
+        reports.append(check_owners(base, author))
     for rep in reports:
         rep.print()
     rc = 1 if any(rep.errors for rep in reports) else 0
