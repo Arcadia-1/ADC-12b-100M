@@ -23,13 +23,15 @@ python site/build.py --serve                  # 构建并在 http://127.0.0.1:80
 | 验证 | `adcflow.checks.load_results` / `judge`：用当前限值重新判定每个结果文件，哈希不一致标“过期” |
 | 模块 | 端口、指标、用例来自 `specs/blocks/<block>.yaml`；原理图来自该模块的视图与测试台网表 |
 | 文档 | `docs/*.md`、`CONTRIBUTING.md`（仓库内链接改写成站内页面或 GitHub 链接） |
+| 负责人 | 每个 `specs/blocks/<block>.yaml` 的 `owner:`：GitHub 用户名显示为 `@用户名`（链到其主页），`TBD` 显示“待认领”并链到协作流程；旁边链到标题以 `[<block>]` 开头的进行中 PR（GitHub 搜索） |
+| 协作入口 | 顶栏“参与协作”和首页的协作区：链到渲染后的 `CONTRIBUTING.md`，并给出可复制的原始地址（`raw.githubusercontent.com/.../main/CONTRIBUTING.md`），交给自己的 agent 即可；文件不存在时入口自动隐藏 |
 
 模块状态变化（例如 `design/xtor/<block>/` 出现网表、`status` 变为 `xtor-wip`）后，重新构建即可，页面不需要手改。
 
 ## 原理图
 
 原理图由托管的 RNL 网页查看器（<https://rich-netlist.github.io/rnl/viewer/>）绘制：页面里嵌入 `viewer/?embed=1&url=<网表地址>`，
-切换网表用 `postMessage`；“完整查看器”按钮直接打开 `viewer/?url=<网表地址>`。查看器是从浏览器里去取网表的，所以网表必须能被
+切换网表用 `postMessage`；“完整查看器”按钮用清单打开整个设计（见下）。查看器是从浏览器里去取网表的，所以网表必须能被
 浏览器通过 HTTPS 访问，并允许跨域（CORS）；`@USE-PACKAGE(path="../rnl/adc28.rnl")` 这类相对路径要求保持 `design/` 的目录结构。
 
 | `--netlist-base` | 网表位置 | 用途 |
@@ -41,6 +43,33 @@ python site/build.py --serve                  # 构建并在 http://127.0.0.1:80
 本地用默认的 `pages` 模式时，网表由本机 `127.0.0.1` 提供，而查看器页面在 `https://` 上：新版 Chrome 会拦截公网页面访问本机地址
 （“本地网络访问”权限），此时在地址栏允许该权限，或者改用 `--netlist-base raw`。`--serve` 已经给出 CORS 头。
 
+### 完整查看器与清单（manifest）
+
+“完整查看器”链接（顶栏、概览、各模块的查看器）不是直接打开单个网表，而是打开 `viewer/?manifest=<清单地址>`。每个网表一个清单，
+写在站点的 `manifests/<网表>.json`（格式 1，见 RNL 仓库 `apps/web/README.md` 的 External manifests）：列出 `design/`、`tb/` 下全部
+网表和 RNL 文件（`design/rnl/adc28.rnl` 和生成的模块符号、Verilog-A 符号文件，`pool` 按这个顺序），每个文件带 SHA-256 和大小，
+`base` 指向文件的位置（上表的 `pages` 或 `raw`）。查看器按清单把整个设计放进它的库里，所以顶层原理图能逐层展开、符号都能解析。
+清单里的哈希来自构建所用的提交（`raw` 模式取 git 里提交的内容），查看器会逐个校验。
+
+没有可用的文件地址时（本地默认构建，既没有 `--base-url` 也不是 `raw`），清单不生成，链接退回打开单个网表。
+
+### 嵌入式查看器里的“使用框”（usages）
+
+RNL 嵌入式查看器（`embed=1`）目前没有关闭使用框的参数（`embed`、`url`、`manifest`、`level`、`background`、`grid`、`names`、`origin`
+之外没有别的），清单的 `display.usages` 也只对完整查看器生效。要让嵌入默认不画使用框，需要上游查看器先提供这个选项。
+
+## 验证结果的证据与图
+
+* 页面里每个结果都链到它的证据文件：GitHub 上构建提交里的 `results/<block>/<test>/<view>/<corner>.json`（规格表里是“最差值”所在的结果文件，
+  工艺角明细里是每个结果文件）；概览的行为级 ENOB 也一样。
+* 结果 JSON 可以带图：`"figures": [{"file": "<stem>.<tag>.png", "caption": "..."}]`，PNG 放在 JSON 旁边。页面显示缩略图和说明，点击放大；
+  PNG 会被复制到站点的相同路径（`results/.../*.png`）。没有 `figures` 字段的结果照常显示；列出了但文件不存在会让构建失败。
+
+## 工艺名称检查
+
+站点只写“28 nm HPC+”。构建最后会扫描输出里所有文本文件（页面、脚本、发布的网表和 RNL、清单），发现工艺厂名称就失败
+（`sitegen/guard.py`；检查代码里只存名称的哈希，源码里没有明文）。仓库里别处的出现要在源文件里清掉。
+
 ## 文件
 
 ```
@@ -50,6 +79,8 @@ site/
   sitegen/render.py    各页面的 HTML
   sitegen/md.py        Markdown → HTML（标题锚点、仓库内链接改写）
   sitegen/linkcheck.py 构建后的内链与锚点检查
+  sitegen/manifest.py  查看器清单（每个网表一个，带 SHA-256）
+  sitegen/guard.py     输出里不得出现工艺厂名称（只存哈希）
   static/style.css     样式（明 / 暗主题，手机与桌面）
   static/app.js        主题切换与原理图查看器的嵌入逻辑
 ```

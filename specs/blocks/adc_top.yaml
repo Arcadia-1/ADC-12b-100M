@@ -1,7 +1,7 @@
 block: adc_top
 title: 12-bit-class 100 MS/s asynchronous SAR ADC (top level)
 version: 0.2.0
-owner: project lead
+owner: many-question
 status: behavioral
 views:
   struct: design/top/adc_top.scs        # structural: same file for every block view

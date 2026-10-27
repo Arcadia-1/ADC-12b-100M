@@ -71,7 +71,8 @@ python -m adcflow clean-remote --older-than-h 12   # 清理服务器上本项目
 1. `design/xtor/<block>/<block>.scs`：子电路名、端口与规格一致，完整 RNL 原理图与语义。
 2. 本模块全部用例：`--view <block>=xtor --corners all`（规格要求 `mc` 的用例另跑蒙特卡洛）。
 3. 顶层混合仿真：`python -m adcflow sim tb_top_sine --view <block>=xtor --corners quick`。
-4. 提交网表与 `results/`，规格状态改为 `xtor-review`，发 PR；负责人复核后改为 `signoff`。
+4. 提交网表与 `results/`，规格状态改为 `xtor-review`，PR 标题以 `[<block>]` 开头；模块负责人（认领者，`owner:`）发 PR，
+   项目负责人（`many-question`）复核、合并，并把状态改为 `signoff`。
 
 ## 6. 服务器使用规则
 

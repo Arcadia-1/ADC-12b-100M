@@ -1,4 +1,4 @@
-/* Theme toggle and the embedded RNL schematic viewer. No dependencies. */
+/* Theme toggle, the embedded RNL schematic viewer, copy buttons and the figure lightbox. No dependencies. */
 (function () {
   "use strict";
   var VIEWER = "https://rich-netlist.github.io/rnl/viewer/";
@@ -27,9 +27,15 @@
   var meta = document.querySelector('meta[name="netlist-base"]');
   var base = new URL(meta ? meta.content : "repo/", document.baseURI).href;
   function netlistUrl(path) { return new URL(path, base).href; }
+  /* the standalone viewer opens the design through a manifest (manifests/<netlist>.json, see site/sitegen/manifest.py);
+     a build that has no address for the files falls back to the single netlist */
+  var mfMeta = document.querySelector('meta[name="manifest-base"]');
+  var mfBase = mfMeta ? new URL(mfMeta.content, document.baseURI).href : null;
+  function mfName(path) { return path.replace(/\.[^./]+$/, "").replace(/\//g, "-"); }
   function fullLink(path, level) {
-    var u = VIEWER + "?url=" + encodeURIComponent(netlistUrl(path));
-    return level ? u + "&level=" + encodeURIComponent(level) : u;
+    var lv = level ? "&level=" + encodeURIComponent(level) : "";
+    if (mfBase) return VIEWER + "?manifest=" + encodeURIComponent(new URL(mfName(path) + ".json", mfBase).href) + lv;
+    return VIEWER + "?url=" + encodeURIComponent(netlistUrl(path)) + lv;
   }
   document.querySelectorAll("[data-top-viewer]").forEach(function (a) {
     a.href = fullLink("design/top/adc_top.scs", "adc_top");
@@ -136,4 +142,48 @@
     }
   }
   document.querySelectorAll(".viewer").forEach(initViewer);
+
+  /* ---------- copy buttons */
+  document.querySelectorAll("[data-copy]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var text = b.dataset.copy, label = b.textContent;
+      function done(ok) {
+        b.textContent = ok ? "已复制" : "请手动复制";
+        setTimeout(function () { b.textContent = label; }, 1800);
+      }
+      function fallback() {
+        var t = document.createElement("textarea");
+        t.value = text; t.style.position = "fixed"; t.style.opacity = "0";
+        document.body.appendChild(t); t.select();
+        var ok = false;
+        try { ok = document.execCommand("copy"); } catch (e) {}
+        t.remove(); done(ok);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
+      else fallback();
+    });
+  });
+
+  /* ---------- figure lightbox: a click on a thumbnail shows the PNG large; without JavaScript the link opens the file */
+  var box = null;
+  function lightbox() {
+    if (box) return box;
+    box = document.createElement("dialog");
+    box.className = "lightbox";
+    box.innerHTML = '<img alt=""><p></p><button type="button" class="btn small" aria-label="关闭">关闭 ✕</button>';
+    box.addEventListener("click", function (e) { if (e.target !== box.querySelector("img")) box.close(); });
+    document.body.appendChild(box);
+    return box;
+  }
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("a[data-zoom]");
+    if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    var d = lightbox();
+    if (!d.showModal) return;                       // very old browser: follow the link
+    e.preventDefault();
+    var img = d.querySelector("img");
+    img.src = a.href; img.alt = a.dataset.caption || "";
+    d.querySelector("p").textContent = a.dataset.caption || "";
+    d.showModal();
+  });
 })();

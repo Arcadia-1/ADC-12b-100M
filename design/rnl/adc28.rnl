@@ -2,8 +2,8 @@
    Every netlist of design/ and tb/ uses it in its header record:
      @USE-PACKAGE(name="adc28", version="0.1", path="<relative>/design/rnl/adc28.rnl")
    It brings the standard full package, the generated block / Verilog-A
-   symbols, the terminal names of the TSMC 28 nm devices (the model cards stay
-   on the server, so RNL cannot read their polarity), the symbol rules of those
+   symbols, the terminal names of the 28 nm HPC+ devices (the model cards are not
+   in the repository, so RNL cannot read their polarity), the symbol rules of those
    devices and the project styles. */
 @RNL(type="header") {
   @VERSION("0.3");

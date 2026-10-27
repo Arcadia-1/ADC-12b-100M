@@ -2,13 +2,13 @@
 
 > 版本 0.2.0（`specs/arch.yaml` v0.2.0；相对 v0.1 只改了冗余分配，见 §2.3 与 `docs/reference.md`）。本文中的数字全部来自 `specs/arch.yaml`
 > 与系统级模型 `tools/adcflow/model.py`；表格可用 `python -m adcflow budget` 重新生成。
-> 修改架构参数必须走带 `arch` 标签的 PR（见 `CONTRIBUTING.md`）。
+> 修改架构参数必须走带 `arch` 标签的 PR（见 `CONTRIBUTING.md` 第 5 节：先开 issue，由项目负责人决定）。
 
 ## 1. 指标与设计目标
 
 | 项目 | 要求 | 设计目标 / 结论 |
 |---|---|---|
-| 工艺 | TSMC 28 nm HPC+ (ULL 模型) | 核心器件 0.9 V（ulvt/lvt），1.8 V 厚栅器件只用于参考驱动 |
+| 工艺 | 28 nm HPC+ | 核心器件 0.9 V（ulvt/lvt），1.8 V 厚栅器件只用于参考驱动 |
 | 电源 | 0.9 V / 1.8 V | AVDD、DVDD = 0.9 V；AVDD18 = 1.8 V；所有工艺角 ±10 % |
 | 采样率 | 100 MS/s | 单一 CLK，高电平采样（≥ 4.5 ns），低电平保持 + 转换（≥ 4.5 ns） |
 | 量化位数 | > 12 bit（含冗余） | 14 次比较、14 位原始码，4540 个码（12.15 bit），LSB = 437.5 µV |

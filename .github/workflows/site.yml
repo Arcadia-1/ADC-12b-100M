@@ -1,7 +1,7 @@
 name: site
 
 # Builds the project website (site/) from the repository: needs only the repo, no simulation server, no PDK.
-#   pull_request : build (fails on build errors or broken links), upload the site as an artifact
+#   pull_request : build (fails on build errors, broken links or the process vendor's name in the output), upload the site as an artifact
 #   push to main : build, deploy to GitHub Pages (repository setting: Pages > Source = GitHub Actions)
 
 on:
@@ -25,6 +25,9 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0              # tags and dates for the progress page
+          # a pull request is built from its head commit, not the merge commit: the viewer manifests carry the SHA-256 of the
+          # files as raw.githubusercontent.com serves them at that commit
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
