@@ -493,7 +493,6 @@ def overview(site: Site, data: dict[str, BlockData]) -> str:
 <a class="btn primary big" data-top-viewer href="{esc(top_href)}" target="_blank" rel="noopener">打开顶层原理图 adc_top ↗</a>
 <a class="btn big" href="verification.html">验证结果</a><a class="btn big" href="progress.html">模块进展</a></div>
 </section>
-{collab_sec}
 <section><h2 id="numbers">关键数字</h2><div class="stats">{stats}</div>{enob_figs}{health}</section>
 <section><h2 id="top">顶层原理图</h2>
 {viewer(site, [f for f in data['adc_top'].files if f['kind'] in ('struct', 'behav')] or data['adc_top'].files, 'v-top', 520,
@@ -504,7 +503,8 @@ def overview(site: Site, data: dict[str, BlockData]) -> str:
 <div><div class="table-wrap"><table class="kv"><tbody>{arch_html}</tbody></table></div>
 <p><a href="docs/architecture.html">完整架构文档 →</a> · <a href="docs/reference.html">参考电压研究 →</a></p></div>
 <div><h3>CDAC 权重与冗余</h3>{cdac_table(a)}</div></div></section>
-<section><h2 id="blocks">模块</h2><div class="cards">{cards}</div></section>"""
+<section><h2 id="blocks">模块</h2><div class="cards">{cards}</div></section>
+{collab_sec}"""
     return page(site, title="概览", body=body, active="index", root="", wide=True)
 
 

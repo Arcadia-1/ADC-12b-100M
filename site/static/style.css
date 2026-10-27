@@ -260,7 +260,6 @@ tr.figrow td > code { font-size: .82rem; }
   .bar { padding: 6px 12px; gap: 8px; }
   .brand b { display: none; }
   .hide-sm { display: none; }
-  nav a.nav-collab { order: -1; }                 /* first on a phone: the nav scrolls, this entry must be seen */
   main { padding: 16px 16px 48px; }
   .viewer-frame { height: min(var(--vh, 460px), 62vh); }
   th, td { padding: 7px 9px; }
