@@ -233,7 +233,9 @@ nav a.nav-collab:hover, nav a.nav-collab.on { background: var(--accent); color: 
 .copyline code { flex: 1 1 280px; min-width: 0; padding: 7px 11px; font-size: .88rem; overflow-wrap: anywhere; }
 .unclaimed { color: var(--warn); font-weight: 600; }
 .ev { font-size: .84rem; white-space: nowrap; }
-.ev-cell { white-space: nowrap; }
+.ev-cell { white-space: nowrap; min-width: 9em; }
+.prov { display: block; white-space: normal; font-size: .76rem; line-height: 1.4; max-width: 17em; }
+.stat .s .prov { display: block; max-width: none; margin-top: 2px; }
 table.specs td code, table.detail th code { white-space: nowrap; overflow-wrap: normal; }
 .figs { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 4px; }
 .figs figure { margin: 0; width: 168px; }
