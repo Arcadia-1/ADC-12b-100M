@@ -1,6 +1,6 @@
 # ADC-12b-100M
 
-12-bit-class, 100 MS/s asynchronous SAR ADC in TSMC 28 nm HPC+ (0.9 V / 1.8 V), designed as
+12-bit-class, 100 MS/s asynchronous SAR ADC in 28 nm HPC+ (0.9 V / 1.8 V), designed as
 **Spectre netlists with RNL (Rich Netlist) schematics** — no schematic editor, only netlists,
 Verilog-A behavioral models, Python tooling and Spectre.
 
@@ -41,4 +41,9 @@ python -m adcflow sim tb_top_sine         # full behavioral ADC on the server
 python -m adcflow report
 ```
 
-See `CONTRIBUTING.md` for the branch / review / sign-off process.
+## Join a block
+
+The transistor-level design of the blocks is open to outside contributors. Read
+[`CONTRIBUTING.md`](CONTRIBUTING.md) (Chinese, with an English summary): it explains how to claim one
+unclaimed block with a pull request, what you may change, how to run the acceptance tests, and the
+review / sign-off process. Project site: <https://many-question.github.io/ADC-12b-100M/>.

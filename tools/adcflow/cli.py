@@ -21,8 +21,10 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--check", action="store_true", help="fail if a generated file is out of date")
 
     k = sub.add_parser("check", help="CI checks")
-    k.add_argument("what", choices=["ports", "rnl", "results", "hygiene", "all"], nargs="?", default="all")
+    k.add_argument("what", choices=["ports", "rnl", "results", "hygiene", "owners", "all"], nargs="?", default="all")
     k.add_argument("--strict", action="store_true", help="results: require sign-off evidence for signoff blocks")
+    k.add_argument("--base", help="owners: git ref of the pull request base")
+    k.add_argument("--author", help="owners: GitHub login of the pull request author")
 
     s = sub.add_parser("sim", help="run a block test on the simulation server")
     s.add_argument("test", help="test id, e.g. tb_comp_delay")
@@ -62,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
         return generate(a.what, check=a.check)
     elif a.cmd == "check":
         from .checks import run_checks
-        return run_checks(a.what, strict=a.strict)
+        return run_checks(a.what, strict=a.strict, base=a.base, author=a.author)
     elif a.cmd == "sim":
         from .runner import run_test_cli
         return run_test_cli(a)

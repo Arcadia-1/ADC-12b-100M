@@ -4,6 +4,11 @@
 彼此只通过规格中的端口和负载条件耦合。每个模块的完整规格在 [`docs/specs.md`](specs.md)，
 流程见 [`CONTRIBUTING.md`](../CONTRIBUTING.md) 与 [`docs/workflow.md`](workflow.md)。
 
+**认领与角色**：模块**负责人**（模块 owner）是认领该模块、其认领 PR 已被合并的 GitHub 用户，记在
+`specs/blocks/<block>.yaml` 的 `owner:`（`TBD` 表示未认领）；认领方式是发标题为 `[<block>] claim` 的 PR，
+只把 `owner:` 改成自己的登录名。**项目负责人**是 `many-question`，负责架构、规格、测试台、评审与合并。
+模块负责人只改自己模块的晶体管级网表、RNL 和结果；接口、规格、测试台或其它模块的改动先开 issue 由项目负责人决定。
+
 ## 总览
 
 | 模块 | 关键指标 | 主要风险 | 依赖 / 交互 | 建议人选侧重 |
@@ -23,7 +28,7 @@
 * 每个网表带**完整**的 RNL 原理图（精确的 PLACE / ORIENT / WIRE，`rnl check` 0 错误 0 警告 0 提示）
   和**高层语义**（`$DIFFERENTIAL_PAIR`、`$CURRENT_MIRROR`、`$MATCHED`、`$BRANCH`、`@GROUP` 等），方便评审。
 * 验收：本模块全部用例 `--view <block>=xtor --corners all`，再做顶层混合仿真（其余模块行为级）。
-* 不得修改其它模块、测试台或规格；需要改接口时先在 issue 中与负责人讨论。
+* 不得修改其它模块、测试台或规格；需要改接口时先在 issue 中与项目负责人（`many-question`）讨论。
 
 ## 各模块要点
 
@@ -74,5 +79,5 @@
 
 1. 同时启动：`adc_comp`、`adc_sarlogic`（共同决定转换时间），`adc_cdac` + `adc_bootstrap`（共同决定线性度，
    两人需对齐输入开关的栅电容与导通电阻），`adc_ref`、`adc_clkgen`（相对独立）。
-2. 每个模块通过自己的验收后，负责人逐个替换进顶层（`--view <block>=xtor`）跑 `tb_top_sine` quick 角。
-3. 全部替换后跑 45 角顶层回归，签核。
+2. 每个模块通过自己的验收后，项目负责人逐个替换进顶层（`--view <block>=xtor`）跑 `tb_top_sine` quick 角。
+3. 全部替换后跑 45 角顶层回归，签核（项目负责人）。
