@@ -1,7 +1,7 @@
 block: adc_sarlogic
 title: Asynchronous SAR controller, bit registers and output register
 version: 0.1.0
-owner: TBD
+owner: Arcadia-1
 status: behavioral
 views:
   behav: design/behav/adc_sarlogic.scs
